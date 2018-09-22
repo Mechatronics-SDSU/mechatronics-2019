@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+message PMUD {
+    float voltage = 1;
+    float current = 2;
+    bool isSafe   = 3;
+    bool kill     = 4;
+}

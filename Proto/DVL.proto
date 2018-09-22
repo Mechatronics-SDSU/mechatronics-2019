@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+message DVL {
+    float up  = 1;
+    float x   = 2;
+    float y   = 3;
+    float err = 4;
+}

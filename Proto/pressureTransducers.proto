@@ -1,0 +1,5 @@
+syntax = "proto3";
+
+message PressureTransducers {
+    float depth = 1;
+}
