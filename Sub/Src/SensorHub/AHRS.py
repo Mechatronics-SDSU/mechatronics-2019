@@ -10,8 +10,9 @@ class AHRS(SensorHubBase):
 
     #TODO
     def receiveData(self):
-        pass
+        #YAW PITCH ROLL
+        self.data = [None, None, None]
 
 if __name__ == "__main__":
     ahrs = AHRS()
-    print(ahrs.type)
+    ahrs.run()

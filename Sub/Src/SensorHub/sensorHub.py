@@ -2,7 +2,7 @@
 SensorHubBase is the parent of all nodes that harvest
 sensor data.
 '''
-class SensorHubBase:
+class SensorHubBase():
 
     '''
     The constructor should be overridden!
@@ -34,7 +34,7 @@ class SensorHubBase:
      - Sensor data in the form of an array
     '''
     def receiveData(self):
-        return None
+        pass
 
     '''
     This method should NOT be overridden!
@@ -69,4 +69,3 @@ class SensorHubBase:
                 self.publishData()
             except Exception as e:
                 print(e) #TODO Actually log the data instead of print!
-
