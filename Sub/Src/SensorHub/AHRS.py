@@ -216,4 +216,4 @@ class AHRS(SensorHubBase):
 if __name__ == "__main__":
     ahrs = AHRS('COM19')
     ahrs.run()
-    print(ahrs.type)
+    print(ahrs.type) 
