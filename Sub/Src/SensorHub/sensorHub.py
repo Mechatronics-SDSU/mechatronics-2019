@@ -57,16 +57,10 @@ class SensorHubBase:
         return False
 
     '''
-    This method should NOT be overridden!
+    This method should be overridden!
     The goal of this method is:
      - Receive data and publish it as fast as possible
      - Logs issues with receiving or publishing data
     '''
     def run(self):
-        while True:
-            try:
-                self.data = self.receiveData()
-                self.publishData()
-            except Exception as e:
-                print(e) #TODO Actually log the data instead of print!
-
+        return none
