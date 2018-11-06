@@ -19,14 +19,14 @@ Throws:
 def packageProtobuf(protoType, data):
     proto = Mechatronics_pb2()
     #TODO May have to cast data to the correct type
-    if protoType == "AHRS":
+    if protoType == "AHRS_DATA":
         if len(data) != 3: # Length of AHRS Message TODO remove hardcoded values
             _raiseTypeException(protoType)
         proto.type       = Mechatronics_pb2.AHRS_DATA #TODO CHECK THIS
         proto.ahrs.yaw   = data[0]
         proto.ahrs.pitch = data[1]
         proto.ahrs.roll  = data[2]
-    elif protoType == "DVL":
+    elif protoType == "DVL_DATA":
         if len(data) != 4:
             _raiseTypeException(protoType)
         proto.type    = Mechatronics_pb2.DVL_DATA
