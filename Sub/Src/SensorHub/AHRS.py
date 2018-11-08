@@ -7,6 +7,8 @@ Description: This module is the driver program for the Sparton AHRS.
 '''
 from sensorHub import SensorHubBase
 import serial
+import time
+import struct
 
 class SpartonAHRSDataPackets:
     '''
@@ -14,7 +16,7 @@ class SpartonAHRSDataPackets:
     It handles the sending values to configure the device and request data specified
     data.
     '''
-    
+
     def __init__(self, com_port):
         '''
         Initializes connection with the AHRS device at a baud rate of 115200.
@@ -38,7 +40,7 @@ class SpartonAHRSDataPackets:
         "auto_magnetic_variation":[0x0F, 5], "latitude":[0x8B, 5],
         "longitude":[0x8C, 5], "altitude":[0x8D, 5], "day":[0x8E, 5],
         "magnetic_vector":[0x04, 11], "raw_acceleration":[0x05, 9],
-        "pitch_roll_output":[0x06, 7], "accleration_vector":[0x07, 11],
+        "pitch_roll":[0x06, 7], "accleration_vector":[0x07, 11],
         "temperature":[0x11, 5], "baud_rate":[0x57, 4],
         "mounting_config":[0x4A, 4]}
 
@@ -46,7 +48,8 @@ class SpartonAHRSDataPackets:
         '''
         Send request to get the raw magnetics from the magnetometers (Mx, My,
         and Mz). These are raw sensor readings and do not yet have any
-        calibration.
+        calibration. Note that this function is really only used for test purposes.
+        NOT PRACTICAL FOR OFFICIAL USE.
 
         Reference: Software-Interface-Manual page 38
 
@@ -58,11 +61,69 @@ class SpartonAHRSDataPackets:
          Parameters:
             N/A
         Returns:
-            N/A
+            raw_magnetics: 6-byte list of raw magnetics.
         '''
-        self.sparton_ahrs_serial.write([0xA4, 0x01, 0xA0])
+        self.ahrs_serial.write(bytearray([0xA4, 0x01, 0xA0]))
         return self._unpack("raw_magnetics")
+    def get_true_heading(self):
+        '''
+        Send request to get the true heading. True heading is the magnetic
+        heading.
 
+        Reference: Software-Interface-Manual page 38.
+
+        Send: 3 Bytes (0xA4, 0x02, 0xA0)
+
+        Responds: 5 Bytes <0xA4, 0x02, <Heading as a 16-bit signed integer>,
+                            0xA0)
+        Heading (degrees) = 16-bit Heading value * (360/4096)
+        Heading Range = 0.0 to + 359.9
+
+        Returns:
+            true_heading: The true heading in degrees from 0.0 to 359.9. If the
+                            data could not be received, return an empty list.
+        '''
+        self.ahrs_serial.write(bytearray([0xA4, 0x02, 0xA0]))
+        true_heading = self._unpack("true_heading")
+
+        if(len(true_heading) == 2):
+            #convert the raw true heading data into degree
+            true_heading = struct.pack('H', (true_heading[0]<<8) | (true_heading[1]))
+            true_heading = struct.unpack('h', true_heading)[0]*(360.0/4096.0)
+        return true_heading
+
+    def get_pitch_roll(self):
+        '''
+        Send request and receive data to get the pitch and roll of the platform.
+
+        Reference: Sofware-Inference-Manual page 42.
+
+        Send: 3 Bytes (0xA4, 0x06, 0xA0)
+
+        Response: 7 Bytes (0xA4, 0x06, Pitch, Roll as 16-bit signed integers, 0xA0)
+
+        Pitch(in degrees) = (Response) * 90/4096
+        Pitch Range: -90 to +90
+
+        Roll (in degrees) = (Response) * 180/4096
+        Acceleration Vector Roll Range = -180 to 180
+
+        Returns:
+            pitch_roll: A list containing the pitch and roll
+        '''
+        self.ahrs_serial.write(bytearray([0xA4, 0x06, 0xA0]))
+        pitch_roll = self._unpack("pitch_roll")
+
+
+        if(len(pitch_roll) == 4):
+            #structs are used to make pitch signed
+            pitch = struct.pack('H', (pitch_roll[0] << 8) | pitch_roll[1])
+            pitch = struct.unpack('h', pitch)[0] * (90.0/4096.0)
+
+            roll = struct.pack('H', (pitch_roll[2] << 8) | pitch_roll[3])
+            roll = struct.unpack('h', roll)[0] * (180.0/4096.0)
+            return [pitch, roll]
+        return []
     def _unpack(self, data_type):
         '''
         Read in the transmission from AHRS and extract all the byts of the
@@ -138,12 +199,19 @@ class AHRS(SensorHubBase):
         Returns:
             N/A
         '''
+
         try:
             while(1):
-                pass
+                #raw_magnetics_test = self.sparton_ahrs.get_raw_magnetics()
+                true_heading = self.sparton_ahrs.get_true_heading()
+                pitch_roll = self.sparton_ahrs.get_pitch_roll()
+                print("True Heading", true_heading)
+                print("[Pitch, Roll]", pitch_roll)
+                time.sleep(0.5)
         except:
             print("AHRS communication shutting down")
 
 if __name__ == "__main__":
-    ahrs = AHRS()
+    ahrs = AHRS('COM19')
+    ahrs.run()
     print(ahrs.type)
