@@ -8,6 +8,7 @@ import "leakDetect.proto";
 //import "thrusterFeedback.proto"; TODO
 import "PMUD.proto";
 import "pneumatics.proto";
+import "guiComm.proto";
 
 enum Type {
     AHRS_DATA            = 0;
@@ -30,4 +31,5 @@ message Mechatronics {
 //    ThrusterFeedback thrusterFeedback = 7; TODO
     PMUD pmud                         = 8;
     Pneumatics pneumatics             = 9;
+    GUIComm guiComm                   = 10;
 }
