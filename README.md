@@ -6,4 +6,7 @@ To Run:
 mkdir build
 cd build
 cmake -DCMAKE_INSTALL_PREFIX:PATH=./ ..
+make
+make install
+cp Proto/*pb2.py install/Proto
 ```
