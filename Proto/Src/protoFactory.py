@@ -7,7 +7,7 @@
 import sys
 sys.path.append("../")
 
-import Mechatronics_pb2 #TODO Check name
+import Mechatronics_pb2
 
 '''
 This function takes in data in a buffer array and a type to then store in a protobuf
