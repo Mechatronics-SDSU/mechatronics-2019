@@ -5,7 +5,7 @@
 '''
 
 import sys
-sys.path.append("PATH_TO_PROTO_PY_FILES")
+sys.path.append("../")
 
 import Mechatronics_pb2 #TODO Check name
 
@@ -17,7 +17,7 @@ Throws:
     Exception if the type does not exist.
 '''
 def packageProtobuf(protoType, data):
-    proto = Mechatronics_pb2()
+    proto = Mechatronics_pb2.Mechatronics()
     #TODO May have to cast data to the correct type
     if protoType == "AHRS_DATA":
         if len(data) != 3: # Length of AHRS Message TODO remove hardcoded values
