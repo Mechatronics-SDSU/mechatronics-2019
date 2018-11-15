@@ -4,8 +4,9 @@
 :Description: Helper class for packaging protocol buffers
 '''
 
+from os.path import dirname, realpath
 import sys
-sys.path.append("../")
+sys.path.append(dirname(realpath(__file__)) + "/../")
 
 import Mechatronics_pb2
 
