@@ -21,9 +21,9 @@ def packageProtobuf(protoType, data):
     proto = Mechatronics_pb2.Mechatronics()
     #TODO May have to cast data to the correct type
     if protoType == "AHRS_DATA":
-        if len(data) != 3: # Length of AHRS Message TODO remove hardcoded values
+        if len(data) != 3: # TODO Remove hard coded values
             _raiseTypeException(protoType)
-        proto.type       = Mechatronics_pb2.AHRS_DATA #TODO CHECK THIS
+        proto.type       = Mechatronics_pb2.AHRS_DATA
         proto.ahrs.yaw   = data[0]
         proto.ahrs.pitch = data[1]
         proto.ahrs.roll  = data[2]
@@ -35,18 +35,18 @@ def packageProtobuf(protoType, data):
         proto.dvl.x   = data[1]
         proto.dvl.y   = data[2]
         proto.dvl.err = data[3]
-    elif protoType == "hydrophones":
+    elif protoType == "HYDROPHONES":
         if len(data) != 2:
             _raiseTypeException(protoType)
         proto.type          = Mechatronics_pb2.HYDROPHONES
         proto.hydros.first  = data[0]
         proto.hydros.second = data[1]
-    elif protoType == "leakDetect":
+    elif protoType == "LEAK_DETECT":
         if len(data) != 1:
             _raiseTypeException(protoType)
         proto.type                 = Mechatronics_pb2.LEAK_DETECTION
         proto.leakDetect.isLeaking = data[0]
-    elif protoType == "PMUD":
+    elif protoType == "PMUD_DATA":
         if len(data) != 4:
             _raiseTypeException(protoType)
         proto.type         = Mechatronics_pb2.PMUD_DATA
@@ -54,17 +54,19 @@ def packageProtobuf(protoType, data):
         proto.pmud.current = data[1]
         proto.pmud.isSafe  = data[2]
         proto.pmud.kill    = data[3]
-    elif protoType == "pneumatics":
+    elif protoType == "PNEUMATICS":
         if len(data) != 1:
             _raiseTypeException(protoType)
         proto.type = Mechatronics_pb2.PNEUMATICS
         for d in data[0]:
             proto.pneumatics.thing.append(d) #TODO Check syntax may be add
-    elif protoType == "pressureTransducers":
+    elif protoType == "PRESSURE_TRANSDUCERS":
         if len(data) != 1:
             _raiseTypeException(protoType)
         proto.type = Mechatronics_pb2.PRESSURE_TRANSDUCERS
         proto.pressureTrans.depth = data[0]
+    elif protoType == "GUI_COMM":
+        pass
     else:
         raise Exception("Unknown protobuf type: {}".format(protoType))
     return proto

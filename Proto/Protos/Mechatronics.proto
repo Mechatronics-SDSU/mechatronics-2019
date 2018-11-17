@@ -19,6 +19,7 @@ enum Type {
     THRUSTER_FEEDBACK    = 5;
     PMUD_DATA            = 6;
     PNEUMATICS           = 7;
+    GUI_COMM             = 8;
 }
 
 message Mechatronics {
