@@ -2,7 +2,7 @@
 Copyright 2018, David Pierce Walker-Howell, All rights reserved
 
 Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
-Last Modified 11/4/2018
+Last Modified 11/16/2018
 Description: This module is the driver program for the Sparton AHRS.
 '''
 from sensorHub import SensorHubBase
@@ -124,14 +124,15 @@ class SpartonAHRSDataPackets:
             roll = struct.unpack('h', roll)[0] * (180.0/4096.0)
             return [pitch, roll]
         return []
+
     def _unpack(self, data_type):
         '''
-        Read in the transmission from AHRS and extract all the byts of the
+        Read in the transmission from AHRS and extract all the bytes of the
         packet.
 
         Parameters:
             datatype: The type of data being read. Note: This should be one of
-                    the keys in the locationArray
+                    the keys in the locationArray(see constructor)
         Returns:
             ahrs_data_in: The raw data packet of the given data type. If there is
                         an error reading the data, return None. If there are no
@@ -151,6 +152,7 @@ class SpartonAHRSDataPackets:
                 #Read second byte to confirm successful packet
                 type_byte = ord(self.ahrs_serial.read())
                 if type_byte == self.location_array[data_type][0]:
+
                     #read the given number of data bytes specified by location array
                     for idx in range(0, self.location_array[data_type][1] - 2):
                         ahrs_data_in.append(ord(self.ahrs_serial.read()))
