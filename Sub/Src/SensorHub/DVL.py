@@ -118,7 +118,8 @@ class DVL(SensorHubBase):
                         self.velTimesXYZ[2] = timeVelEstZ1[0]
                         timeVelEstZ2 = self.serialObject.read(4)
 
-                    return [self.velocitiesXYZ, self.velTimesXYZ]
+                    return velZ, velX, velY, error
+                    
 
                 else:
                     self.serialObject.flushInput()
