@@ -9,6 +9,7 @@ import sys
 sys.path.append(dirname(realpath(__file__)) + "/../")
 
 import Mechatronics_pb2
+import guiComm_pb2
 
 '''
 This function takes in data in a buffer array and a type to then store in a protobuf
@@ -66,7 +67,58 @@ def packageProtobuf(protoType, data):
         proto.type = Mechatronics_pb2.PRESSURE_TRANSDUCERS
         proto.pressureTrans.depth = data[0]
     elif protoType == "GUI_COMM":
-        pass
+        if data[0] == "START_DEBUG":
+            proto.guiComm.type = guiComm_pb2.START_DEBUG
+        elif data[0] == "START_AUTO":
+            proto.guiComm.type = guiComm_pb2.START_AUTO
+        elif data[0] == "STOP":
+            proto.guiComm.type = guiComm_pb2.STOP
+        elif data[0] == "RESET_MISSIONS":
+            proto.guiComm.type = guiComm_pb2.RESET_MISSIONS
+        elif data[0] == "MISSION_LIST":
+            proto.guiComm.type = guiComm_pb2.MISSION_LIST
+            proto.guiComm.jsonMissions = data[1]
+        elif data[0] == "SKIP_MISSION":
+            proto.guiComm.type = guiComm_pb2.SKIP_MISSION
+        elif data[0] == "PREVIOUS_MISSION":
+            proto.guiComm.type = guiComm_pb2.PREVIOUS_MISSION
+        elif data[0] == "ABSOLUTE_TRANSLATE":
+            proto.guiComm.type = guiComm_pb2.ABSOLUTE_TRANSLATE
+            proto.guiComm.x = data[1]
+            proto.guiComm.y = data[2]
+            proto.guiComm.z = data[3]
+        elif data[0] == "RELATIVE_TRANSLATE":
+            proto.guiComm.type = guiComm_pb2.RELATIVE_TRANSLATE
+            proto.guiComm.x = data[1]
+            proto.guiComm.y = data[2]
+            proto.guiComm.z = data[3]
+        elif data[0] == "ROTATE":
+            proto.guiComm.type = guiComm_pb2.ROTATE
+            proto.guiComm.yaw = data[1]
+            proto.guiComm.pitch = data[2]
+            proto.guiComm.roll = data[3]
+        elif data[0] == "ADD_MISSION":
+            proto.guiComm.type = guiComm_pb2.ADD_MISSION
+            proto.guiComm.jsonMissions = data[1]
+        elif data[0] == "REMOVE_MISSION":
+            proto.guiComm.type = guiComm_pb2.REMOVE_MISSION
+            proto.guiComm.jsonMissions = data[1]
+        elif data[0] == "START_MANUAL":
+            proto.guiComm.type = guiComm_pb2.START_MANUAL
+        elif data[0] == "STOP_MANUAL":
+            proto.guiComm.type = guiComm_pb2.STOP_MANUAL
+        elif data[0] == "UPDATE_PIDS":
+            proto.guiComm.type = guiComm_pb2.UPDATE_PIDS
+            proto.guiComm.jsonMissions = data[1]
+        elif data[0] == "FIRE_WEAPONS":
+            proto.guiComm.type = guiComm_pb2.FIRE_WEAPONS
+            proto.guiComm.fireWeapons1 = data[1]
+            proto.guiComm.fireWeapons2 = data[2]
+            proto.guiComm.fireWeapons3 = data[3]
+            proto.guiComm.fireWeapons4 = data[4]
+            proto.guiComm.fireWeapons5 = data[5]
+        else:
+             _raiseTypeException("{}_{}".format(protoType,data[0])
     else:
         raise Exception("Unknown protobuf type: {}".format(protoType))
     return proto
