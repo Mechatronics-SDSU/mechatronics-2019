@@ -19,7 +19,7 @@ class DVL(SensorHubBase):
         self.positionA = [0, 0, 0]  # North, East, Down
 
 
-    def receiveData(self):
+    def receiveSensorData(self):
         return self.unpack()
 
 
@@ -119,7 +119,7 @@ class DVL(SensorHubBase):
                         timeVelEstZ2 = self.serialObject.read(4)
 
                     return velZ, velX, velY, error
-                    
+
 
                 else:
                     self.serialObject.flushInput()

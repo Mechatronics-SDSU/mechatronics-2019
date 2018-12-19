@@ -2,13 +2,23 @@
 Copyright 2018, David Pierce Walker-Howell, All rights reserved
 
 Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
-Last Modified 11/16/2018
+Last Modified 11/16/2018s
 Description: This module is the driver program for the Sparton AHRS.
 '''
+import sys
+import os
+PROTO_PATH = os.path.join("..", "..", "..", "Proto")
+sys.path.append(os.path.join(PROTO_PATH, "Src"))
+sys.path.append(PROTO_PATH)
+
+from MechOS import mechos
 from sensorHub import SensorHubBase
 import serial
 import time
 import struct
+from protoFactory import packageProtobuf
+import Mechatronics_pb2
+
 
 class SpartonAHRSDataPackets:
     '''
@@ -65,6 +75,7 @@ class SpartonAHRSDataPackets:
         '''
         self.ahrs_serial.write(bytearray([0xA4, 0x01, 0xA0]))
         return self._unpack("raw_magnetics")
+        
     def get_true_heading(self):
         '''
         Send request to get the true heading. True heading is the magnetic
@@ -90,7 +101,8 @@ class SpartonAHRSDataPackets:
             #convert the raw true heading data into degree
             true_heading = struct.pack('H', (true_heading[0]<<8) | (true_heading[1]))
             true_heading = struct.unpack('h', true_heading)[0]*(360.0/4096.0)
-        return true_heading
+            return true_heading
+        return [None]
 
     def get_pitch_roll(self):
         '''
@@ -123,7 +135,7 @@ class SpartonAHRSDataPackets:
             roll = struct.pack('H', (pitch_roll[2] << 8) | pitch_roll[3])
             roll = struct.unpack('h', roll)[0] * (180.0/4096.0)
             return [pitch, roll]
-        return []
+        return [None, None]
 
     def _unpack(self, data_type):
         '''
@@ -185,10 +197,39 @@ class AHRS(SensorHubBase):
         super(AHRS, self).__init__()
         #Change type to match protobuf type
         self.type = "AHRS_DATA"
-        self.com_port = com_port
+
+        #serial communication port of the AHRS.
+        self.ahrs_com_port = com_port
 
         #create object for Sparton AHRS data packets
         self.sparton_ahrs = SpartonAHRSDataPackets(com_port)
+
+        #Define a MechOS node and publihser
+        self.sensorHub_AHRS = mechos.Node("SENSORHUB_AHRS")
+        self.AHRS_publisher = self.sensorHub_AHRS.create_publisher("AHRS_DATA")
+
+    def receiveSenorData(self):
+        '''
+        Receive the AHRS roll, pitch, and yaw data from the sparton ahrs module.
+
+        Parameters:
+            N/A
+
+        Returns:
+            [yaw, pitch, roll]: List of roll, pitch, yaw data. This is only returned
+                    if the data is received properly.
+
+            False: If data is not recieved properly, return false
+        '''
+        #Get roll, pitch, and yaw data from sparton ahrs module
+        yaw = self.sparton_ahrs.get_true_heading()
+        pitch, roll = self.sparton_ahrs.get_pitch_roll()
+
+        if(yaw != None and pitch != None and roll != None):
+            return [yaw, pitch, roll]
+        else:
+            #return false if some or all the data was received incorrectly
+            return False
 
     def run(self):
         '''
@@ -202,18 +243,19 @@ class AHRS(SensorHubBase):
             N/A
         '''
 
-        try:
-            while(1):
-                #raw_magnetics_test = self.sparton_ahrs.get_raw_magnetics()
-                true_heading = self.sparton_ahrs.get_true_heading()
-                pitch_roll = self.sparton_ahrs.get_pitch_roll()
-                print("True Heading", true_heading)
-                print("[Pitch, Roll]", pitch_roll)
-                time.sleep(0.5)
-        except:
-            print("AHRS communication shutting down")
+        while(1):
+
+            self.data = receiveSensorData()
+
+            #TODO: Rewrite this code in the super class to publish the data
+            proto = packageProtobuf("AHRS_DATA", self.data)
+            serialized_AHRS_data = proto.SerializeToString()
+            AHRS_publisher.publish(serialized_AHRS_data)
+
+            time.sleep(0.25)
+
 
 if __name__ == "__main__":
     ahrs = AHRS('COM19')
     ahrs.run()
-    print(ahrs.type) 
+    print(ahrs.type)
