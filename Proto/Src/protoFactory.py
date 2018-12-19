@@ -118,7 +118,7 @@ def packageProtobuf(protoType, data):
             proto.guiComm.fireWeapons4 = data[4]
             proto.guiComm.fireWeapons5 = data[5]
         else:
-             _raiseTypeException("{}_{}".format(protoType,data[0])
+             _raiseTypeException("{}_{}".format(protoType,data[0]))
     else:
         raise Exception("Unknown protobuf type: {}".format(protoType))
     return proto

@@ -75,7 +75,7 @@ class SpartonAHRSDataPackets:
         '''
         self.ahrs_serial.write(bytearray([0xA4, 0x01, 0xA0]))
         return self._unpack("raw_magnetics")
-        
+
     def get_true_heading(self):
         '''
         Send request to get the true heading. True heading is the magnetic
@@ -208,7 +208,7 @@ class AHRS(SensorHubBase):
         self.sensorHub_AHRS = mechos.Node("SENSORHUB_AHRS")
         self.AHRS_publisher = self.sensorHub_AHRS.create_publisher("AHRS_DATA")
 
-    def receiveSenorData(self):
+    def receiveSensorData(self):
         '''
         Receive the AHRS roll, pitch, and yaw data from the sparton ahrs module.
 
@@ -245,12 +245,13 @@ class AHRS(SensorHubBase):
 
         while(1):
 
-            self.data = receiveSensorData()
+            self.data = self.receiveSensorData()
 
-            #TODO: Rewrite this code in the super class to publish the data
-            proto = packageProtobuf("AHRS_DATA", self.data)
-            serialized_AHRS_data = proto.SerializeToString()
-            AHRS_publisher.publish(serialized_AHRS_data)
+            if(self.data is not False):
+                #TODO: Rewrite this code in the super class to publish the data
+                proto = packageProtobuf("AHRS_DATA", self.data)
+                serialized_AHRS_data = proto.SerializeToString()
+                self.AHRS_publisher.publish(serialized_AHRS_data)
 
             time.sleep(0.25)
 
