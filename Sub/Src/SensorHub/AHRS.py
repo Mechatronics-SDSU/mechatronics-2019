@@ -206,9 +206,11 @@ class AHRS(SensorHubBase):
 
         #Define a MechOS node and publihser
         self.sensorHub_AHRS = mechos.Node("SENSORHUB_AHRS")
-        self.AHRS_publisher = self.sensorHub_AHRS.create_publisher("AHRS_DATA")
 
-    def receiveSensorData(self):
+        #Override the parent publisher attribute
+        self.publisher = self.sensorHub_AHRS.create_publisher("AHRS_DATA")
+
+    def receive_sensor_data(self):
         '''
         Receive the AHRS roll, pitch, and yaw data from the sparton ahrs module.
 
@@ -245,13 +247,10 @@ class AHRS(SensorHubBase):
 
         while(1):
 
-            self.data = self.receiveSensorData()
+            self.data = self.receive_sensor_data()
 
             if(self.data is not False):
-                #TODO: Rewrite this code in the super class to publish the data
-                proto = packageProtobuf("AHRS_DATA", self.data)
-                serialized_AHRS_data = proto.SerializeToString()
-                self.AHRS_publisher.publish(serialized_AHRS_data)
+                self.publish_data()
 
             time.sleep(0.25)
 

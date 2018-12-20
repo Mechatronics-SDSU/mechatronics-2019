@@ -1,3 +1,14 @@
+import sys
+import os
+
+PROTO_PATH = os.path.join("..", "..", "..", "Proto")
+sys.path.append(os.path.join(PROTO_PATH, "Src"))
+sys.path.append(PROTO_PATH)
+
+from MechOS import mechos
+from protoFactory import packageProtobuf
+import Mechatronics_pb2
+
 '''
 SensorHubBase is the parent of all nodes that harvest
 sensor data.
@@ -36,7 +47,7 @@ class SensorHubBase():
         self.data = []
         self.publisher = None
 
-    def receiveSensorData(self):
+    def receive_sensor_data(self):
         '''
         This method should be overriden. This method is used to collect the sensor
         data from the system (ex: Use Serial communication to collect IMU data).
@@ -51,7 +62,7 @@ class SensorHubBase():
 
     #TODO View Mechos and learn how to publish
     #TODO Create Protobuf Factory!
-    def publishData(self):
+    def publish_data(self):
         '''
         This method should NOT be overriden. This method takes the sensor data
         stored in the global "data" attribute, packages it with the standard
@@ -67,8 +78,14 @@ class SensorHubBase():
         '''
         #Call protobuf factories constrcutProtobuf function
         #publish data
-
-        return False
+        try:
+            sensor_data_proto = packageProtobuf(self.type, self.data)
+            serialized_data = sensor_data_proto.SerializeToString()
+            self.publisher.publish(serialized_data)
+            return True
+        except Exception as e:
+            print(e)
+            return False
 
     def run(self):
         '''
@@ -85,7 +102,7 @@ class SensorHubBase():
         '''
         while True:
             try:
-                self.data = self.receiveData()
-                self.publishData()
+                self.data = self.receive_sensor_data()
+                self.publish_data()
             except Exception as e:
                 print(e) #TODO Actually log the data instead of print!
