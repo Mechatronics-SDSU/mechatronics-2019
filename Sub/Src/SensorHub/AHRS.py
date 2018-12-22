@@ -188,7 +188,8 @@ class AHRS(SensorHubBase):
     '''
     def __init__(self, com_port):
         '''
-        Initialize communcication path with the Sparton AHRS.
+        Initialize communcication path with the Sparton AHRS and MechOS node
+        publisher to transmit data throughout the AUV system.
 
         Parameters:
             com_port: The serial communication port communicating with the AHRS

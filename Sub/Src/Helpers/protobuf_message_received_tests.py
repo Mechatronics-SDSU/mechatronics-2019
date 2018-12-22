@@ -20,7 +20,7 @@ import Mechatronics_pb2
 
 class MessagePrinter():
     '''
-    This class is used to subsribe to a list of MechOS publisher topics and display
+    This class is used to subscribe to a list of MechOS publisher topics and display
     the data.
     '''
     def __init__(self, reg_topics, proto_topics):
