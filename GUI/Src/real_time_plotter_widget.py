@@ -19,7 +19,7 @@ class Real_Time_Plotter(QtWidgets.QWidget):
 	data plotting in real time. Multiple dynamic curves can be plotted simultaneous
 	against one another.
 	'''
-	def __init__(self, time_window=10, sample_time_int=1, title="Real Time Plotter"):
+	def __init__(self, time_window=10, sample_time_int=1, title="Real Time Plotter", dim=[600, 250]):
 		'''
 		Initialize the plotting graph time window and data buffer_sizes corresponding
 		to the sampling time.
@@ -52,7 +52,8 @@ class Real_Time_Plotter(QtWidgets.QWidget):
 
 		#Initialize the PlotWidget(the widget to be added into the Qt Gui)
 		self.plt = pg.PlotWidget(title=self.title)
-		self.plt.resize(600, 250)	#size: 600x250
+		print(dim)
+		self.plt.resize(dim[0], dim[1])	#size: 600x250
 		self.plt.showGrid(x=True, y=True)
 		self.plt.setLabel('left', 'Data')
 		self.plt.setLabel('bottom', 'Time')
