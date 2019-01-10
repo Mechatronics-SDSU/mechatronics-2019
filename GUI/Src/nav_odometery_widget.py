@@ -120,7 +120,7 @@ class Navigation_GUI(QWidget):
 
         self.linking_layout.addLayout(self.earth_pos_layout, 4)
 
-    def relative_pos_layout_grid(self):
+    def _relative_pos_layout_grid(self):
         '''
         Set up the layout to display relative position data. This is X, Y, and Z
         data.
