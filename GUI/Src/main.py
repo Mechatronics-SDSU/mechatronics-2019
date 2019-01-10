@@ -92,6 +92,7 @@ class Main_GUI(QWidget):
 if __name__ == "__main__":
 
     main_app = QApplication([])
+    main_app.setStyle('Fusion')
     main_widget = Main_GUI()
     main_widget.show()
     sys.exit(main_app.exec_())
