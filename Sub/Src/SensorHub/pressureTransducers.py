@@ -8,6 +8,7 @@ Description: This module is the driver of the pressure transducers on the sub
 '''
 import sys
 import os
+HELPERS_PATH = os.path.join("..", "Helpers")
 PROTO_PATH = os.path.join("..", "..", "..", "Proto")
 sys.path.append(os.path.join(PROTO_PATH, "Src"))
 sys.path.append(PROTO_PATH)
@@ -19,6 +20,8 @@ import time
 import struct
 from protoFactory import packageProtobuf
 import Mechatronics_pb2
+import numpy as np
+from Kalman_Filter import Kalman_Filter
 
 class Pressure_Transducer:
     '''
@@ -132,14 +135,33 @@ class Pressure_Depth_Transducers(sensorHubBase):
         self.type = "PRESSURE_TRANSDUCERS"
 
         #ovveride the parent publisher attribute
+        #currently only going to transmit depth data
         self.sensorHub_transducers = mechos.Node("SENSORHUB_PRESSURE_TRANSDUCERS")
-        self.publisher = self.sensorHub_transducers.create_publisher("TRANS_DATA")
+        self.publisher = self.sensorHub_transducers.create_publisher("DEPTH_DATA")
 
         self.pressure_transducers = []
         for index, com_port in enumerate(com_ports):
             #create set the com port and baud rate for each transducer
             self.pressure_transduders.append(Pressure_Tranducer(com_port,
                                                     baud_rate=115200, id=index))
+
+        #Initialize Kalman Filter Parameters( Note this needs to be edited per type of transducer and number of transducers)
+        #Currently set up for two transducers
+
+        A = np.array([[1]])
+        B = np.array([[0]])
+        R = np.array([[1e-6]])
+        C = np.array([[1],
+                      [1]])
+        Q = np.array([[1e-5, 0],
+                      [0, 1e-5]])
+
+        self.kf = Kalman_Filter(A, B, R, C, Q)
+
+        #Set initial conditions for Kalman filter state
+        self.mu = np.array([[0]])
+        self.cov = np.array([[10]])
+
     def receive_sensor_data(self):
         '''
         Receive the pressure and depth data from the pressure transducers. Fuse
@@ -157,13 +179,19 @@ class Pressure_Depth_Transducers(sensorHubBase):
         depths = []
 
         for transducer in self.pressure_transducers:
-            pressures.append(transducer.get_pressure())
+
+            #pressures.append(transducer.get_pressure()) #uncomment this line for pressure data
             depths.append(transducer.get_depth())
 
         #Perfrom kalman filtering to obtain the most probable pressure and depth
 
         #TODO: KALMAN FILTER
-        return [pressure, depth]
+        measurement = np.array([[depths[0]], [depths[1]]])
+        self.mu, self.cov = self.kf.predict(self.mu, self.cov, np.array([[0]]), measurement)
+
+        depth = self.mu
+        #return pressure, depth
+        return depth
 
     def run(self):
         '''
