@@ -9,6 +9,7 @@ Description: This module is the driver of the pressure transducers on the sub
 import sys
 import os
 HELPERS_PATH = os.path.join("..", "Helpers")
+sys.path.append(HELPERS_PATH)
 PROTO_PATH = os.path.join("..", "..", "..", "Proto")
 sys.path.append(os.path.join(PROTO_PATH, "Src"))
 sys.path.append(PROTO_PATH)
@@ -22,98 +23,11 @@ from protoFactory import packageProtobuf
 import Mechatronics_pb2
 import numpy as np
 from Kalman_Filter import Kalman_Filter
+import threading
 
-class Pressure_Transducer:
-    '''
-    The Pressure transducer class is used to communicate with the pressure
-    transducers on the sub via serial. The data packets received from a
-    transducer will be unpacked and converted to pressure or depth data. However,
-    the transducers will need to be calibrated at each use.
-    '''
 
-    def __init__(self, com_port, baud_rate, id):
-        '''
-        Initialize serial connection with a Pressure Transducer. Since multiple
-        transducers may exist on the system, provide an ID for each transducer.
 
-        Parameters:
-            com_port: There serial communication port used to get data from the
-                        pressure transducer.
-            baud_rate: The baud rate to communicate with the transducers.
-            id: An integer ID for the given transducer. By default this is 1, but
-                if you are using multiple transducers, give each a unique id.
-        Returns:
-            N/A
-        '''
-        self.com_port = com_port
-        self.transducer_serial = serial.Serial(com_port, baud_rate)
-        self.id = id
-
-        #initially set the pressure and depth_error to zero, this should be reset
-        #by the calibration function
-        self.pressure_error = 0
-        self.depth_error = 0
-
-        #TODO: Figure out these values!
-        #scaling factor to convert raw data to pressure data
-        self.pressure_scaling = 1
-
-        #scaling factor to convert raw data to depth data
-        self.depth_scaling = 1
-    def get_pressure(self):
-        '''
-        Return the pressure in measurement of PSI.
-
-        Parameters:
-            N/A
-        Returns:
-            pressure_data: The pressure data measured in PSI
-            None: If data cannot be retrieved, return None
-        '''
-        raw_pressure_data = self._unpack()
-
-        #convert raw_pressure_data to pressure in PSI
-        pressure_data = (raw_pressure_data * self.pressure_scaling) - self.pressure_error
-        return pressure_data
-
-    def get_depth(self):
-        '''
-        Return the depth of the AUV in feet.
-
-        Parameters:
-            N/A
-        Returns:
-            depth_data: The depth data measured in feet
-            None: If the data cannot be retrieved, return None
-        '''
-        raw_pressure_data = self._unpack()
-        depth_data = (raw_pressure_data * self.depth_scaling) - self.depth_error
-        return depth_data
-
-    def calibrate(self):
-        pass
-
-    def _unpack(self):
-        '''
-        Retrieve a single data packet from the transducer and unpack it into
-        numberical form.
-
-        Parameters:
-            N/A
-        Returns:
-            raw_pressure_data: The raw pressure data received in the data packet.
-            None: If an error occurs and/or no pressure data was received.
-        '''
-        try:
-            if self.transducer_serial > 0:
-                raw_pressure_data = int(self.transducer_serial.readline())
-                return raw_pressure_data
-        except RuntimeError:
-            print("Couldn't receive any data from Pressure Transducer", self.id,
-                    "on serial port", self.com_port)
-            return None
-
-class Pressure_Depth_Transducers(sensorHubBase):
+class Pressure_Depth_Transducers(threading.Thread, SensorHubBase):
     '''
     Receive Pressure and Depth data from each pressure transducer. Filter the data
     and fuse each sensors data for a less noisey reading using a Kalman Filter.
@@ -130,6 +44,7 @@ class Pressure_Depth_Transducers(sensorHubBase):
         Returns:
             N/A
         '''
+        #Initialize base classes
         super(Pressure_Depth_Transducers, self).__init__()
 
         self.type = "PRESSURE_TRANSDUCERS"
@@ -139,15 +54,14 @@ class Pressure_Depth_Transducers(sensorHubBase):
         self.sensorHub_transducers = mechos.Node("SENSORHUB_PRESSURE_TRANSDUCERS")
         self.publisher = self.sensorHub_transducers.create_publisher("DEPTH_DATA")
 
-        self.pressure_transducers = []
-        for index, com_port in enumerate(com_ports):
-            #create set the com port and baud rate for each transducer
-            self.pressure_transduders.append(Pressure_Tranducer(com_port,
-                                                    baud_rate=115200, id=index))
+        #This is the variable that you append raw pressure data to once it is
+        #received from the backplane.
+        self.raw_pressure_data = []
+        self.depth_scaling = [9.2, 9.2]
+        self.depth_bias = [606, 95]
 
         #Initialize Kalman Filter Parameters( Note this needs to be edited per type of transducer and number of transducers)
         #Currently set up for two transducers
-
         A = np.array([[1]])
         B = np.array([[0]])
         R = np.array([[1e-6]])
@@ -162,6 +76,9 @@ class Pressure_Depth_Transducers(sensorHubBase):
         self.mu = np.array([[0]])
         self.cov = np.array([[10]])
 
+        self.run_thread = True
+        self.daemon = True
+
     def receive_sensor_data(self):
         '''
         Receive the pressure and depth data from the pressure transducers. Fuse
@@ -175,15 +92,13 @@ class Pressure_Depth_Transducers(sensorHubBase):
                                 is received properly
             False: If the data is not received properly.
         '''
-        pressures = []
-        depths = []
 
-        for transducer in self.pressure_transducers:
+        depths = self._unpack()
 
-            #pressures.append(transducer.get_pressure()) #uncomment this line for pressure data
-            depths.append(transducer.get_depth())
 
         #Perfrom kalman filtering to obtain the most probable pressure and depth
+        if(depths == None):
+            return None
 
         #TODO: KALMAN FILTER
         measurement = np.array([[depths[0]], [depths[1]]])
@@ -204,10 +119,38 @@ class Pressure_Depth_Transducers(sensorHubBase):
         Returns:
             N/A
         '''
-        while(1):
-            self.data = self.receive_sensor_data()
+        while self.run_thread:
+            try:
+                self.data = self.receive_sensor_data()
 
-            if(self.data is not False):
-                self.publish_data()
+                if(self.data != None):
+                    print(self.data)
+                    self.publish_data()
 
-            time.sleep(0.25)
+
+                time.sleep(0.1)
+
+            except Exception as e:
+                print("Can't process pressure transducer depth data:", e)
+
+
+
+    def _unpack(self):
+        '''
+        Unpacks the raw depth data sent from the backplane and returns it as
+        depth values in feet.
+
+        Parameters:
+            N/A
+
+        Returns:
+            depths: A list of two depth readings in feet.
+            if data is not received properly, return none
+        '''
+        if(len(self.raw_pressure_data) != 0):
+            depths = self.raw_pressure_data.pop(0)
+            depths[0] = (1 / self.depth_scaling[0]) * (depths[0] - self.depth_bias[0])
+            depths[1] = (1 / self.depth_scaling[1]) * (depths[1] - self.depth_bias[1])
+
+            return depths
+        return None
