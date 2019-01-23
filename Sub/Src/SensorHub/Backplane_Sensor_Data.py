@@ -2,7 +2,7 @@
 Copyright 2019, David Pierce Walker-Howell, All rights reserved
 
 Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
-Last Modified 01/14/2019
+Last Modified 01/23/2019
 Description: This module is the driver program for the backplane. It is responsible for
 receiving all the sensor data and sending the actuator data for devices connected to
 the backplane.
@@ -29,7 +29,7 @@ from pressureTransducers import Pressure_Depth_Transducers
 
 class Backplane_Requests():
     '''
-    Responsible for requesting data or sending actions to the backplane for
+    Responsible for requesting data or sending actions from/to the backplane for
     various sensors and actuators such as pressure transducers and weapon controls.
     '''
 
@@ -77,7 +77,8 @@ class Backplane_Requests():
 
 class Backplane_Responses(threading.Thread):
     '''
-    The class is a thread that reads all the responses from the backplane continously.
+    The class is a thread that reads all the responses from the backplane
+    and places the data into a Queue continously.
     '''
     def __init__(self, backplane_serial_obj):
         '''
@@ -102,7 +103,7 @@ class Backplane_Responses(threading.Thread):
         self.daemon = True
 
         #A list(Queue) to store data received from backplane
-        self.backplane_data = []
+        self.backplane_data_queue = []
 
     def run(self):
         '''
@@ -120,17 +121,21 @@ class Backplane_Responses(threading.Thread):
             backplane_data_packet = self._unpack()
 
             if backplane_data_packet != None:
-                self.backplane_data.append(backplane_data_packet)
+                self.backplane_data_queue.append(backplane_data_packet)
+
             time.sleep(0.1)
+
     def _unpack(self):
         '''
-        Read in the transmission from the backplane and extract the data from it
+        Read in the transmission from the backplane and extract the data from it.
 
         Parameter:
             N/A
 
         Returns:
-            N/A
+            message: The backplane data after the raw bytes have been unpacked.
+                     This will be in the form of a dictionary were the key is
+                     an abbreviation for the type of data
         '''
         try:
             if self.backplane_serial.in_waiting > 0:
@@ -271,17 +276,17 @@ class Backplane_Handler():
         self.backplane_response_thread = Backplane_Responses(backplane_serial_obj)
 
         #Initialize pressure transducer thread
-        self.depth_transducers_thread = Pressure_Depth_Transducers(backplane_serial_obj)
+        self.depth_processing_thread = Pressure_Depth_Transducers(backplane_serial_obj)
 
         #start backplane response thread
         self.backplane_response_thread.start()
-        self.depth_transducers_thread.start()
+        self.depth_processing_thread.start()
 
 
     def run(self):
         '''
         Continually receive data from the backplane and perform any necessary
-        processing of that data.
+        processing or directing of that data.
 
         Parameters:
             N/A
@@ -299,13 +304,15 @@ class Backplane_Handler():
                 if(len(self.backplane_response_thread.backplane_data) != 0):
                 #pop off data from the backplane
                     backplane_data = self.backplane_response_thread.backplane_data.pop(0)
+
+                    #if pressure data is popped from queue, place it in the
                     if "Press" in backplane_data.keys():
-                        self.depth_transducers_thread.raw_pressure_data.append(
+                        self.depth_processing_thread.raw_pressure_data.append(
                                                         backplane_data["Press"])
             except Exception as e:
                 print("Cannot pop backplane data:", e)
 
-        
+
 
 
 if __name__ == "__main__":

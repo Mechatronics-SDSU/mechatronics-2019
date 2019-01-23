@@ -1,22 +1,23 @@
 '''
-Copyright 2018, David Pierce Walker-Howell, All rights reserved
+Copyright 2019, David Pierce Walker-Howell, All rights reserved
 
 Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
-Last Modified 12/22/2018
-Description: This module is the driver of the pressure transducers on the sub
-                used for determining depth.
+Last Modified 01/23/2019
+Description: This module defines a thread for processing pressure data from two
+            pressure transducers and converting/filtering that data to be depth data
 '''
 import sys
 import os
+
 HELPERS_PATH = os.path.join("..", "Helpers")
 sys.path.append(HELPERS_PATH)
+
 PROTO_PATH = os.path.join("..", "..", "..", "Proto")
 sys.path.append(os.path.join(PROTO_PATH, "Src"))
 sys.path.append(PROTO_PATH)
 
 from MechOS import mechos
 from sensorHub import SensorHubBase
-import serial
 import time
 import struct
 from protoFactory import packageProtobuf
@@ -88,8 +89,7 @@ class Pressure_Depth_Transducers(threading.Thread, SensorHubBase):
             N/A
 
         Returns:
-            [pressure, depth]: List of the pressure and depth data if the data
-                                is received properly
+            depth: The filtered reading of the current depth
             False: If the data is not received properly.
         '''
 
