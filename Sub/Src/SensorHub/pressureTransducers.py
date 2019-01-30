@@ -95,7 +95,6 @@ class Pressure_Depth_Transducers(threading.Thread, SensorHubBase):
 
         depths = self._unpack()
 
-
         #Perfrom kalman filtering to obtain the most probable pressure and depth
         if(depths == None):
             return None
@@ -121,12 +120,11 @@ class Pressure_Depth_Transducers(threading.Thread, SensorHubBase):
         '''
         while self.run_thread:
             try:
-                self.data = self.receive_sensor_data()
+                data = self.receive_sensor_data()
 
-                if(self.data != None):
-                    print(self.data)
+                if(data != None):
+                    self.data = list(data[0])
                     self.publish_data()
-
 
                 time.sleep(0.1)
 
@@ -147,6 +145,7 @@ class Pressure_Depth_Transducers(threading.Thread, SensorHubBase):
             depths: A list of two depth readings in feet.
             if data is not received properly, return none
         '''
+
         if(len(self.raw_pressure_data) != 0):
             depths = self.raw_pressure_data.pop(0)
             depths[0] = (1 / self.depth_scaling[0]) * (depths[0] - self.depth_bias[0])

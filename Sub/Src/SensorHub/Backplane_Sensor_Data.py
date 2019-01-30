@@ -301,9 +301,9 @@ class Backplane_Handler():
                 #Make request for data
                 self.backplane_requests.request_pressure_transducer_data()
 
-                if(len(self.backplane_response_thread.backplane_data) != 0):
+                if(len(self.backplane_response_thread.backplane_data_queue) != 0):
                 #pop off data from the backplane
-                    backplane_data = self.backplane_response_thread.backplane_data.pop(0)
+                    backplane_data = self.backplane_response_thread.backplane_data_queue.pop(0)
 
                     #if pressure data is popped from queue, place it in the
                     if "Press" in backplane_data.keys():
