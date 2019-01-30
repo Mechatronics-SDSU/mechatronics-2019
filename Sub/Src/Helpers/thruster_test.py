@@ -28,7 +28,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    maestro_serial_obj = serial.Serial('COM1', 9600)
+    maestro_serial_obj = serial.Serial('COM29', 9600)
 
     #Limit the test thrust to 50% thrust capacity
     test_thruster = Thruster(maestro_serial_obj, args.thruster_id, None, None, 50)

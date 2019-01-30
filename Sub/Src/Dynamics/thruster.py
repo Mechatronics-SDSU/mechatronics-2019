@@ -16,7 +16,6 @@ sys.path.append(PROTO_PATH)
 
 import numpy as np
 from MechOS import mechos
-from sensorHub import SensorHubBase
 import serial
 import time
 import struct
