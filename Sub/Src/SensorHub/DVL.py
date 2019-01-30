@@ -87,7 +87,7 @@ class DVL_Publisher(SensorHubBase):
 			self.data = [float(x) for x in [Z,X,Y,err]]
 			if( v_t != 0 for v_t in self.data):
 				self.publish_data()
-				print(self.data)
+				#print(self.data) # useful for Debugging
 			time.sleep(0.25)
 
 
