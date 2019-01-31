@@ -69,7 +69,7 @@ class DVL_Data_Driver:
 
 class DVL_Publisher(SensorHubBase):
 	'''
-	Communicates with the Nortek DVL and publishes Data to sensor hub to be routed to mission planner 
+	Communicates with the Nortek DVL and publishes Data to sensor hub to be routed to mission planner
 	and movement control
 	'''
 
