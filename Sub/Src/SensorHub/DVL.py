@@ -25,6 +25,20 @@ class DVL_Data_Driver:
 		self.DVLCom = serial.Serial(comport, 115200, timeout=1)
 
 	def Get_Velocity(self):
+	'''
+		The DVL has been setup to be cyclic, wherupon the Headerbye 'sync' is used to determine where the string restarts
+
+		#important Variable Descriptions#
+		-----------
+		SYNC -- Determines the sync byte to determine the system
+		ID -- Determines the type of Data that will be Sent as a stream: Note that this is changeable
+
+		SEE: DVL integrators Guide from NORTEC There is one Freely avaliable online, (it's on a git)
+
+		The Velocities must be unpacked from a set of four bytes, as it is packed in a C struct
+		NOTE: the C struct module 'struct' in python will unwrap these bytes into a tuple
+		Be sure to index this to get the data inside the touple to be consistent with Protobuf binaries
+	'''
 		SYNC = 0;
 		while(SYNC != "0xa5"):
 			SYNC = hex(ord(self.DVLCom.read()))
@@ -78,10 +92,16 @@ class DVL_Publisher(SensorHubBase):
 		'''
 		Converts Velocity Data to Displacement data as Components: Dx,Dy,Dz
 		'''
+		'''
+			To be implemented with new protobuf
+		'''
 		pass;
 
 
 	def publish(self):
+		'''
+		Publishes Velocity Data to the SensorHub SuperClass via the "publish_data" function
+		'''
 		while(1):
 			Z, X, Y, err = self.DVL.Get_Velocity()
 			self.data = [float(x) for x in [Z,X,Y,err]]
@@ -92,5 +112,6 @@ class DVL_Publisher(SensorHubBase):
 
 
 if __name__ == "__main__":
+	# this is simply a listener to the Port, Please Change your port Accordingly
 	DVL = DVL_Publisher('/dev/ttyUSB0');
 	DVL.publish()
