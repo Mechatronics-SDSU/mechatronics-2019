@@ -9,6 +9,7 @@ import "leakDetect.proto";
 import "PMUD.proto";
 import "pneumatics.proto";
 import "guiComm.proto";
+import "thruster_test.proto";
 
 enum Type {
     AHRS_DATA            = 0;
@@ -20,6 +21,7 @@ enum Type {
     PMUD_DATA            = 6;
     PNEUMATICS           = 7;
     GUI_COMM             = 8;
+    THRUSTER_TEST        = 9;
 }
 
 message Mechatronics {
@@ -33,4 +35,5 @@ message Mechatronics {
     PMUD pmud                         = 8;
     Pneumatics pneumatics             = 9;
     GUIComm guiComm                   = 10;
+    Thruster_Test thruster_test       = 11;
 }

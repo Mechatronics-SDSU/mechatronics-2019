@@ -1,0 +1,13 @@
+syntax = "proto3"
+
+message Thruster_Test {
+    int thruster_1 = 1;
+    int thruster_2 = 2;
+    int thruster_3 = 3;
+    int thruster_4 = 4;
+    int thruster_5 = 5
+    int thruster_6 = 6;
+    int thruster_7 = 7;
+    int thruster_8 = 8;
+
+}
