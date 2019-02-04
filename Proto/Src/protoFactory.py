@@ -66,19 +66,20 @@ def packageProtobuf(protoType, data):
             _raiseTypeException(protoType)
         proto.type = Mechatronics_pb2.PRESSURE_TRANSDUCERS
         proto.pressureTrans.depth = data[0]
-    elif protoType == "THRUSTER_TEST":
+    elif protoType == "THRUSTERS":
+
         if len(data) != 8:
             _raiseTypeException(protoType)
-        proto.type = Mechatronics_pb2.THRUSTER_TEST
-        proto.thruster_test.thruster_1 = data[0]
-        proto.thruster_test.thruster_2 = data[1]
-        proto.thruster_test.thruster_3 = data[2]
-        proto.thruster_test.thruster_4 = data[3]
-        proto.thruster_test.thruster_5 = data[4]
-        proto.thruster_test.thruster_6 = data[5]
-        proto.thruster_test.thruster_7 = data[6]
-        proto.thruster_test.thruster_8 = data[7]
-        
+        proto.type = Mechatronics_pb2.THRUSTERS
+        proto.thruster.thruster_1 = data[0]
+        proto.thruster.thruster_2 = data[1]
+        proto.thruster.thruster_3 = data[2]
+        proto.thruster.thruster_4 = data[3]
+        proto.thruster.thruster_5 = data[4]
+        proto.thruster.thruster_6 = data[5]
+        proto.thruster.thruster_7 = data[6]
+        proto.thruster.thruster_8 = data[7]
+
     elif protoType == "GUI_COMM":
         if data[0] == "START_DEBUG":
             proto.guiComm.type = guiComm_pb2.START_DEBUG
