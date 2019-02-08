@@ -39,7 +39,6 @@ class Movement_PID:
 
         parameter_xml_database = os.path.join("..", "Params", "Perseverance.xml")
         parameter_xml_database = os.path.abspath(parameter_xml_database)
-        print(parameter_xml_database)
         self.param_serv.use_parameter_database(parameter_xml_database)
 
         #Initialize serial connection to the maestro
@@ -72,8 +71,9 @@ class Movement_PID:
         Returns:
             N/A
         '''
-        d_t = float(self.param_serv.get_param("PID/d_t"))
-
+        #d_t = self.param_serv.get_param("PID/dt")
+        d_t = 0.1
+        print(d_t)
         roll_p = float(self.param_serv.get_param("Control/PID/roll_pid/p"))
         roll_i = float(self.param_serv.get_param("Control/PID/roll_pid/i"))
         roll_d = float(self.param_serv.get_param("Control/PID/roll_pid/d"))
@@ -144,10 +144,10 @@ class Movement_PID:
             thrust = (roll_control * thruster.orientation[2] * thruster.location[1]) + \
                      (pitch_control * thruster.orientation[2] * thruster.location[0]) + \
                      (yaw_control * thruster.orientation[1] * thruster.location[0]) + \
-                     (yaw_contorl * thruster.orientation[0] * thruster.location[1]) + \
-                     (x_pwm * thruster.orientation[0]) + \
-                     (y_pwm * thruster.orientation[1]) + \
-                     (z_pwm * thruster.orientation[2])
+                     (yaw_control * thruster.orientation[0] * thruster.location[1]) + \
+                     (x_control * thruster.orientation[0]) + \
+                     (y_control * thruster.orientation[1]) + \
+                     (z_control * thruster.orientation[2])
             self.thrusters[thruster_id].set_thrust(thrust)
 
     def advance_move(self, curr_roll, curr_pitch, curr_yaw, curr_x_pos, curr_y_pos,
@@ -177,8 +177,8 @@ class Movement_PID:
 
         pass
 
-    def simple_depth_move_no_yaw(self, curr_roll, curr_pitch, curr_yaw, curr_z_pos,
-                          desired_roll, desired_pitch, desired_yaw, desired_z_pos):
+    def simple_depth_move_no_yaw(self, curr_roll, curr_pitch,curr_z_pos,
+                          desired_roll, desired_pitch, desired_z_pos):
         '''
         Without carrying about x axis position, y axis position, or yaw, use the PID controllers
         to go down to a give depth (desired_z_pos) with a give orientation.
@@ -198,7 +198,7 @@ class Movement_PID:
         roll_error = desired_roll - curr_roll
         roll_control = self.roll_pid_controller.control_step(roll_error)
 
-        pitch_error = deisred_pitch - curr_pitch
+        pitch_error = desired_pitch - curr_pitch
         pitch_control = self.pitch_pid_controller.control_step(pitch_error)
 
         #depth error

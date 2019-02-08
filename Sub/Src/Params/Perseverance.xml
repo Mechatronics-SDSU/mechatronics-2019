@@ -1,5 +1,13 @@
 <Perseverance>
+	<COM_Ports>
+		<maestro>COM29</maestro>
+		<AHRS>COM33</AHRS>
+		<backplane>COM6</backplane>
+	</COM_Ports>
 	<Control>
+		<Movement_Mode>
+			<default>1</default>
+		</Movement_Mode>
     <Limits>
       <min_roll>0</min_roll>
       <max_roll>0</max_roll>
@@ -9,14 +17,15 @@
       <max_z>0</max_z>
     </Limits>
 		<PID>
-			<d_t>0.01</d_t>
+			<dt>1</dt>
+			
 			<roll_pid>
-				<p>0</p>
+				<p>1</p>
 				<i>0</i>
 				<d>0</d>
 			</roll_pid>
 			<pitch_pid>
-				<p>0</p>
+				<p>1</p>
 				<i>0</i>
 				<d>0</d>
 			</pitch_pid>
@@ -36,7 +45,7 @@
 				<d>0</d>
 			</y_pid>
 			<z_pid>
-				<p>0</p>
+				<p>1</p>
 				<i>0</i>
 				<d>0</d>
 			</z_pid>

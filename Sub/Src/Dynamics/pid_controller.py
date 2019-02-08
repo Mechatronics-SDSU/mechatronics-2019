@@ -80,7 +80,7 @@ class PID_Controller():
         #Ensure semi time difference in between each control step
         calc_time_interval = self.PID_timer.net_timer()
         if( calc_time_interval < self.d_t):
-            time.sleep((self.d_t - calc_timer_interval))
+            time.sleep((self.d_t - calc_time_interval))
             self.PID_timer.restart_timer()
 
         self.integral = self.integral + (error * self.d_t)
@@ -89,10 +89,12 @@ class PID_Controller():
         D = self.k_d * (error - self.previous_error) / self.d_t
 
         PID = P + I + D
-        
-        if(PID < self.l_bound):
-            PID = self.l_bound
-        elif(PID > self.u_bound):
-            PID = self.u_bound
+
+        if(self.l_bound != None):
+            if(PID < self.l_bound):
+                PID = self.l_bound
+        if(self.u_bound != None):
+            if(PID > self.u_bound):
+                PID = self.u_bound
 
         return PID
