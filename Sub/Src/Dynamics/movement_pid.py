@@ -1,3 +1,11 @@
+'''
+Copyright 2019, David Pierce Walker-Howell, All rights reserved
+
+Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
+Last Modified 02/08/2019
+Description: This module contains a PID based movement controller that is used
+            to control the six degrees of freedom control of Perseverance.
+'''
 import sys
 import os
 
@@ -5,15 +13,10 @@ HELPER_PATH = os.path.join("..", "Helpers")
 sys.path.append(HELPER_PATH)
 import util_timer
 
-PROTO_PATH = os.path.join("..", "..", "..", "Proto")
-sys.path.append(os.path.join(PROTO_PATH, "Src"))
-sys.path.append(PROTO_PATH)
-from protoFactory import packageProtobuf
-import Mechatronics_pb2
-
 from thruster import Thruster
 from pid_controller import PID_Controller
 from MechOS import mechos
+import serial
 
 class Movement_PID:
     '''
@@ -21,17 +24,27 @@ class Movement_PID:
     the 6 degrees of freedom.
     '''
 
-    def __init__(self, maestro_serial_obj):
+    def __init__(self):
         '''
         Initialize the thrusters and PID controllers on Perseverance.
 
         Parameters:
-            maestro_serial_obj: The open serial port connected to the maestro which
-                                controls the thrusters.
+            N/A
 
         Returns:
             N/A
         '''
+        #Initialize parameter server client to get and set parameters related to sub
+        self.param_serv = mechos.Parameter_Server_Client()
+
+        parameter_xml_database = os.path.join("..", "Params", "Perseverance.xml")
+        parameter_xml_database = os.path.abspath(parameter_xml_database)
+        print(parameter_xml_database)
+        self.param_serv.use_parameter_database(parameter_xml_database)
+
+        #Initialize serial connection to the maestro
+        com_port = self.param_serv.get_param("COM_Ports/maestro")
+        maestro_serial_obj = serial.Serial(com_port, 9600)
 
         #Initialize all 8 thrusters (max thrust 80%)
         self.thrusters = [None, None, None, None, None, None, None, None]
@@ -44,14 +57,9 @@ class Movement_PID:
         self.thrusters[6] = Thruster(maestro_serial_obj, 7, [0, 0, 1], [-1, -1, 0], 80)
         self.thrusters[7] = Thruster(maestro_serial_obj, 8, [1, 0, 0], [0, -1, 0], 80)
 
-        #Initialize parameter server client to get and set parameters related to sub
-        self.param_serv = mechos.Parameter_Server_Client()
-
-        parameter_xml_database = os.path.join("..", "Params", "Perseverance.xml")
-        self.param_serv.use_parameter_database(parameter_xml_database)
 
         #Initialize the PID controllers for control system
-        self.set_up_PID_controller()
+        self.set_up_PID_controllers()
 
     def set_up_PID_controllers(self):
         '''
@@ -66,35 +74,35 @@ class Movement_PID:
         '''
         d_t = float(self.param_serv.get_param("PID/d_t"))
 
-        roll_p = float(self.param_serv.get_param("PID/roll_pid/p"))
-        roll_i = float(self.param_serv.get_param("PID/roll_pid/i"))
-        roll_d = float(self.param_serv.get_param("PID/roll_pid/d"))
+        roll_p = float(self.param_serv.get_param("Control/PID/roll_pid/p"))
+        roll_i = float(self.param_serv.get_param("Control/PID/roll_pid/i"))
+        roll_d = float(self.param_serv.get_param("Control/PID/roll_pid/d"))
         self.roll_pid_controller = PID_Controller(roll_p, roll_i, roll_d, d_t)
 
-        pitch_p = float(self.param_serv.get_param("PID/pitch_pid/p"))
-        pitch_i = float(self.param_serv.get_param("PID/pitch_pid/i"))
-        pitch_d = float(self.param_serv.get_param("PID/pitch_pid/d"))
+        pitch_p = float(self.param_serv.get_param("Control/PID/pitch_pid/p"))
+        pitch_i = float(self.param_serv.get_param("Control/PID/pitch_pid/i"))
+        pitch_d = float(self.param_serv.get_param("Control/PID/pitch_pid/d"))
         self.pitch_pid_controller = PID_Controller(pitch_p, pitch_i, pitch_d, d_t)
 
-        yaw_p = float(self.param_serv.get_param("PID/yaw_pid/p"))
-        yaw_i = float(self.param_serv.get_param("PID/yaw_pid/i"))
-        yaw_d = float(self.param_serv.get_param("PID/yaw_pid/d"))
+        yaw_p = float(self.param_serv.get_param("Control/PID/yaw_pid/p"))
+        yaw_i = float(self.param_serv.get_param("Control/PID/yaw_pid/i"))
+        yaw_d = float(self.param_serv.get_param("Control/PID/yaw_pid/d"))
         self.yaw_pid_controller = PID_Controller(yaw_p, yaw_i, yaw_d, d_t)
 
-        x_p = float(self.param_serv.get_param("PID/x_pid/p"))
-        x_i = float(self.param_serv.get_param("PID/x_pid/i"))
-        x_d = float(self.param_serv.get_param("PID/x_pid/d"))
+        x_p = float(self.param_serv.get_param("Control/PID/x_pid/p"))
+        x_i = float(self.param_serv.get_param("Control/PID/x_pid/i"))
+        x_d = float(self.param_serv.get_param("Control/PID/x_pid/d"))
         self.x_pid_controller = PID_Controller(x_p, x_i, x_d, d_t)
 
-        y_p = float(self.param_serv.get_param("PID/y_pid/p"))
-        y_i = float(self.param_serv.get_param("PID/y_pid/i"))
-        y_d = float(self.param_serv.get_param("PID/y_pid/d"))
+        y_p = float(self.param_serv.get_param("Control/PID/y_pid/p"))
+        y_i = float(self.param_serv.get_param("Control/PID/y_pid/i"))
+        y_d = float(self.param_serv.get_param("Control/PID/y_pid/d"))
         self.y_pid_controller = PID_Controller(y_p, y_i, y_d, d_t)
 
         #z = depth pid
-        z_p = float(self.param_serv.get_param("PID/z_pid/p"))
-        z_i = float(self.param_serv.get_param("PID/z_pid/i"))
-        z_d = float(self.param_serv.get_param("PID/z_pid/d"))
+        z_p = float(self.param_serv.get_param("Control/PID/z_pid/p"))
+        z_i = float(self.param_serv.get_param("Control/PID/z_pid/i"))
+        z_d = float(self.param_serv.get_param("Control/PID/z_pid/d"))
         self.z_pid_controller = PID_Controller(z_p, z_i, z_d, d_t)
 
     def simple_thrust(self, thrusts):
@@ -133,12 +141,12 @@ class Movement_PID:
         '''
         for thruster_id, thruster in enumerate(self.thrusters):
 
-            thrust = (roll_control * thruster.orientation[2] * thruster.location[1]) +
-                     (pitch_control * thruster.orientation[2] * thruster.location[0]) +
-                     (yaw_control * thruster.orientation[1] * thruster.location[0]) +
-                     (yaw_contorl * thruster.orientation[0] * thruster.location[1]) +
-                     (x_pwm * thruster.orientation[0]) +
-                     (y_pwm * thruster.orientation[1]) +
+            thrust = (roll_control * thruster.orientation[2] * thruster.location[1]) + \
+                     (pitch_control * thruster.orientation[2] * thruster.location[0]) + \
+                     (yaw_control * thruster.orientation[1] * thruster.location[0]) + \
+                     (yaw_contorl * thruster.orientation[0] * thruster.location[1]) + \
+                     (x_pwm * thruster.orientation[0]) + \
+                     (y_pwm * thruster.orientation[1]) + \
                      (z_pwm * thruster.orientation[2])
             self.thrusters[thruster_id].set_thrust(thrust)
 
