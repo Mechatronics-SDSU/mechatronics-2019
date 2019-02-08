@@ -17,10 +17,20 @@ from MechOS import mechos
 
 class Movement_PID:
     '''
+    A movement controller for Perseverance that relies on PID controller to control
+    the 6 degrees of freedom.
     '''
 
     def __init__(self, maestro_serial_obj):
         '''
+        Initialize the thrusters and PID controllers on Perseverance.
+
+        Parameters:
+            maestro_serial_obj: The open serial port connected to the maestro which
+                                controls the thrusters.
+
+        Returns:
+            N/A
         '''
 
         #Initialize all 8 thrusters (max thrust 80%)
@@ -54,37 +64,37 @@ class Movement_PID:
         Returns:
             N/A
         '''
-        d_t = self.param_serv.get_param("PID/roll_pid/d_t")
+        d_t = float(self.param_serv.get_param("PID/d_t"))
 
-        roll_p = self.param_serv.get_param("PID/roll_pid/p")
-        roll_i = self.param_serv.get_param("PID/roll_pid/i")
-        roll_d = self.param_serv.get_param("PID/roll_pid/d")
+        roll_p = float(self.param_serv.get_param("PID/roll_pid/p"))
+        roll_i = float(self.param_serv.get_param("PID/roll_pid/i"))
+        roll_d = float(self.param_serv.get_param("PID/roll_pid/d"))
         self.roll_pid_controller = PID_Controller(roll_p, roll_i, roll_d, d_t)
 
-        pitch_p = self.param_serv.get_param("PID/pitch_pid/p")
-        pitch_i = self.param_serv.get_param("PID/pitch_pid/i")
-        pitch_d = self.param_serv.get_param("PID/pitch_pid/d")
+        pitch_p = float(self.param_serv.get_param("PID/pitch_pid/p"))
+        pitch_i = float(self.param_serv.get_param("PID/pitch_pid/i"))
+        pitch_d = float(self.param_serv.get_param("PID/pitch_pid/d"))
         self.pitch_pid_controller = PID_Controller(pitch_p, pitch_i, pitch_d, d_t)
 
-        yaw_p = self.param_serv.get_param("PID/yaw_pid/p")
-        yaw_i = self.param_serv.get_param("PID/yaw_pid/i")
-        yaw_d = self.param_serv.get_param("PID/yaw_pid/d")
+        yaw_p = float(self.param_serv.get_param("PID/yaw_pid/p"))
+        yaw_i = float(self.param_serv.get_param("PID/yaw_pid/i"))
+        yaw_d = float(self.param_serv.get_param("PID/yaw_pid/d"))
         self.yaw_pid_controller = PID_Controller(yaw_p, yaw_i, yaw_d, d_t)
 
-        x_p = self.param_serv.get_param("PID/x_pid/p")
-        x_i = self.param_serv.get_param("PID/x_pid/i")
-        x_d = self.param_serv.get_param("PID/x_pid/d")
+        x_p = float(self.param_serv.get_param("PID/x_pid/p"))
+        x_i = float(self.param_serv.get_param("PID/x_pid/i"))
+        x_d = float(self.param_serv.get_param("PID/x_pid/d"))
         self.x_pid_controller = PID_Controller(x_p, x_i, x_d, d_t)
 
-        y_p = self.param_serv.get_param("PID/y_pid/p")
-        y_i = self.param_serv.get_param("PID/y_pid/i")
-        y_d = self.param_serv.get_param("PID/y_pid/d")
+        y_p = float(self.param_serv.get_param("PID/y_pid/p"))
+        y_i = float(self.param_serv.get_param("PID/y_pid/i"))
+        y_d = float(self.param_serv.get_param("PID/y_pid/d"))
         self.y_pid_controller = PID_Controller(y_p, y_i, y_d, d_t)
 
         #z = depth pid
-        z_p = self.param_serv.get_param("PID/z_pid/p")
-        z_i = self.param_serv.get_param("PID/z_pid/i")
-        z_d = self.param_serv.get_param("PID/z_pid/d")
+        z_p = float(self.param_serv.get_param("PID/z_pid/p"))
+        z_i = float(self.param_serv.get_param("PID/z_pid/i"))
+        z_d = float(self.param_serv.get_param("PID/z_pid/d"))
         self.z_pid_controller = PID_Controller(z_p, z_i, z_d, d_t)
 
     def simple_thrust(self, thrusts):
@@ -132,7 +142,7 @@ class Movement_PID:
                      (z_pwm * thruster.orientation[2])
             self.thrusters[thruster_id].set_thrust(thrust)
 
-    def advanceMove(self, curr_roll, curr_pitch, curr_yaw, curr_x_pos, curr_y_pos,
+    def advance_move(self, curr_roll, curr_pitch, curr_yaw, curr_x_pos, curr_y_pos,
                     curr_z_pos, desired_roll, desired_pitch, desired_yaw,
                     desired_x_pos, desired_y_pos, desired_z_pos):
         '''
@@ -154,12 +164,40 @@ class Movement_PID:
             desired_z_pos: Desired z position
 
         Returns:
-            roll_control: The control output from the roll pid controller.
-            pitch_control: The control output from the pitch pid controller.
-            yaw_control: The control output from the yaw pid controller.
-            x_control: The control output from the x translation pid controller.
-            y_control: The control output from the y translation pid controller.
-            z_control: The control output from the z translation pid controller.
+            N/A
         '''
 
         pass
+
+    def simple_depth_move_no_yaw(self, curr_roll, curr_pitch, curr_yaw, curr_z_pos,
+                          desired_roll, desired_pitch, desired_yaw, desired_z_pos):
+        '''
+        Without carrying about x axis position, y axis position, or yaw, use the PID controllers
+        to go down to a give depth (desired_z_pos) with a give orientation.
+
+        Parameters:
+            curr_roll: Current roll data
+            curr_pitch Current pitch data
+            curr_z_pos: Current z position
+            desired_roll: Desired roll position
+            desired_pitch: Desired pitch position
+            desired_z_pos: Desired z (depth) position
+
+        Returns:
+            N/A
+        '''
+        #Calculate error for each degree of freedom
+        roll_error = desired_roll - curr_roll
+        roll_control = self.roll_pid_controller.control_step(roll_error)
+
+        pitch_error = deisred_pitch - curr_pitch
+        pitch_control = self.pitch_pid_controller.control_step(pitch_error)
+
+        #depth error
+        z_error = desired_z_pos - curr_z_pos
+        z_control = self.z_pid_controller.control_step(z_error)
+
+        #Write controls to thrusters
+        #Set x, y, and yaw controls to zero since we don't care about the subs
+        #heading or planar orientation for a simple depth move
+        self.controlled_thrust(roll_control, pitch_control, 0, 0, 0, z_control)
