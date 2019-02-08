@@ -316,5 +316,12 @@ class Backplane_Handler():
 
 
 if __name__ == "__main__":
-    backplane_handler = Backplane_Handler("COM6")
+
+    param_serv = mechos.Parameter_Server_Client()
+    parameter_xml_database = os.path.join("..", "Params", "Perseverance.xml")
+    parameter_xml_database = os.path.abspath(parameter_xml_database)
+    param_serv.use_parameter_database(parameter_xml_database)
+
+    com_port = param_serv.get_param("COM_Ports/backplane")
+    backplane_handler = Backplane_Handler(com_port)
     backplane_handler.run()

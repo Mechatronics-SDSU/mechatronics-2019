@@ -126,7 +126,7 @@ class Pressure_Depth_Transducers(threading.Thread, SensorHubBase):
                     self.data = list(data[0])
                     self.publish_data()
 
-                time.sleep(0.1)
+                time.sleep(0.01)
 
             except Exception as e:
                 print("Can't process pressure transducer depth data:", e)
