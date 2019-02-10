@@ -80,6 +80,27 @@ def packageProtobuf(protoType, data):
         proto.thruster.thruster_7 = data[6]
         proto.thruster.thruster_8 = data[7]
 
+    elif protoType == "PID_ERRORS":
+        if(len(data) != 6):
+            _raiseTypeException(protoType)
+        proto.type = Mechatronics_pb2.PID_ERRORS
+        proto.pid_error.roll_error = data[0]
+        proto.pid_error.pitch_error = data[1]
+        proto.pid_error.yaw_error = data[2]
+        proto.pid_error.x_error  = data[3]
+        proto.pid_error.y_error  = data[4]
+        proto.pid_error.z_error  = data[5]
+
+    elif protoType == "PIDS":
+
+        if len(data) != 4:
+            _raiseTypeException(protoTyep)
+        proto.type = Mechatronics_pb2.PIDS
+        proto.pid.PID_channel = data[0]
+        proto.pid.k_p = data[1]
+        proto.pid.k_i = data[2]
+        proto.pid.k_d = data[3]
+
     elif protoType == "GUI_COMM":
         if data[0] == "START_DEBUG":
             proto.guiComm.type = guiComm_pb2.START_DEBUG

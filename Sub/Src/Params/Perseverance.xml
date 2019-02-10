@@ -18,15 +18,15 @@
     </Limits>
 		<PID>
 			<dt>1</dt>
-			
+
 			<roll_pid>
-				<p>1</p>
-				<i>0</i>
+				<p>3</p>
+				<i>1</i>
 				<d>0</d>
 			</roll_pid>
 			<pitch_pid>
 				<p>1</p>
-				<i>0</i>
+				<i>7</i>
 				<d>0</d>
 			</pitch_pid>
 			<yaw_pid>
@@ -35,8 +35,8 @@
 				<d>0</d>
 			</yaw_pid>
 			<x_pid>
-				<p>0</p>
-				<i>0</i>
+				<p>7</p>
+				<i>3</i>
 				<d>0</d>
 			</x_pid>
 			<y_pid>
@@ -51,4 +51,4 @@
 			</z_pid>
 		</PID>
 	</Control>
-</Perseverance>
+<PID>7</PID><roll_pid>1</roll_pid><d>0</d><p>9</p><i>1</i><pitch_pid>9</pitch_pid></Perseverance>

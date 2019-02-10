@@ -10,6 +10,8 @@ import "PMUD.proto";
 import "pneumatics.proto";
 import "guiComm.proto";
 import "thrusters.proto";
+import "PID.proto";
+import "PID_Error.proto";
 
 enum Type {
     AHRS_DATA            = 0;
@@ -22,6 +24,8 @@ enum Type {
     PNEUMATICS           = 7;
     GUI_COMM             = 8;
     THRUSTERS            = 9;
+    PIDS                  = 10;
+    PID_ERRORS           = 11;
 }
 
 message Mechatronics {
@@ -35,5 +39,7 @@ message Mechatronics {
     PMUD pmud                         = 8;
     Pneumatics pneumatics             = 9;
     GUIComm guiComm                   = 10;
-    Thrusters thruster                  = 11;
+    Thrusters thruster                = 11;
+    PID pid                           = 12;
+    PID_Error pid_error               = 13;
 }

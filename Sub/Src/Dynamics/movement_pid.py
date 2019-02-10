@@ -24,16 +24,18 @@ class Movement_PID:
     the 6 degrees of freedom.
     '''
 
-    def __init__(self):
+    def __init__(self, error_publisher):
         '''
         Initialize the thrusters and PID controllers on Perseverance.
 
         Parameters:
-            N/A
+            error_publisher: A MechOS publisher to send the publish the current error
 
         Returns:
             N/A
         '''
+        self.error_publisher = error_publisher
+
         #Initialize parameter server client to get and set parameters related to sub
         self.param_serv = mechos.Parameter_Server_Client()
 
@@ -195,15 +197,20 @@ class Movement_PID:
             N/A
         '''
         #Calculate error for each degree of freedom
-        roll_error = desired_roll - curr_roll
-        roll_control = self.roll_pid_controller.control_step(roll_error)
+        error = [0, 0, 0, 0, 0, 0]
+        error[0] = desired_roll - curr_roll
+        roll_control = self.roll_pid_controller.control_step(error[0])
 
-        pitch_error = desired_pitch - curr_pitch
-        pitch_control = self.pitch_pid_controller.control_step(pitch_error)
+        error[1] = desired_pitch - curr_pitch
+        pitch_control = self.pitch_pid_controller.control_step(error[1])
 
         #depth error
-        z_error = desired_z_pos - curr_z_pos
-        z_control = self.z_pid_controller.control_step(z_error)
+        error[2] = desired_z_pos - curr_z_pos
+        z_control = self.z_pid_controller.control_step(error[2])
+
+        error_proto = packageProtobuf("PID_ERRORS", error)
+        serialized_error = error_proto.SerializeToString()
+        self.error_publisher.publish(serialized_error)
 
         #Write controls to thrusters
         #Set x, y, and yaw controls to zero since we don't care about the subs

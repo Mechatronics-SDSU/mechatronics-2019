@@ -254,7 +254,7 @@ class AHRS(SensorHubBase):
                 self.publish_data()
 
             #Change the value here to change polling rate
-            time.sleep(0.25)
+            time.sleep(0.1)
 
 
 if __name__ == "__main__":

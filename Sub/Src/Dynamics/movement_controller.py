@@ -68,8 +68,14 @@ class Movement_Controller:
         self.depth_sub = self.movement_controller_node.create_subscriber("DEPTH_DATA",
                                                         self._extract_sensor_data)
 
+        #Subscriber for PID value change
+        self.PID_sub = self.movement_controller_node.create_subscriber("PIDS",
+                                                        self._set_pid_values)
+
+        self.PID_error_pub = self.movement_controller_node.create_publisher("PID_ERRORS")
+
         #PID based movement controller
-        self.movement_pid_controller = Movement_PID()
+        self.movement_pid_controller = Movement_PID(self.PID_error_pub)
 
     def _set_movement_mode(self, movement_mode):
         '''
@@ -88,7 +94,8 @@ class Movement_Controller:
                     '5' -> Manual Control Mode (LQR)
                     '6' -> Autonomous Control Mode (LQR)
         '''
-        self.movement_mode = movement_mode
+        self.movement_mode = str(movement_mode)
+
 
     def _thruster_test(self, thrust_proto_data):
         '''
@@ -129,6 +136,38 @@ class Movement_Controller:
         elif(self.proto_decoder.type == Mechatronics_pb2.PRESSURE_TRANSDUCERS):
             self.depth = self.proto_decoder.pressureTrans.depth
 
+    def _set_pid_values(self, pid_proto):
+        '''
+        '''
+        self.proto_decoder.ParseFromString(pid_proto)
+        k_p = self.proto_decoder.pid.k_p
+        k_i = self.proto_decoder.pid.k_i
+        k_d = self.proto_decoder.pid.k_d
+
+        #Roll pid
+        if(self.proto_decoder.pid.PID_channel == 0):
+            #Update gain values for roll pid
+            self.movement_pid_controller.roll_pid_controller.set_gains(k_p, k_i, k_d)
+
+        elif(self.proto_decoder.pid.PID_channel == 0):
+            #Update gain values for pitch pid
+            self.movement_pid_controller.pitch_pid_controller.set_gains(k_p, k_i, k_d)
+
+        elif(self.proto_decoder.pid.PID_channel == 0):
+            #Update gain values for yaw pid
+            self.movement_pid_controller.yaw_pid_controller.set_gains(k_p, k_i, k_d)
+
+        elif(self.proto_decoder.pid.PID_channel == 0):
+            #Update gain values for x pid
+            self.movement_pid_controller.x_pid_controller.set_gains(k_p, k_i, k_d)
+
+        elif(self.proto_decoder.pid.PID_channel == 0):
+            #Update gain values for y pid
+            self.movement_pid_controller.y_pid_controller.set_gains(k_p, k_i, k_d)
+
+        else(self.proto_decoder.pid.PID_channel == 0):
+            #Update gain values for z pid
+            self.movement_pid_controller.z_pid_controller.set_gains(k_p, k_i, k_d)
 
 
     def run(self):
@@ -150,9 +189,11 @@ class Movement_Controller:
                 self.movement_controller_node.spinOnce(self.AHRS_sub)
                 self.movement_controller_node.spinOnce(self.DVL_sub)
                 self.movement_controller_node.spinOnce(self.depth_sub)
+                self.movement_controller_node.spinOnce(self.PID_sub)
 
-                #self.movement_pid_controller.simple_depth_move_no_yaw(self.roll,
-                #                self.pitch, self.depth, 0, 0, 3)
+
+                self.movement_pid_controller.simple_depth_move_no_yaw(self.roll,
+                                            self.pitch, self.depth, 0, 0, 3)
 
         time.sleep(0.01)
 
