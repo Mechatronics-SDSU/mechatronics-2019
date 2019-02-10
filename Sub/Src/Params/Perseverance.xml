@@ -51,4 +51,4 @@
 			</z_pid>
 		</PID>
 	</Control>
-<PID>7</PID><roll_pid>1</roll_pid><d>0</d><p>9</p><i>1</i><pitch_pid>9</pitch_pid></Perseverance>
+</Perseverance>
