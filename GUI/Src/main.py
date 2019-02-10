@@ -53,7 +53,7 @@ class Main_GUI(QWidget):
         self.set_pid_visualizer()
         self.set_thruster_test_widget()
         self.set_mode_selection_widget()
-        
+
         #update GUI every 100 milliseconds
         self.update_timer = QTimer()
         self.update_timer.timeout.connect(self.update)
@@ -120,6 +120,7 @@ class Main_GUI(QWidget):
             N/A
         '''
         mode = self.mode_selection.currentIndex()
+        print(mode)
         if mode == 0:
             self.thruster_test.setEnabled(True)
             self.pid_tuner.setEnabled(False)

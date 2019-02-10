@@ -57,6 +57,8 @@ class PID_Tuner_Widget(QWidget):
         nav_gui_palette.setColor(self.backgroundRole(), QColor(64, 64, 64))
         self.setPalette(nav_gui_palette)
 
+        self.current_error = 0
+
         #Create widgets main layout structer
         self.primary_linking_layout = QVBoxLayout(self)
         self.setLayout(self.primary_linking_layout)
@@ -232,21 +234,21 @@ class PID_Tuner_Widget(QWidget):
     def _update_graph(self, pid_error_proto):
         '''
         '''
-        self.proto_deocoder.ParseFromString(pid_error_proto)
+        self.proto_decoder.ParseFromString(pid_error_proto)
 
-
+        self.channel = self.pid_channel_select.currentIndex()
         if(self.channel == 0):
-            current_error = self.proto_deocoder.pid_error.roll_error
+            current_error = self.proto_decoder.pid_error.roll_error
         elif(self.channel == 1):
-            current_error = self.proto_deocoder.pid_error.pitch_error
+            current_error = self.proto_decoder.pid_error.pitch_error
         elif(self.channel == 2):
-            current_error = self.proto_deocoder.pid_error.yaw_error
+            current_error = self.proto_decoder.pid_error.yaw_error
         elif(self.channel == 3):
-            current_error = self.proto_deocoder.pid_error.x_error
+            current_error = self.proto_decoder.pid_error.x_error
         elif(self.channel == 4):
-            current_error = self.proto_deocoder.pid_error.y_error
+            current_error = self.proto_decoder.pid_error.y_error
         elif(self.channel == 5):
-            current_error = self.proto_deocoder.pid_error.z_error
+            current_error = self.proto_decoder.pid_error.z_error
         self.error_plot.update_values(current_error, 0)
 
     def _PID_controller_change(self):

@@ -94,7 +94,8 @@ class Movement_Controller:
                     '5' -> Manual Control Mode (LQR)
                     '6' -> Autonomous Control Mode (LQR)
         '''
-        self.movement_mode = str(movement_mode)
+        print("Here", movement_mode.decode())
+        self.movement_mode = movement_mode
 
 
     def _thruster_test(self, thrust_proto_data):
@@ -165,7 +166,7 @@ class Movement_Controller:
             #Update gain values for y pid
             self.movement_pid_controller.y_pid_controller.set_gains(k_p, k_i, k_d)
 
-        else(self.proto_decoder.pid.PID_channel == 0):
+        elif(self.proto_decoder.pid.PID_channel == 0):
             #Update gain values for z pid
             self.movement_pid_controller.z_pid_controller.set_gains(k_p, k_i, k_d)
 
@@ -177,10 +178,9 @@ class Movement_Controller:
 
             #Check if operator is requesting to change movement mode
             self.movement_controller_node.spinOnce(self.movement_mode_sub)
-
             #Thruster Test Mode
             if(self.movement_mode == '0'):
-
+                print("Here")
                 self.movement_controller_node.spinOnce(self.thruster_test_sub)
 
             #PID tuning mode
