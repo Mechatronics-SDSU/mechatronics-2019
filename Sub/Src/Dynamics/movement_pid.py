@@ -13,6 +13,12 @@ HELPER_PATH = os.path.join("..", "Helpers")
 sys.path.append(HELPER_PATH)
 import util_timer
 
+PROTO_PATH = os.path.join("..", "..", "..", "Proto")
+sys.path.append(os.path.join(PROTO_PATH, "Src"))
+sys.path.append(PROTO_PATH)
+from protoFactory import packageProtobuf
+import Mechatronics_pb2
+
 from thruster import Thruster
 from pid_controller import PID_Controller
 from MechOS import mechos
