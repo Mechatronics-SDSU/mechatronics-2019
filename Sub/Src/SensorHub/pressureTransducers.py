@@ -28,32 +28,24 @@ import threading
 
 
 
-class Pressure_Depth_Transducers(threading.Thread, SensorHubBase):
+class Pressure_Depth_Transducers:
     '''
     Receive Pressure and Depth data from each pressure transducer. Filter the data
     and fuse each sensors data for a less noisey reading using a Kalman Filter.
     '''
-    def __init__(self, com_ports):
+    def __init__(self):
         '''
         Initialize communication with each pressure transducer. And set up MechOS
         node to communicate data over the MechOS network.
 
         Parameters:
-            com_ports: A list of com ports that the pressure transducers are
-                        connected to.
+            N/A
 
         Returns:
             N/A
         '''
         #Initialize base classes
         super(Pressure_Depth_Transducers, self).__init__()
-
-        self.type = "PRESSURE_TRANSDUCERS"
-
-        #ovveride the parent publisher attribute
-        #currently only going to transmit depth data
-        self.sensorHub_transducers = mechos.Node("SENSORHUB_PRESSURE_TRANSDUCERS")
-        self.publisher = self.sensorHub_transducers.create_publisher("DEPTH_DATA")
 
         #This is the variable that you append raw pressure data to once it is
         #received from the backplane.
@@ -70,17 +62,14 @@ class Pressure_Depth_Transducers(threading.Thread, SensorHubBase):
                       [1]])
         Q = np.array([[1e-5, 0],
                       [0, 1e-5]])
-
         self.kf = Kalman_Filter(A, B, R, C, Q)
 
         #Set initial conditions for Kalman filter state
         self.mu = np.array([[0]])
         self.cov = np.array([[10]])
 
-        self.run_thread = True
-        self.daemon = True
 
-    def receive_sensor_data(self):
+    def process_depth_data(self, raw_pressure_data):
         '''
         Receive the pressure and depth data from the pressure transducers. Fuse
         the data using a Kalman filter to get the best reading
@@ -93,7 +82,7 @@ class Pressure_Depth_Transducers(threading.Thread, SensorHubBase):
             False: If the data is not received properly.
         '''
 
-        depths = self._unpack()
+        depths = self._unpack(raw_pressure_data)
 
         #Perfrom kalman filtering to obtain the most probable pressure and depth
         if(depths == None):
@@ -107,33 +96,7 @@ class Pressure_Depth_Transducers(threading.Thread, SensorHubBase):
         #return pressure, depth
         return depth
 
-    def run(self):
-        '''
-        Continually get pressure and depth data from the pressure transducers and
-        publish it to the MechOS network over the topic "TRANS_DATA"
-
-        Parameters:
-            N/A
-
-        Returns:
-            N/A
-        '''
-        while self.run_thread:
-            try:
-                data = self.receive_sensor_data()
-
-                if(data != None):
-                    self.data = list(data[0])
-                    self.publish_data()
-
-                time.sleep(0.01)
-
-            except Exception as e:
-                print("Can't process pressure transducer depth data:", e)
-
-
-
-    def _unpack(self):
+    def _unpack(self, raw_pressure_data):
         '''
         Unpacks the raw depth data sent from the backplane and returns it as
         depth values in feet.
@@ -146,8 +109,8 @@ class Pressure_Depth_Transducers(threading.Thread, SensorHubBase):
             if data is not received properly, return none
         '''
 
-        if(len(self.raw_pressure_data) != 0):
-            depths = self.raw_pressure_data.pop(0)
+        if(raw_pressure_data != None):
+            depths = raw_pressure_data
             depths[0] = (1 / self.depth_scaling[0]) * (depths[0] - self.depth_bias[0])
             depths[1] = (1 / self.depth_scaling[1]) * (depths[1] - self.depth_bias[1])
 

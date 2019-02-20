@@ -7,17 +7,11 @@ Description: This module is the driver program for the Sparton AHRS.
 '''
 import sys
 import os
-PROTO_PATH = os.path.join("..", "..", "..", "Proto")
-sys.path.append(os.path.join(PROTO_PATH, "Src"))
-sys.path.append(PROTO_PATH)
-
-from MechOS import mechos
-from sensorHub import SensorHubBase
 import serial
 import time
 import struct
-from protoFactory import packageProtobuf
-import Mechatronics_pb2
+import threading
+from MechOS import mechos
 
 
 class SpartonAHRSDataPackets:
@@ -180,7 +174,7 @@ class SpartonAHRSDataPackets:
         return ahrs_data_in[:-1]
 
 
-class AHRS(SensorHubBase):
+class AHRS(threading.Thread):
     '''
     Communicate with the AHRS module and receive the necessary data need for
     autonomy. Publish data to sensor hub to be routed to the mission planner and
@@ -196,8 +190,6 @@ class AHRS(SensorHubBase):
                         board.
         '''
         super(AHRS, self).__init__()
-        #Change type to match protobuf type
-        self.type = "AHRS_DATA"
 
         #serial communication port of the AHRS.
         self.ahrs_com_port = com_port
@@ -205,11 +197,11 @@ class AHRS(SensorHubBase):
         #create object for Sparton AHRS data packets
         self.sparton_ahrs = SpartonAHRSDataPackets(com_port)
 
-        #Define a MechOS node and publihser
-        self.sensorHub_AHRS = mechos.Node("SENSORHUB_AHRS")
+        self.threading_lock = threading.Lock()
+        self.run_thread = True
+        self.daemon = True
 
-        #Override the parent publisher attribute
-        self.publisher = self.sensorHub_AHRS.create_publisher("AHRS_DATA")
+        self.ahrs_data = [0, 0, 0] #roll, pitch, yaw
 
     def receive_sensor_data(self):
         '''
@@ -229,7 +221,7 @@ class AHRS(SensorHubBase):
         pitch, roll = self.sparton_ahrs.get_pitch_roll()
 
         if(yaw != None and pitch != None and roll != None):
-            return [yaw, pitch, roll]
+            return [roll, pitch, yaw]
         else:
             #return false if some or all the data was received incorrectly
             return False
@@ -246,16 +238,22 @@ class AHRS(SensorHubBase):
             N/A
         '''
 
-        while(1):
+        while(self.run_thread):
 
-            self.data = self.receive_sensor_data()
+            try:
 
-            if(self.data is not False):
-                self.publish_data()
+                data = self.receive_sensor_data()
 
-            #Change the value here to change polling rate
-            time.sleep(0.1)
+                if(data is not False):
 
+                    #set ahrs data variable to be able to share data across threads
+                    with self.threading_lock:
+
+                        self.ahrs_data = data
+            except Exception as e:
+                print("Couldn't receive and store AHRS data correctly:", e)
+
+            time.sleep(0.001)
 
 if __name__ == "__main__":
 
@@ -267,4 +265,3 @@ if __name__ == "__main__":
     com_port = param_serv.get_param("COM_Ports/AHRS")
     ahrs = AHRS(com_port)
     ahrs.run()
-    print(ahrs.type)

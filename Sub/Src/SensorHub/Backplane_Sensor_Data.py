@@ -123,7 +123,7 @@ class Backplane_Responses(threading.Thread):
             if backplane_data_packet != None:
                 self.backplane_data_queue.append(backplane_data_packet)
 
-            time.sleep(0.1)
+            time.sleep(0.001) #TODO: Change to net timer
 
     def _unpack(self):
         '''
@@ -249,7 +249,7 @@ class Backplane_Responses(threading.Thread):
         except Exception as e:
             print("Can't receive data from backplane:", e)
 
-class Backplane_Handler():
+class Backplane_Handler(threading.Thread):
     '''
     This class handles requests and responses to the backplane and publishs any
     necessary received data to the MechOS network.
@@ -267,6 +267,8 @@ class Backplane_Handler():
             N/A
         '''
 
+        threading.Thread.__init__(self)
+
         backplane_serial_obj = serial.Serial(com_port, 9600)
 
         #Initialize object request for data to the backplane
@@ -275,12 +277,16 @@ class Backplane_Handler():
         #Initialize thread object for queuing up data received from backplane
         self.backplane_response_thread = Backplane_Responses(backplane_serial_obj)
 
-        #Initialize pressure transducer thread
-        self.depth_processing_thread = Pressure_Depth_Transducers(backplane_serial_obj)
+        self.depth_processing = Pressure_Depth_Transducers()
 
         #start backplane response thread
         self.backplane_response_thread.start()
-        self.depth_processing_thread.start()
+
+        self.threading_lock = threading.Lock()
+        self.run_thread = True
+        self.daemon = True
+
+        self.depth_data = 0.0
 
 
     def run(self):
@@ -295,7 +301,7 @@ class Backplane_Handler():
             N/A
         '''
 
-        while(1):
+        while(self.run_thread):
 
             try:
                 #Make request for data
@@ -305,13 +311,19 @@ class Backplane_Handler():
                 #pop off data from the backplane
                     backplane_data = self.backplane_response_thread.backplane_data_queue.pop(0)
 
-                    #if pressure data is popped from queue, place it in the
+                    #if pressure data is popped from queue, process it
                     if "Press" in backplane_data.keys():
-                        self.depth_processing_thread.raw_pressure_data.append(
+                        depth_data = self.depth_processing.process_depth_data(
                                                         backplane_data["Press"])
+                        if(depth_data != None):
+                            with self.threading_lock:
+
+                                self.depth_data = depth_data[0, 0]
+
             except Exception as e:
                 print("Cannot pop backplane data:", e)
 
+            time.sleep(0.01) #TODO: Change this to a net timer
 
 
 
