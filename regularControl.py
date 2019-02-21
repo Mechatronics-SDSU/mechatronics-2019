@@ -1,3 +1,9 @@
+  '''
+Copyright 2018, Alexa Becerra, All rights reserved
+Author: Alexa Becerra <alexa.becerra99@gmail.com>
+Description: Regular controls for thruster values.
+'''
+
 import pygame
 import numpy
 
@@ -55,6 +61,9 @@ def Regular(XBOX_INPUT):
             return "Swap"
 
 def dotProduct(Input):
+    '''
+    Performs dot product of the thurster matrix and
+    '''
     ThrusterMatrix = numpy.matrix(\
     '0 1 0 0 0 1 0 0 ; \
     0 0 0 -1 0 0 0 -1 ; \
