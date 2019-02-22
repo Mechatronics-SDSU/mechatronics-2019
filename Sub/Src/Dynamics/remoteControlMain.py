@@ -1,7 +1,15 @@
 
+import sys
+import os
+#\/\/CHECK LOCATION OF FILE!!!\/\/#
+PROTO_PATH = os.path.join("..", "..", "Proto") #<---- may need to change
+sys.path.append(os.path.join(PROTO_PATH, "Src"))
+sys.path.append(PROTO_PATH)
+
 #from sensorHub import SensorHubBase
 from MechOS import mechos
 import Mechatronics_pb2
+from PyQt5 import QtCore, QtGui
 #form remoteControl import Calibration, Regular
 
 class RemoteControl() :
@@ -25,7 +33,7 @@ class RemoteControl() :
         
         #Define a mechOS node and subscriber
         self.sensorData = mechos.Node("Data_Node")
-        self.sensorData.create_subscriber("Mechatronics", self.unpack)
+        self.sensorData.create_subscriber("Remote Control", self.unpack)
         #self.sensorData.create_subscriber("AHRS_DATA", self.updateAHRSData)
         #self.sensorData.create_subscriber("DVL_DATA", self.updateDVLData)
         #self.publisher = self.sensorData.create_publisher("Pick a name, a meaningful name...")
@@ -73,18 +81,28 @@ class RemoteControl() :
         
         #leakDetect unpack
         leakData = [sensor_data_proto.leakDetect.isLeaking]
-        
+        '''
         #pmud unpack
         pmudData = [sensor_data_proto.pmud.voltage,
                     sensor_data_proto.pmud.current,
                     sensor_data_proto.pmud.isSafe,
                     sensor_data_proto.pmud.kill]
-        
+        '''
         #TODO: pneumatics
         #pneumatical brahhh
         
         #thruster unpack
-        thrusterData = []
+        thrusterData = [sensor_data_proto.thruster.thruster_1,
+                        sensor_data_proto.thruster.thruster_2,
+                        sensor_data_proto.thruster.thruster_3,
+                        sensor_data_proto.thruster.thruster_4,
+                        sensor_data_proto.thruster.thruster_5,
+                        sensor_data_proto.thruster.thruster_6,
+                        sensor_data_proto.thruster.thruster_7,
+                        sensor_data_proto.thruster.thruster_8]
+        
+        #
+        
     
     def run(self) :
         '''
