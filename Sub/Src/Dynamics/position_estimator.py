@@ -51,8 +51,10 @@ class Position_Estimator(threading.Thread):
 
         #Belief of actual position state.
         #Contains roll, pitich, yaw, depth, x_position, y_position
-        self.belief_position = np.zeros((6, 1))
+        self.belief_position = [0, 0, 0, 0, 0, 0]
 
+        self.threading_lock = threading.Lock()
+        self.daemon = True
         self.run_thread = True
 
     def unpack_nav_data_callback(self, nav_data_proto):
@@ -73,6 +75,10 @@ class Position_Estimator(threading.Thread):
         self.measured_position[3, 0] = self.nav_data_proto.depth
         #print(self.measured_position)
 
+        #TODO: Add Kalman Filter
+        with self.threading_lock:
+            self.belief_position = list(np.reshape(self.measured_position, 6))
+
     def run(self):
         '''
         The main loop to run the position estimation thread.
@@ -87,7 +93,7 @@ class Position_Estimator(threading.Thread):
 
             #Recieve navigation sensor data if available
             self.pos_estimator_node.spinOnce()
-            time.sleep(0.01)
+            time.sleep(0.1)
 
 if __name__ == "__main__":
     position_estimator = Position_Estimator()

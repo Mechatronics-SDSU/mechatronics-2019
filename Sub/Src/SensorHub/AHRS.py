@@ -243,7 +243,7 @@ class AHRS(threading.Thread):
             try:
 
                 data = self.receive_sensor_data()
-
+                
                 if(data is not False):
 
                     #set ahrs data variable to be able to share data across threads
@@ -253,7 +253,7 @@ class AHRS(threading.Thread):
             except Exception as e:
                 print("Couldn't receive and store AHRS data correctly:", e)
 
-            time.sleep(0.001)
+            time.sleep(0.01)
 
 if __name__ == "__main__":
 

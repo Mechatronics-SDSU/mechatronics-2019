@@ -16,8 +16,7 @@ import util_timer
 PROTO_PATH = os.path.join("..", "..", "..", "Proto")
 sys.path.append(os.path.join(PROTO_PATH, "Src"))
 sys.path.append(PROTO_PATH)
-from protoFactory import packageProtobuf
-import Mechatronics_pb2
+
 
 from thruster import Thruster
 from pid_controller import PID_Controller
@@ -30,7 +29,7 @@ class Movement_PID:
     the 6 degrees of freedom.
     '''
 
-    def __init__(self, error_publisher):
+    def __init__(self):
         '''
         Initialize the thrusters and PID controllers on Perseverance.
 
@@ -40,7 +39,6 @@ class Movement_PID:
         Returns:
             N/A
         '''
-        self.error_publisher = error_publisher
 
         #Initialize parameter server client to get and set parameters related to sub
         self.param_serv = mechos.Parameter_Server_Client()
@@ -213,10 +211,6 @@ class Movement_PID:
         #depth error
         error[2] = desired_z_pos - curr_z_pos
         z_control = self.z_pid_controller.control_step(error[2])
-
-        error_proto = packageProtobuf("PID_ERRORS", error)
-        serialized_error = error_proto.SerializeToString()
-        self.error_publisher.publish(serialized_error)
 
         #Write controls to thrusters
         #Set x, y, and yaw controls to zero since we don't care about the subs
