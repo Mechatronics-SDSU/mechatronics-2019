@@ -62,7 +62,12 @@ def Regular(XBOX_INPUT):
 
 def dotProduct(Input):
     '''
-    Performs dot product of the thurster matrix and
+    Performs dot product of the thurster matrix to axis array.
+
+    Parameters:
+        Input: Numpy array with axis values
+    Return:
+        Numpy array with thruster values
     '''
     ThrusterMatrix = numpy.matrix(\
     '0 1 0 0 0 1 0 0 ; \
