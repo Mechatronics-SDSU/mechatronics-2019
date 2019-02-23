@@ -1,3 +1,9 @@
+'''
+Copyright 2019, Ramiz Hanan, All rights reserved
+Author: Ramiz Hanan<ramizhanan@gmail.com>
+Last Modified 02/22/2019
+Description: This script checks controller connection status.
+'''
 import pygame
 import time
 
