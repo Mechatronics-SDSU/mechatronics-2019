@@ -2,12 +2,9 @@ import sys
 import os
 #\/\/CHECK LOCATION OF FILE!!!\/\/#
 
-PROTO_PATH = os.path.join("..", "..", "Proto") #<---- may need to change
 SHAFI_PATH = os.path.join("..","..","Sub","Src","Dynamics","Shafi")
 ALEXA_PATH = os.path.join("..","..","Sub","Src","Dynamics","Alexa")
-
-PROTO_PATH = os.path.join("Proto") #<---- may need to change
-sys.path.append(os.path.join(PROTO_PATH, "Src"))
+PROTO_PATH = os.path.join("..","..","Proto")
 sys.path.append(PROTO_PATH)
 sys.path.append(SHAFI_PATH)
 sys.path.append(ALEXA_PATH)
