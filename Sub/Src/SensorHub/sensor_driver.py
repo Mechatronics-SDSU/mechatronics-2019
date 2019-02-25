@@ -1,3 +1,13 @@
+'''
+Copyright 2019, David Pierce Walker-Howell, All rights reserved
+
+Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
+Last Modified 02/25/2019
+
+Description: The sensor driver controls and starts all the threads for each sensor.
+             The driver will package up the sensor data into their respective proto
+             messages to publish them to the MechOS network for other process to use.
+'''
 import sys
 import os
 
@@ -16,11 +26,12 @@ import time
 class Sensor_Driver:
     '''
     This is the main sensor driver that gathers and publishes sensor data to the
-    mechos network
+    mechos network. This includes AHRS, Backplane, Pressure Transducers, and DVL.
     '''
     def __init__(self):
         '''
         Initialize all of the threads for gathering data from each of the sensors.
+        This includes AHRS, Backplane, Pressure Transducers, and DVL.
 
         Parameters:
             N/A

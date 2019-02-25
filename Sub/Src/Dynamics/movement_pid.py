@@ -2,7 +2,7 @@
 Copyright 2019, David Pierce Walker-Howell, All rights reserved
 
 Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
-Last Modified 02/08/2019
+Last Modified 02/25/2019
 Description: This module contains a PID based movement controller that is used
             to control the six degrees of freedom control of Perseverance.
 '''
@@ -40,7 +40,9 @@ class Movement_PID:
             N/A
         '''
 
-        #Initialize parameter server client to get and set parameters related to sub
+        #Initialize parameter server client to get and set parameters related to
+        #the PID controller. This includes update time and PID contstants for
+        #each degree of freedom.
         self.param_serv = mechos.Parameter_Server_Client()
 
         parameter_xml_database = os.path.join("..", "Params", "Perseverance.xml")
@@ -77,9 +79,7 @@ class Movement_PID:
         Returns:
             N/A
         '''
-        #d_t = self.param_serv.get_param("PID/dt")
-        d_t = 0.1
-        print(d_t)
+        d_t = float(self.param_serv.get_param("Control/PID/dt"))
         roll_p = float(self.param_serv.get_param("Control/PID/roll_pid/p"))
         roll_i = float(self.param_serv.get_param("Control/PID/roll_pid/i"))
         roll_d = float(self.param_serv.get_param("Control/PID/roll_pid/d"))
