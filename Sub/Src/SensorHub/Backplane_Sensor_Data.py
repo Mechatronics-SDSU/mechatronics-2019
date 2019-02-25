@@ -10,19 +10,14 @@ the backplane.
 
 import sys
 import os
+
 HELPERS_PATH = os.path.join("..", "Helpers")
 sys.path.append(HELPERS_PATH)
-PROTO_PATH = os.path.join("..", "..", "..", "Proto")
-sys.path.append(os.path.join(PROTO_PATH, "Src"))
-sys.path.append(PROTO_PATH)
 
 from MechOS import mechos
-from sensorHub import SensorHubBase
 import serial
 import time
 import struct
-from protoFactory import packageProtobuf
-import Mechatronics_pb2
 import threading
 from pressureTransducers import Pressure_Depth_Transducers
 
