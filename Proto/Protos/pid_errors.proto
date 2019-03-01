@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+message PID_ERRORS {
+    float roll_error  = 1;
+    float pitch_error = 2;
+    float yaw_error   = 3;
+    float x_pos_error = 4;
+    float y_pos_error = 5;
+    float z_pos_error = 6;
+}

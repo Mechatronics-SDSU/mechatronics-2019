@@ -20,14 +20,14 @@
 			<dt>.1</dt>
 
 			<roll_pid>
-				<p>3</p>
-				<i>1</i>
-				<d>0</d>
+				<p>9.6</p>
+				<i>0.0</i>
+				<d>7.0</d>
 			</roll_pid>
 			<pitch_pid>
-				<p>1</p>
-				<i>7</i>
-				<d>0</d>
+				<p>7.0</p>
+				<i>7.0</i>
+				<d>0.0</d>
 			</pitch_pid>
 			<yaw_pid>
 				<p>0</p>

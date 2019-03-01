@@ -19,8 +19,6 @@ from MechOS import mechos
 import serial
 import time
 import struct
-from protoFactory import packageProtobuf
-import Mechatronics_pb2
 import copy
 
 class Thruster():

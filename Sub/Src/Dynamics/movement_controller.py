@@ -21,6 +21,7 @@ PROTO_PATH = os.path.join("..", "..", "..", "Proto")
 sys.path.append(os.path.join(PROTO_PATH, "Src"))
 sys.path.append(PROTO_PATH)
 import desired_position_pb2
+import pid_errors_pb2
 
 from position_estimator import Position_Estimator
 from movement_pid import Movement_PID
@@ -54,6 +55,10 @@ class Movement_Controller:
 
         #Subscriber to get the desired position set by the user/mission controller.
         self.desired_position_subscriber = self.movement_controller_node.create_subscriber("DP", self.__unpack_desired_position_callback)
+        self.pid_errors_proto = pid_errors_pb2.PID_ERRORS()
+
+        #Publisher that published the PID errors for each degree of freedom
+        self.pid_errors_publisher = self.movement_controller_node.create_publisher("PE")
 
         #Connect to parameters server
         self.param_serv = mechos.Parameter_Server_Client()
@@ -176,15 +181,23 @@ class Movement_Controller:
                 #sent from the GUI or mission controller.
                 self.movement_controller_node.spinOnce(self.desired_position_subscriber)
 
-                print(current_position, self.desired_position)
+                #print(current_position, self.desired_position)
 
                 #Perform the PID control step to move the sub to the desired depth
-                self.pid_controller.simple_depth_move_no_yaw(current_position[0],
+                #The error received is the roll, pitch, and depth error
+                error = self.pid_controller.simple_depth_move_no_yaw(current_position[0],
                                                              current_position[1],
                                                              current_position[3],
                                                              self.desired_position[0],
                                                              self.desired_position[1],
                                                              self.desired_position[3])
+                #Package PID error protos
+                self.pid_errors_proto.roll_error = error[0]
+                self.pid_errors_proto.pitch_error = error[1]
+                self.pid_errors_proto.z_pos_error = error[2] #depth error
+                print(self.pid_errors_proto)
+                serialzed_pid_errors_proto = self.pid_errors_proto.SerializeToString()
+                self.pid_errors_publisher.publish(serialzed_pid_errors_proto)
 
             time.sleep(0.1)
 

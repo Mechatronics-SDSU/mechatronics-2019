@@ -198,7 +198,7 @@ class Movement_PID:
             desired_z_pos: Desired z (depth) position
 
         Returns:
-            N/A
+            error: The roll, pitch and depth error
         '''
         #Calculate error for each degree of freedom
         error = [0, 0, 0, 0, 0, 0]
@@ -216,3 +216,5 @@ class Movement_PID:
         #Set x, y, and yaw controls to zero since we don't care about the subs
         #heading or planar orientation for a simple depth move
         self.controlled_thrust(roll_control, pitch_control, 0, 0, 0, z_control)
+
+        return error
