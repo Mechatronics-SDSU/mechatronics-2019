@@ -4,6 +4,12 @@
 		<AHRS>COM41</AHRS>
 		<backplane>COM6</backplane>
 	</COM_Ports>
+	<Timing>
+		<AHRS>0.01</AHRS>
+		<backplane_response>0.01</backplane_response>
+		<backplane_handler>0.01</backplane_handler>
+		<movement_control>0.1</movement_control>
+	</Timing>
 	<Control>
 		<Movement_Mode>
 			<default>1</default>
@@ -51,4 +57,5 @@
 			</z_pid>
 		</PID>
 	</Control>
+
 </Perseverance>

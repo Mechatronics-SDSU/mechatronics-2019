@@ -13,6 +13,7 @@ import os
 
 HELPERS_PATH = os.path.join("..", "Helpers")
 sys.path.append(HELPERS_PATH)
+import util_timer
 
 from MechOS import mechos
 import serial
@@ -97,6 +98,14 @@ class Backplane_Responses(threading.Thread):
         self.run_thread = True
         self.daemon = True
 
+        self.param_serv = mechos.Parameter_Server_Client()
+        parameter_xml_database = os.path.join("..", "Params", "Perseverance.xml")
+        parameter_xml_database = os.path.abspath(parameter_xml_database)
+        self.param_serv.use_parameter_database(parameter_xml_database)
+
+        self.backplane_response_timer = util_timer.Timer()
+        self.backplane_response_timer_interval = float(self.param_serv.get_param("Timing/backplane_response"))
+
         #A list(Queue) to store data received from backplane
         self.backplane_data_queue = []
 
@@ -111,14 +120,20 @@ class Backplane_Responses(threading.Thread):
         Returns:
             N/A
         '''
+        self.backplane_response_timer.restart_timer()
         while self.run_thread:
+
+            backplane_time = self.backplane_response_timer.net_timer()
+
+            if(backplane_time < self.backplane_response_timer_interval):
+                time.sleep(self.backplane_response_timer_interval - backplane_time)
+                self.backplane_response_timer.restart_timer()
 
             backplane_data_packet = self._unpack()
 
             if backplane_data_packet != None:
                 self.backplane_data_queue.append(backplane_data_packet)
 
-            time.sleep(0.001) #TODO: Change to net timer
 
     def _unpack(self):
         '''
@@ -134,7 +149,6 @@ class Backplane_Responses(threading.Thread):
         '''
         try:
             if self.backplane_serial.in_waiting > 0:
-
 
                 #read in first byte and check if it is the correct header byte
                 #header byte should be 0xEE
@@ -225,7 +239,6 @@ class Backplane_Responses(threading.Thread):
                          ext_pressure_3 = struct.unpack('H', struct.pack('H', (payload[3] & int('0x1F', 0)) << 4 | payload[2] >> 4))[0]
                          inter_pressure_1 = (struct.unpack('i', struct.pack('I', payload[4] | payload[5] << 8 | (int('0xF', 0) & payload[6]) << 16))[0])
                          #message = {"Press":[ext_pressure_1,ext_pressure_2, ext_pressure_3, inter_pressure_1]}
-
                          #Currently only these two transducers are operational
                          message = {"Press":[ext_pressure_2, ext_pressure_3]}
                     elif id_frame == 400:   #This use to be used for an internal pressure sensor
@@ -274,6 +287,15 @@ class Backplane_Handler(threading.Thread):
 
         self.depth_processing = Pressure_Depth_Transducers()
 
+
+        self.param_serv = mechos.Parameter_Server_Client()
+        parameter_xml_database = os.path.join("..", "Params", "Perseverance.xml")
+        parameter_xml_database = os.path.abspath(parameter_xml_database)
+        self.param_serv.use_parameter_database(parameter_xml_database)
+
+        self.backplane_handler_timer = util_timer.Timer()
+        self.backplane_handler_timer_interval = float(self.param_serv.get_param("Timing/backplane_handler"))
+
         #start backplane response thread
         self.backplane_response_thread.start()
 
@@ -299,6 +321,12 @@ class Backplane_Handler(threading.Thread):
         while(self.run_thread):
 
             try:
+                backplane_handler_time = self.backplane_handler_timer.net_timer()
+
+                if(backplane_handler_time < self.backplane_handler_timer_interval):
+                    time.sleep(self.backplane_handler_timer_interval - backplane_handler_time)
+                    self.backplane_handler_timer.restart_timer()
+
                 #Make request for data
                 self.backplane_requests.request_pressure_transducer_data()
 
@@ -318,7 +346,7 @@ class Backplane_Handler(threading.Thread):
             except Exception as e:
                 print("Cannot pop backplane data:", e)
 
-            time.sleep(0.01) #TODO: Change this to a net timer
+
 
 
 

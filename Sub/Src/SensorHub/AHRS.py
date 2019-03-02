@@ -7,6 +7,11 @@ Description: This module is the driver program for the Sparton AHRS.
 '''
 import sys
 import os
+
+HELPER_PATH = os.path.join("..", "Helpers")
+sys.path.append(HELPER_PATH)
+import util_timer
+
 import serial
 import time
 import struct
@@ -197,6 +202,15 @@ class AHRS(threading.Thread):
         #create object for Sparton AHRS data packets
         self.sparton_ahrs = SpartonAHRSDataPackets(com_port)
 
+        self.param_serv = mechos.Parameter_Server_Client()
+        parameter_xml_database = os.path.join("..", "Params", "Perseverance.xml")
+        parameter_xml_database = os.path.abspath(parameter_xml_database)
+        self.param_serv.use_parameter_database(parameter_xml_database)
+
+        #Initialize a timer for consistent timing on data
+        self.ahrs_timer_interval = float(self.param_serv.get_param("Timing/AHRS"))
+        self.ahrs_timer = util_timer.Timer()
+
         self.threading_lock = threading.Lock()
         self.run_thread = True
         self.daemon = True
@@ -238,12 +252,20 @@ class AHRS(threading.Thread):
             N/A
         '''
 
+        self.ahrs_timer.restart_timer()
+
         while(self.run_thread):
 
             try:
+                ahrs_time = self.ahrs_timer.net_timer()
+
+                #Wait necessary amont of time berof receiving and publihsing data
+                if(ahrs_time < self.ahrs_timer_interval):
+                    time.sleep(self.ahrs_timer_interval - ahrs_time)
+                    self.ahrs_timer.restart_timer()
 
                 data = self.receive_sensor_data()
-                
+
                 if(data is not False):
 
                     #set ahrs data variable to be able to share data across threads
@@ -253,7 +275,7 @@ class AHRS(threading.Thread):
             except Exception as e:
                 print("Couldn't receive and store AHRS data correctly:", e)
 
-            time.sleep(0.01)
+
 
 if __name__ == "__main__":
 

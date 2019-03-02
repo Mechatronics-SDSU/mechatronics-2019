@@ -54,6 +54,7 @@ class Sensor_Driver:
         backplane_com_port = self.param_serv.get_param("COM_Ports/backplane")
         ahrs_com_port = self.param_serv.get_param("COM_Ports/AHRS")
 
+
         #Initialize the backplane handler
         self.backplane_driver_thread = Backplane_Handler(backplane_com_port)
 
@@ -86,6 +87,7 @@ class Sensor_Driver:
                 self.nav_data_proto.roll = self.ahrs_driver_thread.ahrs_data[0]
                 self.nav_data_proto.pitch = self.ahrs_driver_thread.ahrs_data[1]
                 self.nav_data_proto.yaw = self.ahrs_driver_thread.ahrs_data[2]
+                
                 self.nav_data_proto.depth = self.backplane_driver_thread.depth_data
 
                 print(self.nav_data_proto)

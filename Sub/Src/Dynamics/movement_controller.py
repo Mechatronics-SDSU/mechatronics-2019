@@ -72,6 +72,8 @@ class Movement_Controller:
         self.position_estimator_thread = Position_Estimator()
         self.position_estimator_thread.start()
 
+        #Get movement controller timing
+        self.time_interval = float(self.param_serv.get_param("Timing/movement_control"))
 
         self.movement_mode = '1'
         self.run_thread = True
@@ -91,6 +93,10 @@ class Movement_Controller:
         self.pid_values_update_thread.daemon = True
         self.pid_values_update_thread_run = False
 
+        #Set up a thread to listen to a movement mode change.
+        self.movement_mode_thread = threading.Thread(target=self.update_movement_mode_thread)
+        self.movement_mode_thread.daemon = True
+        self.movement_mode_thread_run = True
 
     def __update_movement_mode_callback(self, movement_mode):
         '''
@@ -104,6 +110,21 @@ class Movement_Controller:
             N/A
         '''
         self.movement_mode = struct.unpack('s', movement_mode)
+
+    def update_movement_mode_thread(self):
+        '''
+        The thread to run to update listen for changes in the movement mode. Started by a
+        thread.
+
+        Parameters:
+            N/A
+
+        Returns:
+            N/A
+        '''
+        while self.movement_mode_thread_run:
+            self.movement_controller_node.spinOnce(self.movement_mode_subscriber)
+            time.sleep(0.2)
 
     def __unpack_desired_position_callback(self, desired_position_proto):
         '''
@@ -160,9 +181,6 @@ class Movement_Controller:
 
         while(self.run_thread):
 
-            #Poll movement mode subscriber to see if user changed control mode
-            self.movement_controller_node.spinOnce(self.movement_mode_subscriber)
-
             #PID Depth, pitch, roll Tunning Mode
             #In PID depth, pitch, roll tunning mode, only roll pitch and depth are used in
             #the control loop perfrom a simpe Depth PID move. x_pos, y_pos, and
@@ -199,7 +217,7 @@ class Movement_Controller:
                 serialzed_pid_errors_proto = self.pid_errors_proto.SerializeToString()
                 self.pid_errors_publisher.publish(serialzed_pid_errors_proto)
 
-            time.sleep(0.1)
+            time.sleep(self.time_interval)
 
 if __name__ == "__main__":
     movement_controller = Movement_Controller()
