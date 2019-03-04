@@ -10,19 +10,15 @@ the backplane.
 
 import sys
 import os
+
 HELPERS_PATH = os.path.join("..", "Helpers")
 sys.path.append(HELPERS_PATH)
-PROTO_PATH = os.path.join("..", "..", "..", "Proto")
-sys.path.append(os.path.join(PROTO_PATH, "Src"))
-sys.path.append(PROTO_PATH)
+import util_timer
 
 from MechOS import mechos
-from sensorHub import SensorHubBase
 import serial
 import time
 import struct
-from protoFactory import packageProtobuf
-import Mechatronics_pb2
 import threading
 from pressureTransducers import Pressure_Depth_Transducers
 
@@ -102,6 +98,14 @@ class Backplane_Responses(threading.Thread):
         self.run_thread = True
         self.daemon = True
 
+        self.param_serv = mechos.Parameter_Server_Client()
+        parameter_xml_database = os.path.join("..", "Params", "Perseverance.xml")
+        parameter_xml_database = os.path.abspath(parameter_xml_database)
+        self.param_serv.use_parameter_database(parameter_xml_database)
+
+        self.backplane_response_timer = util_timer.Timer()
+        self.backplane_response_timer_interval = float(self.param_serv.get_param("Timing/backplane_response"))
+
         #A list(Queue) to store data received from backplane
         self.backplane_data_queue = []
 
@@ -116,14 +120,20 @@ class Backplane_Responses(threading.Thread):
         Returns:
             N/A
         '''
+        self.backplane_response_timer.restart_timer()
         while self.run_thread:
+
+            backplane_time = self.backplane_response_timer.net_timer()
+
+            if(backplane_time < self.backplane_response_timer_interval):
+                time.sleep(self.backplane_response_timer_interval - backplane_time)
+                self.backplane_response_timer.restart_timer()
 
             backplane_data_packet = self._unpack()
 
             if backplane_data_packet != None:
                 self.backplane_data_queue.append(backplane_data_packet)
 
-            time.sleep(0.1)
 
     def _unpack(self):
         '''
@@ -139,7 +149,6 @@ class Backplane_Responses(threading.Thread):
         '''
         try:
             if self.backplane_serial.in_waiting > 0:
-
 
                 #read in first byte and check if it is the correct header byte
                 #header byte should be 0xEE
@@ -230,7 +239,6 @@ class Backplane_Responses(threading.Thread):
                          ext_pressure_3 = struct.unpack('H', struct.pack('H', (payload[3] & int('0x1F', 0)) << 4 | payload[2] >> 4))[0]
                          inter_pressure_1 = (struct.unpack('i', struct.pack('I', payload[4] | payload[5] << 8 | (int('0xF', 0) & payload[6]) << 16))[0])
                          #message = {"Press":[ext_pressure_1,ext_pressure_2, ext_pressure_3, inter_pressure_1]}
-
                          #Currently only these two transducers are operational
                          message = {"Press":[ext_pressure_2, ext_pressure_3]}
                     elif id_frame == 400:   #This use to be used for an internal pressure sensor
@@ -249,7 +257,7 @@ class Backplane_Responses(threading.Thread):
         except Exception as e:
             print("Can't receive data from backplane:", e)
 
-class Backplane_Handler():
+class Backplane_Handler(threading.Thread):
     '''
     This class handles requests and responses to the backplane and publishs any
     necessary received data to the MechOS network.
@@ -267,6 +275,8 @@ class Backplane_Handler():
             N/A
         '''
 
+        threading.Thread.__init__(self)
+
         backplane_serial_obj = serial.Serial(com_port, 9600)
 
         #Initialize object request for data to the backplane
@@ -275,12 +285,25 @@ class Backplane_Handler():
         #Initialize thread object for queuing up data received from backplane
         self.backplane_response_thread = Backplane_Responses(backplane_serial_obj)
 
-        #Initialize pressure transducer thread
-        self.depth_processing_thread = Pressure_Depth_Transducers(backplane_serial_obj)
+        self.depth_processing = Pressure_Depth_Transducers()
+
+
+        self.param_serv = mechos.Parameter_Server_Client()
+        parameter_xml_database = os.path.join("..", "Params", "Perseverance.xml")
+        parameter_xml_database = os.path.abspath(parameter_xml_database)
+        self.param_serv.use_parameter_database(parameter_xml_database)
+
+        self.backplane_handler_timer = util_timer.Timer()
+        self.backplane_handler_timer_interval = float(self.param_serv.get_param("Timing/backplane_handler"))
 
         #start backplane response thread
         self.backplane_response_thread.start()
-        self.depth_processing_thread.start()
+
+        self.threading_lock = threading.Lock()
+        self.run_thread = True
+        self.daemon = True
+
+        self.depth_data = 0.0
 
 
     def run(self):
@@ -295,9 +318,15 @@ class Backplane_Handler():
             N/A
         '''
 
-        while(1):
+        while(self.run_thread):
 
             try:
+                backplane_handler_time = self.backplane_handler_timer.net_timer()
+
+                if(backplane_handler_time < self.backplane_handler_timer_interval):
+                    time.sleep(self.backplane_handler_timer_interval - backplane_handler_time)
+                    self.backplane_handler_timer.restart_timer()
+
                 #Make request for data
                 self.backplane_requests.request_pressure_transducer_data()
 
@@ -305,12 +334,18 @@ class Backplane_Handler():
                 #pop off data from the backplane
                     backplane_data = self.backplane_response_thread.backplane_data_queue.pop(0)
 
-                    #if pressure data is popped from queue, place it in the
+                    #if pressure data is popped from queue, process it
                     if "Press" in backplane_data.keys():
-                        self.depth_processing_thread.raw_pressure_data.append(
+                        depth_data = self.depth_processing.process_depth_data(
                                                         backplane_data["Press"])
+                        if(depth_data != None):
+                            with self.threading_lock:
+
+                                self.depth_data = depth_data[0, 0]
+
             except Exception as e:
                 print("Cannot pop backplane data:", e)
+
 
 
 

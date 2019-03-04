@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+message NAV_DATA {
+    //AHRS DATA
+    float roll  = 1;
+    float pitch = 2;
+    float yaw   = 3;
+
+    //From pressure Transducers
+    float depth = 4;
+
+    //X and Y translation from the DVL
+    float x_translation = 5;
+    float y_translation = 6;
+
+}

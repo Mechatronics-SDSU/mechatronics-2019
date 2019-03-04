@@ -1,5 +1,0 @@
-syntax = "proto3";
-
-message LeakDetect {
-    bool isLeaking = 1;
-}

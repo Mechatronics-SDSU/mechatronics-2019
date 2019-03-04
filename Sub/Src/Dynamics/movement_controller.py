@@ -2,7 +2,7 @@
 Copyright 2019, David Pierce Walker-Howell, All rights reserved
 
 Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
-Last Modified 02/08/2019
+Last Modified 02/25/2019
 Description: This module contains a highest level movement controller for Perseverance.
                 It contains multiple modes of control for the sub including
                 thruster test mode, PID test mode, manual control mode PID,
@@ -20,185 +20,206 @@ import util_timer
 PROTO_PATH = os.path.join("..", "..", "..", "Proto")
 sys.path.append(os.path.join(PROTO_PATH, "Src"))
 sys.path.append(PROTO_PATH)
-from protoFactory import packageProtobuf
-import Mechatronics_pb2
+import desired_position_pb2
+import pid_errors_pb2
 
+from position_estimator import Position_Estimator
 from movement_pid import Movement_PID
 from MechOS import mechos
+import struct
+import threading
 
 class Movement_Controller:
     '''
+    This main movement controller for the sub. It lets the user select which
+    control system to is currently used to move and balance the sub.
     '''
     def __init__(self):
         '''
-        '''
-        #DEVELOPE BETTER INITIALIZATION SOLUTION
-        self.roll = 0
-        self.pitch = 0
-        self.yaw = 0
-        self.depth = 0
+        Initialize the movement controller. This includes connecting publishers
+        and subscribers to the MechOS network to configure and control the movement
+        operation.
 
-        #Initialize parameter server client
+        Parameters:
+            N/A
+
+        Returns:
+            N/A
+        '''
+
+        #MechOS node to connect movement controller to mechos network
+        self.movement_controller_node = mechos.Node("MOV_CTRL")
+
+        #Subscriber to change movement mode
+        self.movement_mode_subscriber = self.movement_controller_node.create_subscriber("MM", self.__update_movement_mode_callback)
+
+        #Subscriber to get the desired position set by the user/mission controller.
+        self.desired_position_subscriber = self.movement_controller_node.create_subscriber("DP", self.__unpack_desired_position_callback)
+        self.pid_errors_proto = pid_errors_pb2.PID_ERRORS()
+
+        #Publisher that published the PID errors for each degree of freedom
+        self.pid_errors_publisher = self.movement_controller_node.create_publisher("PE")
+
+        #Connect to parameters server
         self.param_serv = mechos.Parameter_Server_Client()
         parameter_xml_database = os.path.join("..", "Params", "Perseverance.xml")
         parameter_xml_database = os.path.abspath(parameter_xml_database)
         self.param_serv.use_parameter_database(parameter_xml_database)
 
-        #Initialize the mechos node
-        self.movement_controller_node = mechos.Node("MOVEMENT_CONTROLLER")
+        #Initialize the position estimator thread. The position estimator
+        #will estimate the real time current position of the sub with respect to
+        #the origin set.
+        self.position_estimator_thread = Position_Estimator()
+        self.position_estimator_thread.start()
 
-        self.proto_decoder = Mechatronics_pb2.Mechatronics()
+        #Get movement controller timing
+        self.time_interval = float(self.param_serv.get_param("Timing/movement_control"))
 
-        #Setup mechos subscribers and proto decoders
-        #Thruster test
-        self.thruster_test_sub = self.movement_controller_node.create_subscriber("THRUST",
-                                                        self._thruster_test)
+        self.movement_mode = '1'
+        self.run_thread = True
 
-        #Mode selection subscriber
-        self.movement_mode_sub = self.movement_controller_node.create_subscriber("MOV_MODE",
-                                                       self._set_movement_mode)
+        #Initialize 6 degree of freedom PID movement controller used for the sub.
+        self.pid_controller = Movement_PID()
 
-        self.movement_mode = self.param_serv.get_param("Control/Movement_Mode/default")
+        #Initialize desired position
+        self.desired_position = [0, 0, 0, 0, 0, 0]
+        self.desired_position_proto = desired_position_pb2.DESIRED_POS()
 
-        #AHRS,DVL, PRESSURE SENSOR subscribers
-        self.AHRS_sub = self.movement_controller_node.create_subscriber("AHRS_DATA",
-                                                        self._extract_sensor_data)
-        self.DVL_sub = self.movement_controller_node.create_subscriber("DVL_DATA",
-                                                        self._extract_sensor_data)
-        self.depth_sub = self.movement_controller_node.create_subscriber("DEPTH_DATA",
-                                                        self._extract_sensor_data)
+        #Set up thread to update PID values. The GUI has the ability to change
+        #the proportional, integral, and derivative constants by setting them in
+        #the parameter server. These values should only be checked in the PID tunning
+        #modes.
+        self.pid_values_update_thread = threading.Thread(target=self.__update_pid_values)
+        self.pid_values_update_thread.daemon = True
+        self.pid_values_update_thread_run = False
 
-        #Subscriber for PID value change
-        self.PID_sub = self.movement_controller_node.create_subscriber("PIDS",
-                                                        self._set_pid_values)
+        #Set up a thread to listen to a movement mode change.
+        self.movement_mode_thread = threading.Thread(target=self.update_movement_mode_thread)
+        self.movement_mode_thread.daemon = True
+        self.movement_mode_thread_run = True
 
-        self.PID_error_pub = self.movement_controller_node.create_publisher("PID_ERRORS")
-
-        #PID based movement controller
-        self.movement_pid_controller = Movement_PID(self.PID_error_pub)
-
-    def _set_movement_mode(self, movement_mode):
+    def __update_movement_mode_callback(self, movement_mode):
         '''
-        Call back function from MechOS subscriber listening for a change in movement
-        mode.
+        The callback function to select which movement controller mode is being used.
+        It does this by setting the movment_mode class attribute
 
         Parameters:
-            movement_mode: One of the following string values representing the mode
-                        selection.
-
-                    '0' -> Thruster Test Mode
-                    '1' -> PID Test/Tuning Mode
-                    '2' -> Manual Control Mode (PID)
-                    '3' -> Autonomous Control Mode (PID)
-                    '4' -> LQR Test/Tuning Mode
-                    '5' -> Manual Control Mode (LQR)
-                    '6' -> Autonomous Control Mode (LQR)
-        '''
-        print("Here", movement_mode.decode())
-        self.movement_mode = movement_mode
-
-
-    def _thruster_test(self, thrust_proto_data):
-        '''
-        Call back function for the test thruster subscriber. Thruster tests are
-        only done when the movement controller is in thruster test mode
-
-        Parameters:
-            thrust_proto_data: A proto buff message containging data under type
-                                thruster.
+            movement_mode: Raw byte of the mode.
 
         Returns:
             N/A
         '''
-        self.proto_decoder.ParseFromString(thrust_proto_data)
-        thrusts = [self.proto_decoder.thruster.thruster_1,
-                   self.proto_decoder.thruster.thruster_2,
-                   self.proto_decoder.thruster.thruster_3,
-                   self.proto_decoder.thruster.thruster_4,
-                   self.proto_decoder.thruster.thruster_5,
-                   self.proto_decoder.thruster.thruster_6,
-                   self.proto_decoder.thruster.thruster_7,
-                   self.proto_decoder.thruster.thruster_8]
+        self.movement_mode = struct.unpack('s', movement_mode)
 
-
-        self.movement_pid_controller.simple_thrust(thrusts)
-
-    def _extract_sensor_data(self, proto_sensor_data):
+    def update_movement_mode_thread(self):
         '''
+        The thread to run to update listen for changes in the movement mode. Started by a
+        thread.
+
+        Parameters:
+            N/A
+
+        Returns:
+            N/A
         '''
-        self.proto_decoder.ParseFromString(proto_sensor_data)
+        while self.movement_mode_thread_run:
+            self.movement_controller_node.spinOnce(self.movement_mode_subscriber)
+            time.sleep(0.2)
 
-        #AHRS data
-        if(self.proto_decoder.type == Mechatronics_pb2.AHRS_DATA):
-            self.roll = self.proto_decoder.ahrs.roll
-            self.pitch = self.proto_decoder.ahrs.pitch
-            self.yaw = self.proto_decoder.ahrs.yaw
-
-        elif(self.proto_decoder.type == Mechatronics_pb2.PRESSURE_TRANSDUCERS):
-            self.depth = self.proto_decoder.pressureTrans.depth
-
-    def _set_pid_values(self, pid_proto):
+    def __unpack_desired_position_callback(self, desired_position_proto):
         '''
+        The callback function to unpack the desired position proto message received
+        through MechOS.
+
+        Parameters:
+            desired_position_proto: Protobuf of type DESIRED_POS to unpack
+
+        Returns:
+            N/A
         '''
-        self.proto_decoder.ParseFromString(pid_proto)
-        k_p = self.proto_decoder.pid.k_p
-        k_i = self.proto_decoder.pid.k_i
-        k_d = self.proto_decoder.pid.k_d
+        self.desired_position_proto.ParseFromString(desired_position_proto)
+        self.desired_position[0] = self.desired_position_proto.roll
+        self.desired_position[1] = self.desired_position_proto.pitch
+        self.desired_position[2] = self.desired_position_proto.yaw
+        self.desired_position[3] = self.desired_position_proto.depth
+        self.desired_position[4] = self.desired_position_proto.x_pos
+        self.desired_position[5] = self.desired_position_proto.y_pos
 
-        #Roll pid
-        if(self.proto_decoder.pid.PID_channel == 0):
-            #Update gain values for roll pid
-            self.movement_pid_controller.roll_pid_controller.set_gains(k_p, k_i, k_d)
+    def __update_pid_values(self):
+        '''
+        Call the RPC server to check if new PID values have been updated.
 
-        elif(self.proto_decoder.pid.PID_channel == 0):
-            #Update gain values for pitch pid
-            self.movement_pid_controller.pitch_pid_controller.set_gains(k_p, k_i, k_d)
+        Parameters:
+            N/A
 
-        elif(self.proto_decoder.pid.PID_channel == 0):
-            #Update gain values for yaw pid
-            self.movement_pid_controller.yaw_pid_controller.set_gains(k_p, k_i, k_d)
-
-        elif(self.proto_decoder.pid.PID_channel == 0):
-            #Update gain values for x pid
-            self.movement_pid_controller.x_pid_controller.set_gains(k_p, k_i, k_d)
-
-        elif(self.proto_decoder.pid.PID_channel == 0):
-            #Update gain values for y pid
-            self.movement_pid_controller.y_pid_controller.set_gains(k_p, k_i, k_d)
-
-        elif(self.proto_decoder.pid.PID_channel == 0):
-            #Update gain values for z pid
-            self.movement_pid_controller.z_pid_controller.set_gains(k_p, k_i, k_d)
+        Returns:
+            N/A
+        '''
+        while(self.pid_values_update_thread_run):
+            #Checks the parameters server to obtain possible new PID constants
+            #for every control degree of freedom.
+            self.pid_controller.set_up_PID_controllers()
+            time.sleep(0.1)
 
 
     def run(self):
         '''
+        Runs the movement control in the control mode specified by the user. The
+        different modes of control are as follows.
+
+            '0' --> Thruster test mode.
+            '1' --> Roll, Pitch, Depth PID tunning mode.
+            '2' --> PID tunning mode. Tunes all 6 degrees of freedom PID controls
+
+        Parameters:
+            N/A
+
+        Returns:
+            N/A
         '''
-        while(True):
+        current_position = [0, 0, 0, 0, 0, 0]
 
-            #Check if operator is requesting to change movement mode
-            self.movement_controller_node.spinOnce(self.movement_mode_sub)
-            #Thruster Test Mode
-            if(self.movement_mode == '0'):
-                print("Here")
-                self.movement_controller_node.spinOnce(self.thruster_test_sub)
+        while(self.run_thread):
 
-            #PID tuning mode
-            elif(self.movement_mode == '1'):
-                #Get data from AHRS, DVL, and pressure transducers (for depth)
-                self.movement_controller_node.spinOnce(self.AHRS_sub)
-                self.movement_controller_node.spinOnce(self.DVL_sub)
-                self.movement_controller_node.spinOnce(self.depth_sub)
-                self.movement_controller_node.spinOnce(self.PID_sub)
+            #PID Depth, pitch, roll Tunning Mode
+            #In PID depth, pitch, roll tunning mode, only roll pitch and depth are used in
+            #the control loop perfrom a simpe Depth PID move. x_pos, y_pos, and
+            #yaw are ignored.
+            if self.movement_mode == '1':
 
+                if(self.pid_values_update_thread_run == False):
+                    self.pid_values_update_thread_run = True
+                    self.pid_values_update_thread.start()
 
-                self.movement_pid_controller.simple_depth_move_no_yaw(self.roll,
-                                            self.pitch, self.depth, 0, 0, 3)
+                #The current position (roll, pitch, yaw, depth, x_disp, y_disp)
+                #calculated by the position estimator thread.
+                current_position = self.position_estimator_thread.belief_position
 
-        time.sleep(0.01)
+                #Get the desired position of the sub. Typically this message is
+                #sent from the GUI or mission controller.
+                self.movement_controller_node.spinOnce(self.desired_position_subscriber)
 
+                #print(current_position, self.desired_position)
 
+                #Perform the PID control step to move the sub to the desired depth
+                #The error received is the roll, pitch, and depth error
+                error = self.pid_controller.simple_depth_move_no_yaw(current_position[0],
+                                                             current_position[1],
+                                                             current_position[3],
+                                                             self.desired_position[0],
+                                                             self.desired_position[1],
+                                                             self.desired_position[3])
+                #Package PID error protos
+                self.pid_errors_proto.roll_error = error[0]
+                self.pid_errors_proto.pitch_error = error[1]
+                self.pid_errors_proto.z_pos_error = error[2] #depth error
+                print(self.pid_errors_proto)
+                serialzed_pid_errors_proto = self.pid_errors_proto.SerializeToString()
+                self.pid_errors_publisher.publish(serialzed_pid_errors_proto)
+
+            time.sleep(self.time_interval)
 
 if __name__ == "__main__":
     movement_controller = Movement_Controller()
+
     movement_controller.run()

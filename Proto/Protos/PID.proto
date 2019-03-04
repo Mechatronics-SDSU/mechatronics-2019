@@ -1,8 +1,0 @@
-syntax = "proto3";
-
-message PID {
-    int32 PID_channel = 1;
-    float k_p         = 2;
-    float k_i         = 3;
-    float k_d         = 4;
-}

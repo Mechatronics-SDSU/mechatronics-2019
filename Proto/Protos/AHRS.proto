@@ -1,8 +1,0 @@
-syntax = "proto3";
-
-//Could these be stored as ints or do they need to be stored as floats?
-message AHRS {
-    float yaw   = 1;
-    float pitch = 2;
-    float roll  = 3;
-}
