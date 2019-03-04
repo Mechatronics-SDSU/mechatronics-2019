@@ -75,7 +75,7 @@ class PID_Tuner_Widget(QWidget):
 
         self.primary_linking_layout.addLayout(self.options_linking_layout, 1)
 
-        #Start PID errors update errors. Update ten timers a second
+        #Start PID errors update errors. Update 100 timers a second
         self.pid_error_update_timer.start(10)
 
 
