@@ -5,8 +5,6 @@ sys.path.append(os.path.join(PROTO_PATH, "Src"))
 sys.path.append(PROTO_PATH)
 
 from MechOS import mechos
-from protoFactory import packageProtobuf
-import Mechatronics_pb2
 
 from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QVBoxLayout, QComboBox
 from PyQt5.QtWidgets import QHBoxLayout, QLabel
@@ -34,19 +32,12 @@ class Main_GUI(QWidget):
         self.main_layout = QGridLayout(self)
         self.secondary_layout = QVBoxLayout()
 
-
-
         self.main_layout.addLayout(self.secondary_layout, 0, 0)
 
         #Set the background color of the widget
         main_gui_palette = self.palette()
         main_gui_palette.setColor(self.backgroundRole(), QColor(64, 64, 64))
         self.setPalette(main_gui_palette)
-
-        #connnect main gui to mechos
-        self.GUI_node = mechos.Node("GUI_node")
-        self.GUI_node.create_subscriber("AHRS_DATA", self.update_AHRS_data)
-        self.movement_mode_pub = self.GUI_node.create_publisher("MOV_MODE")
 
         #Place the navigation, IMU, orientation, and odometery display widget
         self.set_nav_odometery()
@@ -87,7 +78,7 @@ class Main_GUI(QWidget):
         '''
 
 
-        self.pid_tuner = PID_Tuner_Widget(self.GUI_node)
+        self.pid_tuner = PID_Tuner_Widget()
         self.pid_tuner.setEnabled(False)
         optimal_size = self.pid_tuner.sizeHint()
         self.pid_tuner.setMaximumSize(optimal_size)
@@ -127,35 +118,8 @@ class Main_GUI(QWidget):
         elif mode == 1:
             self.thruster_test.setEnabled(False)
             self.pid_tuner.setEnabled(True)
-        self.movement_mode_pub.publish(bytes(mode))
 
-    def update_AHRS_data(self, ahrs_data):
-        '''
-        This is the callback function for the MechOS ahrs data subscriber to call
-        to display the ahrs data on the gui.
 
-        Parameters:
-            ahrs_data: The raw protobuf structure for AHRS data
-
-        Returns:
-            N/A
-        '''
-        ahrs_data_proto = Mechatronics_pb2.Mechatronics()
-        ahrs_data_proto.ParseFromString(ahrs_data)
-        self.nav_odom.update_AHRS_data(ahrs_data_proto.ahrs.yaw, ahrs_data_proto.ahrs.pitch,
-                                        ahrs_data_proto.ahrs.roll)
-
-    def update(self):
-        '''
-        The Main update function for the main gui. Updates all data received through the
-        mechos network.
-
-        Parameters:
-            N/A
-        Returns:
-            N/A
-        '''
-        self.GUI_node.spinOnce()
 
 if __name__ == "__main__":
 

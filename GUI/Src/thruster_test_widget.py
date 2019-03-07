@@ -1,7 +1,7 @@
 '''
 Copyright 2019, David Pierce Walker-Howell, All rights reserved
 Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
-Last Modified 02/03/2019
+Last Modified 3/06/2019
 Description: This PyQt widget is for testing thruster by simply
                 turning individual ones on and off.
 '''
@@ -10,15 +10,13 @@ import os
 PROTO_PATH = os.path.join("..", "..", "Proto")
 sys.path.append(os.path.join(PROTO_PATH, "Src"))
 sys.path.append(PROTO_PATH)
+import thrusters_pb2
 
 from MechOS import mechos
-from protoFactory import packageProtobuf
-import Mechatronics_pb2
-
 from PyQt5.QtWidgets import QWidget, QApplication, QGridLayout, QCheckBox, QLabel, QSlider
 from PyQt5.QtWidgets import QLineEdit, QVBoxLayout
 from PyQt5.QtGui import QColor
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QTimer
 import time
 
 class Thruster_Test(QWidget):
@@ -40,8 +38,6 @@ class Thruster_Test(QWidget):
 
         QWidget.__init__(self)
 
-        self.type = "THRUSTERS"
-
         #Set background color of the widget
         nav_gui_palette = self.palette()
         nav_gui_palette.setColor(self.backgroundRole(), QColor(64, 64, 64))
@@ -58,6 +54,13 @@ class Thruster_Test(QWidget):
         #MechOS publisher to send thrust test messages to thruster controller
         self.thruster_test_node = mechos.Node("THRUSTER_TEST")
         self.publisher = self.thruster_test_node.create_publisher("THRUST")
+
+        #Initialize the thruster test proto to package thrust requests
+        self.thruster_test_proto = thrusters_pb2.Thrusters()
+
+        self.thruster_update_timer = QTimer()
+        self.thruster_update_timer.timeout.connect(self._update_test_thrust)
+        self.thruster_update_timer.start(100)
 
     def _thruster_check_boxes(self):
         '''
@@ -145,22 +148,31 @@ class Thruster_Test(QWidget):
         desired_thrust = self.thrust_slider.value()
         self.thrust_slider_display.setText(str(desired_thrust) + "%")
 
-        thrust_data = []
-        #check which thruster are wished to be tested(check boxed)
-        for thruster in self.thruster_check_boxes:
-
-            if(thruster.isChecked()):
-                thrust_data.append(desired_thrust)
-            else:
-                thrust_data.append(0)
+        #Set each of the proto fields with the desired thrust if checkbox is checked
+        if self.thruster_check_boxes[0].isChecked():
+            self.thruster_test_proto.thruster_1 = desired_thrust
+        if self.thruster_check_boxes[1].isChecked():
+            self.thruster_test_proto.thruster_2 = desired_thrust
+        if self.thruster_check_boxes[2].isChecked():
+            self.thruster_test_proto.thruster_3 = desired_thrust
+        if self.thruster_check_boxes[3].isChecked():
+            self.thruster_test_proto.thruster_4 = desired_thrust
+        if self.thruster_check_boxes[4].isChecked():
+            self.thruster_test_proto.thruster_5 = desired_thrust
+        if self.thruster_check_boxes[5].isChecked():
+            self.thruster_test_proto.thruster_6 = desired_thrust
+        if self.thruster_check_boxes[6].isChecked():
+            self.thruster_test_proto.thruster_7 = desired_thrust
+        if self.thruster_check_boxes[7].isChecked():
+            self.thruster_test_proto.thruster_8 = desired_thrust
 
         #package test thrust data into a protobuf
-        thruster_test_proto = packageProtobuf(self.type, thrust_data)
-        serialized_data = thruster_test_proto.SerializeToString()
+
+        serialized_thruster_data = self.thruster_test_proto.SerializeToString()
 
         #publish data to mechos network
-        self.publisher.publish(serialized_data)
-        time.sleep(0.1)
+        self.publisher.publish(serialized_thruster_data)
+
 
 if __name__ == "__main__":
     import sys
