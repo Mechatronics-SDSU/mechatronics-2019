@@ -22,6 +22,7 @@ sys.path.append(os.path.join(PROTO_PATH, "Src"))
 sys.path.append(PROTO_PATH)
 import desired_position_pb2
 import pid_errors_pb2
+import thrusters_pb2
 
 from position_estimator import Position_Estimator
 from movement_pid import Movement_PID
@@ -59,6 +60,10 @@ class Movement_Controller:
 
         #Publisher that published the PID errors for each degree of freedom
         self.pid_errors_publisher = self.movement_controller_node.create_publisher("PE")
+
+        #Subscriber to listen for thrust messages from the thruster test widget
+        self.thruster_test_subscriber = self.movement_controller_node.create_subscriber("TT", self.__update_thruster_test_callback)
+        self.thruster_test_proto = thrusters_pb2.Thrusters() #Thruster protobuf message
 
         #Connect to parameters server
         self.param_serv = mechos.Parameter_Server_Client()
@@ -109,7 +114,7 @@ class Movement_Controller:
         Returns:
             N/A
         '''
-        self.movement_mode = struct.unpack('s', movement_mode)
+        self.movement_mode = struct.unpack('b', movement_mode)[0]
 
     def update_movement_mode_thread(self):
         '''
@@ -160,6 +165,31 @@ class Movement_Controller:
             #for every control degree of freedom.
             self.pid_controller.set_up_PID_controllers()
             time.sleep(0.1)
+
+    def __update_thruster_test_callback(self, thruster_proto):
+        '''
+        The callback function to unpack and write thrusts to each thruster for
+        thruster test.
+
+        Parameters:
+            thruster_proto: Protobuf of type Thrusters.
+
+        Returns:
+            N/A
+        '''
+        self.thruster_test_proto.ParseFromString(thruster_proto)
+
+        thrusts = []
+        thrusts[0] = self.thruster_test_proto.thruster_1
+        thrusts[1] = self.thruster_test_proto.thruster_2
+        thrusts[2] = self.thruster_test_proto.thruster_3
+        thrusts[3] = self.thruster_test_proto.thruster_4
+        thrusts[4] = self.thruster_test_proto.thruster_5
+        thrusts[5] = self.thruster_test_proto.thruster_6
+        thrusts[6] = self.thruster_test_proto.thruster_7
+        thrusts[7] = self.thruster_test_proto.thruster_8
+
+        self.pid_controller.simple_thrust(thrusts)
 
 
     def run(self):
@@ -216,6 +246,10 @@ class Movement_Controller:
                 print(self.pid_errors_proto)
                 serialzed_pid_errors_proto = self.pid_errors_proto.SerializeToString()
                 self.pid_errors_publisher.publish(serialzed_pid_errors_proto)
+
+            #THRUSTER test mode.
+            elif self.movement_mode == '0':
+                self.movement_controller_node.spinOnce(self.thruster_test_subscriber)
 
             time.sleep(self.time_interval)
 

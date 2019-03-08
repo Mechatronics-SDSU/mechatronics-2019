@@ -14,6 +14,7 @@ from real_time_plotter_widget import Real_Time_Plotter
 from nav_odometery_widget import Navigation_GUI
 from pid_tuner_widget import PID_Tuner_Widget
 from thruster_test_widget import Thruster_Test
+import struct
 
 class Main_GUI(QWidget):
     '''
@@ -44,6 +45,10 @@ class Main_GUI(QWidget):
         self.set_pid_visualizer()
         self.set_thruster_test_widget()
         self.set_mode_selection_widget()
+
+        #MechOS publisher to send movement mode selection
+        self.main_gui_node = mechos.Node("MAIN_GUI")
+        self.movement_mode_publisher = self.main_gui_node.create_publisher("MM")
 
         #update GUI every 100 milliseconds
         self.update_timer = QTimer()
@@ -111,13 +116,16 @@ class Main_GUI(QWidget):
             N/A
         '''
         mode = self.mode_selection.currentIndex()
-        print(mode)
+
         if mode == 0:
             self.thruster_test.setEnabled(True)
             self.pid_tuner.setEnabled(False)
         elif mode == 1:
             self.thruster_test.setEnabled(False)
             self.pid_tuner.setEnabled(True)
+
+        mode_serialized = struct.pack('b', mode)
+        self.movement_mode_publisher.publish(mode_serialized)
 
 
 

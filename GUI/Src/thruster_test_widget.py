@@ -53,7 +53,7 @@ class Thruster_Test(QWidget):
 
         #MechOS publisher to send thrust test messages to thruster controller
         self.thruster_test_node = mechos.Node("THRUSTER_TEST")
-        self.publisher = self.thruster_test_node.create_publisher("THRUST")
+        self.publisher = self.thruster_test_node.create_publisher("TT")
 
         #Initialize the thruster test proto to package thrust requests
         self.thruster_test_proto = thrusters_pb2.Thrusters()
