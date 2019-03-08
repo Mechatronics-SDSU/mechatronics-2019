@@ -27,7 +27,7 @@ class Thruster():
     of the thrusters. Setting the PWM signal will actually send the comman to the thruster.
     '''
 
-    def __init__(self, maestro_serial_obj, thruster_id, orientation, location, max_thrust):
+    def __init__(self, maestro_serial_obj, thruster_id, orientation, location, max_thrust, invert_thruster=False):
         '''
         Initialize settings for individual thruster.
 
@@ -50,12 +50,18 @@ class Thruster():
             max_thrust: A value between 0 and 100 signifying the maximum thrust possible. Example,
                         80 would mean limiting the thruster to 80% it's maximum possible thrust at
                         all times
+            invert_thruster: A boolean expression to allow the direction of the thrusters to be changed
+                                in the software. If true, the thruster will spin in the opposite direction
         '''
         self.maestro_serial_obj = maestro_serial_obj
         self.thruster_id = thruster_id
         self.orientation = orientation
         self.location = location
         self.max_thrust = max_thrust
+
+        self.invert_thruster = 1
+        if(invert_thruster):
+            self.invert_thruster = -1
 
         #remember the previous thrust value set in so you do not keep sending the same thrust value
         self.previous_thrust= None
@@ -72,6 +78,9 @@ class Thruster():
         Returns:
             N/A
         '''
+        #Will change the direction of the thruster if necessary
+        thrust = self.invert_thruster * thrust
+
         if thrust != self.previous_thrust:
 
             if thrust > self.max_thrust:

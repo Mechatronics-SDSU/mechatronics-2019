@@ -11,6 +11,7 @@
 		<movement_control>0.1</movement_control>
 	</Timing>
 	<Control>
+		<max_thrust>80</max_thrust>
 		<Movement_Mode>
 			<default>1</default>
 		</Movement_Mode>
