@@ -80,7 +80,7 @@ class Movement_Controller:
         #Get movement controller timing
         self.time_interval = float(self.param_serv.get_param("Timing/movement_control"))
 
-        self.movement_mode = '1'
+        self.movement_mode = 0
         self.run_thread = True
 
         #Initialize 6 degree of freedom PID movement controller used for the sub.
@@ -102,6 +102,7 @@ class Movement_Controller:
         self.movement_mode_thread = threading.Thread(target=self.update_movement_mode_thread)
         self.movement_mode_thread.daemon = True
         self.movement_mode_thread_run = True
+        self.movement_mode_thread.start()
 
     def __update_movement_mode_callback(self, movement_mode):
         '''
@@ -114,6 +115,7 @@ class Movement_Controller:
         Returns:
             N/A
         '''
+
         self.movement_mode = struct.unpack('b', movement_mode)[0]
 
     def update_movement_mode_thread(self):
@@ -128,6 +130,7 @@ class Movement_Controller:
             N/A
         '''
         while self.movement_mode_thread_run:
+
             self.movement_controller_node.spinOnce(self.movement_mode_subscriber)
             time.sleep(0.2)
 
@@ -179,7 +182,7 @@ class Movement_Controller:
         '''
         self.thruster_test_proto.ParseFromString(thruster_proto)
 
-        thrusts = []
+        thrusts = [0, 0, 0, 0, 0, 0, 0, 0]
         thrusts[0] = self.thruster_test_proto.thruster_1
         thrusts[1] = self.thruster_test_proto.thruster_2
         thrusts[2] = self.thruster_test_proto.thruster_3
@@ -188,7 +191,7 @@ class Movement_Controller:
         thrusts[5] = self.thruster_test_proto.thruster_6
         thrusts[6] = self.thruster_test_proto.thruster_7
         thrusts[7] = self.thruster_test_proto.thruster_8
-
+        print(thrusts)
         self.pid_controller.simple_thrust(thrusts)
 
 
@@ -215,8 +218,8 @@ class Movement_Controller:
             #In PID depth, pitch, roll tunning mode, only roll pitch and depth are used in
             #the control loop perfrom a simpe Depth PID move. x_pos, y_pos, and
             #yaw are ignored.
-            if self.movement_mode == '1':
-
+            if self.movement_mode == 1:
+                print("Here")
                 if(self.pid_values_update_thread_run == False):
                     self.pid_values_update_thread_run = True
                     self.pid_values_update_thread.start()
@@ -243,12 +246,13 @@ class Movement_Controller:
                 self.pid_errors_proto.roll_error = error[0]
                 self.pid_errors_proto.pitch_error = error[1]
                 self.pid_errors_proto.z_pos_error = error[2] #depth error
-                print(self.pid_errors_proto)
+                #print(self.pid_errors_proto)
                 serialzed_pid_errors_proto = self.pid_errors_proto.SerializeToString()
                 self.pid_errors_publisher.publish(serialzed_pid_errors_proto)
 
             #THRUSTER test mode.
-            elif self.movement_mode == '0':
+            elif self.movement_mode == 0:
+
                 self.movement_controller_node.spinOnce(self.thruster_test_subscriber)
 
             time.sleep(self.time_interval)

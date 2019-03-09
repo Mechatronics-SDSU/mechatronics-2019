@@ -120,9 +120,12 @@ class Main_GUI(QWidget):
         if mode == 0:
             self.thruster_test.setEnabled(True)
             self.pid_tuner.setEnabled(False)
+            self.pid_tuner.pid_error_update_timer.stop()
         elif mode == 1:
             self.thruster_test.setEnabled(False)
             self.pid_tuner.setEnabled(True)
+            self.pid_tuner.pid_error_update_timer.start()
+
 
         mode_serialized = struct.pack('b', mode)
         self.movement_mode_publisher.publish(mode_serialized)

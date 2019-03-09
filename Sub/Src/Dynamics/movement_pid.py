@@ -54,14 +54,14 @@ class Movement_PID:
         maestro_serial_obj = serial.Serial(com_port, 9600)
 
         #Initialize all 8 thrusters (max thrust 80%)
-        max_thrust = self.param_serv.get_param("Control/max_thrust")
+        max_thrust = float(self.param_serv.get_param("Control/max_thrust"))
 
         self.thrusters = [None, None, None, None, None, None, None, None]
-        self.thrusters[0] = Thruster(maestro_serial_obj, 1, [0, 0, 1], [1, -1, 0], max_thrust, False)
+        self.thrusters[0] = Thruster(maestro_serial_obj, 1, [0, 0, 1], [1, -1, 0], max_thrust, True)
         self.thrusters[1] = Thruster(maestro_serial_obj, 2, [0, 1, 0], [1, 0, 0], max_thrust, False)
         self.thrusters[2] = Thruster(maestro_serial_obj, 3, [0, 0, 1], [1, 1, 0], max_thrust, False)
         self.thrusters[3] = Thruster(maestro_serial_obj, 4, [1, 0, 0], [0, 1, 0], max_thrust, False)
-        self.thrusters[4] = Thruster(maestro_serial_obj, 5, [0, 0, 1], [-1, 1, 0], max_thrust, False)
+        self.thrusters[4] = Thruster(maestro_serial_obj, 5, [0, 0, 1], [-1, 1, 0], max_thrust, True)
         self.thrusters[5] = Thruster(maestro_serial_obj, 6, [0, 1, 0], [-1, 0, 0], max_thrust, False)
         self.thrusters[6] = Thruster(maestro_serial_obj, 7, [0, 0, 1], [-1, -1, 0], max_thrust, False)
         self.thrusters[7] = Thruster(maestro_serial_obj, 8, [1, 0, 0], [0, -1, 0], max_thrust, False)

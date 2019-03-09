@@ -58,9 +58,6 @@ class Thruster_Test(QWidget):
         #Initialize the thruster test proto to package thrust requests
         self.thruster_test_proto = thrusters_pb2.Thrusters()
 
-        self.thruster_update_timer = QTimer()
-        self.thruster_update_timer.timeout.connect(self._update_test_thrust)
-        self.thruster_update_timer.start(100)
 
     def _thruster_check_boxes(self):
         '''
@@ -151,20 +148,38 @@ class Thruster_Test(QWidget):
         #Set each of the proto fields with the desired thrust if checkbox is checked
         if self.thruster_check_boxes[0].isChecked():
             self.thruster_test_proto.thruster_1 = desired_thrust
+        else:
+            self.thruster_test_proto.thruster_1 = 0
         if self.thruster_check_boxes[1].isChecked():
             self.thruster_test_proto.thruster_2 = desired_thrust
+        else:
+            self.thruster_test_proto.thruster_2 = 0
         if self.thruster_check_boxes[2].isChecked():
             self.thruster_test_proto.thruster_3 = desired_thrust
+        else:
+            self.thruster_test_proto.thruster_3 = 0
         if self.thruster_check_boxes[3].isChecked():
             self.thruster_test_proto.thruster_4 = desired_thrust
+        else:
+            self.thruster_test_proto.thruster_4 = 0
         if self.thruster_check_boxes[4].isChecked():
             self.thruster_test_proto.thruster_5 = desired_thrust
+        else:
+            self.thruster_test_proto.thruster_5 = 0
         if self.thruster_check_boxes[5].isChecked():
             self.thruster_test_proto.thruster_6 = desired_thrust
+        else:
+            self.thruster_test_proto.thruster_6 = 0
         if self.thruster_check_boxes[6].isChecked():
             self.thruster_test_proto.thruster_7 = desired_thrust
+        else:
+            self.thruster_test_proto.thruster_7 = 0
         if self.thruster_check_boxes[7].isChecked():
             self.thruster_test_proto.thruster_8 = desired_thrust
+        else:
+            self.thruster_test_proto.thruster_8 = 0
+
+        print(self.thruster_test_proto)
 
         #package test thrust data into a protobuf
 

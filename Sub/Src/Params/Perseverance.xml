@@ -1,6 +1,6 @@
 <Perseverance>
 	<COM_Ports>
-		<maestro>COM31</maestro>
+		<maestro>COM29</maestro>
 		<AHRS>COM41</AHRS>
 		<backplane>COM6</backplane>
 	</COM_Ports>
