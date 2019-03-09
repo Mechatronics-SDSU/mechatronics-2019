@@ -87,10 +87,10 @@ class Sensor_Driver:
                 self.nav_data_proto.roll = self.ahrs_driver_thread.ahrs_data[0]
                 self.nav_data_proto.pitch = self.ahrs_driver_thread.ahrs_data[1]
                 self.nav_data_proto.yaw = self.ahrs_driver_thread.ahrs_data[2]
-                
+
                 self.nav_data_proto.depth = self.backplane_driver_thread.depth_data
 
-                print(self.nav_data_proto)
+                #print(self.nav_data_proto)
                 #Serialize data in proto to send
                 serialized_nav_data = self.nav_data_proto.SerializeToString()
                 #publish navigation data
@@ -98,6 +98,7 @@ class Sensor_Driver:
 
             except Exception as e:
                 print("Couldn't publish sensor data:", e)
+
             time.sleep(0.1)
 if __name__ == "__main__":
 

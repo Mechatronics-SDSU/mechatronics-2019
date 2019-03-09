@@ -53,7 +53,7 @@ class Navigation_GUI(QWidget):
         #Create a timer to update the data
         self.update_nav_data_timer = QTimer()
         self.update_nav_data_timer.timeout.connect(lambda: self.sensor_data_node.spinOnce(self.nav_data_subscriber))
-        self.update_nav_data_timer.start(100)
+        self.update_nav_data_timer.start(75)
 
     def _orientation_layout_grid(self):
         '''
@@ -197,11 +197,12 @@ class Navigation_GUI(QWidget):
         yaw = self.nav_data_proto.yaw
         depth = self.nav_data_proto.depth
 
-        self.yaw_box.setText("%.2f" % yaw)
-        self.pitch_box.setText("%.2f" % pitch)
-        self.roll_box.setText("%.2f" % roll)
-        self.depth_box.setText("%.2f" % depth)
-        self.z_box.setText("%.2f" % depth)
+        degree_sym = u"\u00b0"
+        self.yaw_box.setText('{:6.2f}{}'.format(yaw, degree_sym))
+        self.pitch_box.setText('{:6.2f}{}'.format(pitch, degree_sym))
+        self.roll_box.setText('{:6.2f}{}'.format(roll, degree_sym))
+        self.depth_box.setText('{:6.2f} ft'.format(depth))
+        self.z_box.setText('{:6.2f} ft'.format(depth))
 
 if __name__ == "__main__":
     import sys
