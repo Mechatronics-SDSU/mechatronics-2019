@@ -16,7 +16,6 @@ from real_time_plotter_widget import Real_Time_Plotter
 from nav_odometery_widget import Navigation_GUI
 from pid_tuner_widget import PID_Tuner_Widget
 from thruster_test_widget import Thruster_Test
-from controller_config_widget import Controller_Config
 
 class Main_GUI(QWidget):
     '''
@@ -54,19 +53,11 @@ class Main_GUI(QWidget):
         self.set_pid_visualizer()
         self.set_thruster_test_widget()
         self.set_mode_selection_widget()
-        self.set_controller_config_widget()
 
         #update GUI every 100 milliseconds
         self.update_timer = QTimer()
         self.update_timer.timeout.connect(self.update)
         self.update_timer.start(100)
-
-
-    def set_controller_config_widget(self):
-        self.controller_config = Controller_Config()
-        optimal_size = self.controller_config.sizeHint()
-        self.controller_config.setMaximumSize(optimal_size)
-        self.secondary_layout.addWidget(self.controller_config, 0)
 
 
     def set_nav_odometery(self):
