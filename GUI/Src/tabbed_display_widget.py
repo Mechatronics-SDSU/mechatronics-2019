@@ -10,7 +10,7 @@ class Tabbed_Display(QWidget):
 
     def __init__(self, parent):
         '''
-        Initializes a Tabbed Display widget. 
+        Initializes a Tabbed Display widget.
 
         Parameters:
             parent: The parent Qwidget
@@ -18,7 +18,7 @@ class Tabbed_Display(QWidget):
         super(QWidget, self).__init__(parent)
         self.parent = parent
         self.layout = QVBoxLayout(self)
-        
+
         # Set the background color of the widget
         tabbed_display_palette = self.palette()
         tabbed_display_palette.setColor(self.backgroundRole(), QColor(64, 64, 64))
@@ -39,10 +39,10 @@ class Tabbed_Display(QWidget):
 
         # Call method _update_mode() when tab is changed
         self.tabs.currentChanged.connect(self._update_mode)
-        
+
     def add_tab(self, widget, title):
         '''
-        Creates a new tab and adds a Qwidget to it. 
+        Creates a new tab and adds a Qwidget to it.
 
         Parameters:
             widget: The Qwidget to be displayed.
@@ -73,7 +73,7 @@ class Tabbed_Display(QWidget):
 
     def _update_mode(self):
         '''
-        Publishes the current tab index. 
+        Publishes the current tab index.
 
         Parameters:
             N/A
@@ -87,7 +87,7 @@ class Tabbed_Display(QWidget):
 
         # Publish current index
         self.parent.movement_mode_pub.publish(bytes(mode))
-          
+
 
 if __name__ == "__main__":
     import sys
