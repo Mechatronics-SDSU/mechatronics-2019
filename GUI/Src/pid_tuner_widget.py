@@ -13,6 +13,11 @@ sys.path.append(os.path.join(PROTO_PATH, "Src"))
 sys.path.append(PROTO_PATH)
 import pid_errors_pb2
 
+PARAM_PATH = os.path.join("..", "..", "Sub", "Src", "Params")
+sys.path.append(PARAM_PATH)
+MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
+from mechos_network_configs import MechOS_Network_Configs
+
 from PyQt5.QtWidgets import QWidget, QApplication, QGridLayout, QCheckBox, QLabel, QSlider
 from PyQt5.QtWidgets import QLineEdit, QVBoxLayout, QComboBox, QPushButton
 from PyQt5.QtGui import QColor, QPixmap, QIcon
@@ -37,15 +42,17 @@ class PID_Tuner_Widget(QWidget):
         '''
         QWidget.__init__(self)
 
-        self.pid_gui_node = mechos.Node("PID_GUI")
+        configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
+
+        self.pid_gui_node = mechos.Node("PID_GUI", configs["ip"])
 
         #Subscriber to get PID ERRORS
-        self.pid_errors_subscriber = self.pid_gui_node.create_subscriber("PE", self._update_error_plot)
+        self.pid_errors_subscriber = self.pid_gui_node.create_subscriber("PE", self._update_error_plot, configs["sub_port"])
         self.pid_error_proto = pid_errors_pb2.PID_ERRORS()
 
         #Mechos parameter server
         #Initialize parameter server client to get and set parameters related to sub
-        self.param_serv = mechos.Parameter_Server_Client()
+        self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
 
         parameter_xml_database = os.path.join("..", "..", "Sub", "Src", "Params", "Perseverance.xml")
         parameter_xml_database = os.path.abspath(parameter_xml_database)
