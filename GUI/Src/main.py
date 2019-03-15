@@ -4,6 +4,11 @@ PROTO_PATH = os.path.join("..", "..", "Proto")
 sys.path.append(os.path.join(PROTO_PATH, "Src"))
 sys.path.append(PROTO_PATH)
 
+PARAM_PATH = os.path.join("..", "..", "Sub", "Src", "Params")
+sys.path.append(PARAM_PATH)
+MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
+from mechos_network_configs import MechOS_Network_Configs
+
 from MechOS import mechos
 
 from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QVBoxLayout, QComboBox
@@ -46,9 +51,11 @@ class Main_GUI(QWidget):
         self.set_thruster_test_widget()
         self.set_mode_selection_widget()
 
+
+        configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
         #MechOS publisher to send movement mode selection
-        self.main_gui_node = mechos.Node("MAIN_GUI")
-        self.movement_mode_publisher = self.main_gui_node.create_publisher("MM")
+        self.main_gui_node = mechos.Node("MAIN_GUI", configs["ip"])
+        self.movement_mode_publisher = self.main_gui_node.create_publisher("MM", configs["pub_port"])
 
         #update GUI every 100 milliseconds
         self.update_timer = QTimer()

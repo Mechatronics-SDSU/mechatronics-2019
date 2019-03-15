@@ -2,7 +2,7 @@
 Copyright 2018, David Pierce Walker-Howell, All rights reserved
 
 Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
-Last Modified 11/16/2018s
+Last Modified 11/16/2018
 Description: This module is the driver program for the Sparton AHRS.
 '''
 import sys

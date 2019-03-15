@@ -9,6 +9,11 @@ Description: This module is a PyQt5 widget for displaying navigation data such a
 import os
 import sys
 
+PARAM_PATH = os.path.join("..", "..", "Sub", "Src", "Params")
+sys.path.append(PARAM_PATH)
+MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
+from mechos_network_configs import MechOS_Network_Configs
+
 from PyQt5.QtWidgets import QWidget, QApplication, QGridLayout, QLineEdit, QLabel, QVBoxLayout
 from PyQt5.QtGui import QColor
 from PyQt5.QtCore import Qt, QTimer
@@ -36,10 +41,11 @@ class Navigation_GUI(QWidget):
         nav_gui_palette.setColor(self.backgroundRole(), QColor(64, 64, 64))
         self.setPalette(nav_gui_palette)
 
+        configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
         #MechOS node to receive data from the sub and display it
-        self.sensor_data_node = mechos.Node("SEN_DATA_WIDGET")
-        self.nav_data_subscriber = self.sensor_data_node.create_subscriber("NAV", self._update_nav_data)
+        self.sensor_data_node = mechos.Node("SEN_DATA_WIDGET", configs["ip"])
+        self.nav_data_subscriber = self.sensor_data_node.create_subscriber("NAV", self._update_nav_data, configs["sub_port"])
 
         #Initialize the nav data protobuf
         self.nav_data_proto = navigation_data_pb2.NAV_DATA()
