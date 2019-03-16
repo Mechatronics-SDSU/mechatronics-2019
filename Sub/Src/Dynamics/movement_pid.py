@@ -2,7 +2,7 @@
 Copyright 2019, David Pierce Walker-Howell, All rights reserved
 
 Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
-Last Modified 02/08/2019
+Last Modified 02/25/2019
 Description: This module contains a PID based movement controller that is used
             to control the six degrees of freedom control of Perseverance.
 '''
@@ -16,8 +16,7 @@ import util_timer
 PROTO_PATH = os.path.join("..", "..", "..", "Proto")
 sys.path.append(os.path.join(PROTO_PATH, "Src"))
 sys.path.append(PROTO_PATH)
-from protoFactory import packageProtobuf
-import Mechatronics_pb2
+
 
 from thruster import Thruster
 from pid_controller import PID_Controller
@@ -30,7 +29,7 @@ class Movement_PID:
     the 6 degrees of freedom.
     '''
 
-    def __init__(self, error_publisher):
+    def __init__(self):
         '''
         Initialize the thrusters and PID controllers on Perseverance.
 
@@ -40,9 +39,10 @@ class Movement_PID:
         Returns:
             N/A
         '''
-        self.error_publisher = error_publisher
 
-        #Initialize parameter server client to get and set parameters related to sub
+        #Initialize parameter server client to get and set parameters related to
+        #the PID controller. This includes update time and PID contstants for
+        #each degree of freedom.
         self.param_serv = mechos.Parameter_Server_Client()
 
         parameter_xml_database = os.path.join("..", "Params", "Perseverance.xml")
@@ -54,15 +54,17 @@ class Movement_PID:
         maestro_serial_obj = serial.Serial(com_port, 9600)
 
         #Initialize all 8 thrusters (max thrust 80%)
+        max_thrust = float(self.param_serv.get_param("Control/max_thrust"))
+
         self.thrusters = [None, None, None, None, None, None, None, None]
-        self.thrusters[0] = Thruster(maestro_serial_obj, 1, [0, 0, 1], [1, -1, 0], 80)
-        self.thrusters[1] = Thruster(maestro_serial_obj, 2, [0, 1, 0], [1, 0, 0], 80)
-        self.thrusters[2] = Thruster(maestro_serial_obj, 3, [0, 0, 1], [1, 1, 0], 80)
-        self.thrusters[3] = Thruster(maestro_serial_obj, 4, [1, 0, 0], [0, 1, 0], 80)
-        self.thrusters[4] = Thruster(maestro_serial_obj, 5, [0, 0, 1], [-1, 1, 0], 80)
-        self.thrusters[5] = Thruster(maestro_serial_obj, 6, [0, 1, 0], [-1, 0, 0], 80)
-        self.thrusters[6] = Thruster(maestro_serial_obj, 7, [0, 0, 1], [-1, -1, 0], 80)
-        self.thrusters[7] = Thruster(maestro_serial_obj, 8, [1, 0, 0], [0, -1, 0], 80)
+        self.thrusters[0] = Thruster(maestro_serial_obj, 1, [0, 0, 1], [1, -1, 0], max_thrust, True)
+        self.thrusters[1] = Thruster(maestro_serial_obj, 2, [0, 1, 0], [1, 0, 0], max_thrust, False)
+        self.thrusters[2] = Thruster(maestro_serial_obj, 3, [0, 0, 1], [1, 1, 0], max_thrust, False)
+        self.thrusters[3] = Thruster(maestro_serial_obj, 4, [1, 0, 0], [0, 1, 0], max_thrust, False)
+        self.thrusters[4] = Thruster(maestro_serial_obj, 5, [0, 0, 1], [-1, 1, 0], max_thrust, True)
+        self.thrusters[5] = Thruster(maestro_serial_obj, 6, [0, 1, 0], [-1, 0, 0], max_thrust, False)
+        self.thrusters[6] = Thruster(maestro_serial_obj, 7, [0, 0, 1], [-1, -1, 0], max_thrust, False)
+        self.thrusters[7] = Thruster(maestro_serial_obj, 8, [1, 0, 0], [0, -1, 0], max_thrust, False)
 
 
         #Initialize the PID controllers for control system
@@ -79,9 +81,7 @@ class Movement_PID:
         Returns:
             N/A
         '''
-        #d_t = self.param_serv.get_param("PID/dt")
-        d_t = 0.1
-        print(d_t)
+        d_t = float(self.param_serv.get_param("Control/PID/dt"))
         roll_p = float(self.param_serv.get_param("Control/PID/roll_pid/p"))
         roll_i = float(self.param_serv.get_param("Control/PID/roll_pid/i"))
         roll_d = float(self.param_serv.get_param("Control/PID/roll_pid/d"))
@@ -200,7 +200,7 @@ class Movement_PID:
             desired_z_pos: Desired z (depth) position
 
         Returns:
-            N/A
+            error: The roll, pitch and depth error
         '''
         #Calculate error for each degree of freedom
         error = [0, 0, 0, 0, 0, 0]
@@ -214,11 +214,9 @@ class Movement_PID:
         error[2] = desired_z_pos - curr_z_pos
         z_control = self.z_pid_controller.control_step(error[2])
 
-        error_proto = packageProtobuf("PID_ERRORS", error)
-        serialized_error = error_proto.SerializeToString()
-        self.error_publisher.publish(serialized_error)
-
         #Write controls to thrusters
         #Set x, y, and yaw controls to zero since we don't care about the subs
         #heading or planar orientation for a simple depth move
         self.controlled_thrust(roll_control, pitch_control, 0, 0, 0, z_control)
+
+        return error

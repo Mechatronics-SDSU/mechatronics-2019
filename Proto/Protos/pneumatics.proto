@@ -1,6 +1,0 @@
-syntax = "proto3";
-
-//I do not know the name of this so please correct it
-message Pneumatics {
-    repeated int32 thing = 1;
-}

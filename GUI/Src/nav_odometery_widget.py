@@ -6,9 +6,19 @@ Last Modified 01/09/2019
 Description: This module is a PyQt5 widget for displaying navigation data such as
             AHRS IMU data, depth data, and odometery data.
 '''
+import os
+import sys
+
 from PyQt5.QtWidgets import QWidget, QApplication, QGridLayout, QLineEdit, QLabel, QVBoxLayout
 from PyQt5.QtGui import QColor
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QTimer
+from MechOS import mechos
+
+PROTO_PATH = os.path.join("..", "..", "Proto")
+sys.path.append(os.path.join(PROTO_PATH, "Src"))
+sys.path.append(PROTO_PATH)
+import navigation_data_pb2
+
 class Navigation_GUI(QWidget):
 
     def __init__(self):
@@ -26,11 +36,24 @@ class Navigation_GUI(QWidget):
         nav_gui_palette.setColor(self.backgroundRole(), QColor(64, 64, 64))
         self.setPalette(nav_gui_palette)
 
+
+        #MechOS node to receive data from the sub and display it
+        self.sensor_data_node = mechos.Node("SEN_DATA_WIDGET")
+        self.nav_data_subscriber = self.sensor_data_node.create_subscriber("NAV", self._update_nav_data)
+
+        #Initialize the nav data protobuf
+        self.nav_data_proto = navigation_data_pb2.NAV_DATA()
+
         self.linking_layout = QVBoxLayout(self)
         self.setLayout(self.linking_layout)
         self._orientation_layout_grid()
         self._earth_pos_layout_grid()
         self._relative_pos_layout_grid()
+
+        #Create a timer to update the data
+        self.update_nav_data_timer = QTimer()
+        self.update_nav_data_timer.timeout.connect(lambda: self.sensor_data_node.spinOnce(self.nav_data_subscriber))
+        self.update_nav_data_timer.start(75)
 
     def _orientation_layout_grid(self):
         '''
@@ -157,22 +180,30 @@ class Navigation_GUI(QWidget):
 
         self.linking_layout.addLayout(self.relative_pos_layout, 6)
 
-    def update_AHRS_data(self, yaw, pitch, roll):
+    def _update_nav_data(self, nav_data_proto):
         '''
-        Update the dispalys for AHRS yaw, pitch, and roll data by setting the
-        text for each line edit display.
+        Update the dispalys for all the navigation data
 
         Parameters:
-            yaw: floating point yaw data
-            pitch: floating point pitch data
-            roll: floating point roll data
+            nav_data_proto: The encoded navigation data proto needed to be decoded.
 
         Returns:
             N/A
         '''
-        self.yaw_box.setText("%.2f" % yaw)
-        self.pitch_box.setText("%.2f" % pitch)
-        self.roll_box.setText("%.2f" % roll)
+
+        self.nav_data_proto.ParseFromString(nav_data_proto)
+        roll = self.nav_data_proto.roll
+        pitch = self.nav_data_proto.pitch
+        yaw = self.nav_data_proto.yaw
+        depth = self.nav_data_proto.depth
+
+        degree_sym = u"\u00b0"
+        self.yaw_box.setText('{:6.2f}{}'.format(yaw, degree_sym))
+        self.pitch_box.setText('{:6.2f}{}'.format(pitch, degree_sym))
+        self.roll_box.setText('{:6.2f}{}'.format(roll, degree_sym))
+        self.depth_box.setText('{:6.2f} ft'.format(depth))
+        self.z_box.setText('{:6.2f} ft'.format(depth))
+
 if __name__ == "__main__":
     import sys
     app = QApplication([])
