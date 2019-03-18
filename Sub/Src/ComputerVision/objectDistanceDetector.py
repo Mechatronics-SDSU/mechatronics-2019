@@ -54,13 +54,13 @@ def main():
         res  = cv2.bitwise_and(hsv, frame, mask=mask)
 
         img2, contours, hierarchy = cv2.findContours(mask.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        contours = sorted(contours, key=cv2.contourArea, reverse=True)[:1]
-        cv2.drawContours(frame, contours, -1, (0,255,0), 3)
-        x,y,w,h = cv2.boundingRect(contours[0])
-
-        cv2.rectangle(frame, (x,y),(x+w,y+h),(0,0,255),5)
-        text = baseText.format(detector.computeDistance(w))
-        cv2.putText(frame, text, (10,50), font, 1, (255,255,255), 2, cv2.LINE_AA)
+        if len(contours) > 0:
+            contours = sorted(contours, key=cv2.contourArea, reverse=True)[:1]
+            cv2.drawContours(frame, contours, -1, (0,255,0), 3)
+            x,y,w,h = cv2.boundingRect(contours[0])
+            cv2.rectangle(frame, (x,y),(x+w,y+h),(0,0,255),5)
+            text = baseText.format(detector.computeDistance(w))
+            cv2.putText(frame, text, (10,50), font, 1, (255,255,255), 2, cv2.LINE_AA)
 
         cv2.imshow('res', frame)
         cv2.imshow('mask', mask)
