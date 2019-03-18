@@ -1,22 +1,20 @@
 import sys
 from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, QWidget, QAction, QTabWidget, QVBoxLayout
 from PyQt5.QtGui import QIcon, QColor, QPalette
-from PyQt5.QtCore import pyqtSlot, Qt, Signal
-from nav_odometery_widget import Navigation_GUI
-from pid_tuner_widget import PID_Tuner_Widget
+from PyQt5.QtCore import pyqtSlot, Qt
+from MechOS import mechos
 
 
 class Tabbed_Display(QWidget):
 
-    def __init__(self, parent):
+    def __init__(self):
         '''
         Initializes a Tabbed Display widget. 
 
         Parameters:
-            parent: The parent Qwidget
+            individual_tab: The individual_tab Qwidget
         '''
-        super(QWidget, self).__init__(parent)
-        self.parent = parent
+        QWidget.__init__(self)
         self.layout = QVBoxLayout(self)
         
         # Set the background color of the widget
@@ -39,6 +37,11 @@ class Tabbed_Display(QWidget):
 
         # Call method _update_mode() when tab is changed
         self.tabs.currentChanged.connect(self._update_mode)
+
+        # Create MechOS node
+        self.tab_display_node = mechos.Node("GUI_TABS")
+        self.movement_mode_publisher = self.tab_display_node.create_publisher("MM")
+
         
     def add_tab(self, widget, title):
         '''
@@ -51,23 +54,23 @@ class Tabbed_Display(QWidget):
         Returns:
             N/A
         '''
-        # Init parent widget
-        parent = QWidget()
-        layout = QVBoxLayout(parent)
+        # Init individual_tab widget
+        individual_tab = QWidget()
+        layout = QVBoxLayout(individual_tab)
 
         # Set color
-        background = parent.palette()
+        background = individual_tab.palette()
         background.setColor(QPalette.Window, QColor(64, 64, 64))
-        parent.setPalette(background)
-        parent.setAutoFillBackground(True)
+        individual_tab.setPalette(background)
+        individual_tab.setAutoFillBackground(True)
 
-        # Add widget to parent
+        # Add widget to individual_tab
         layout.setAlignment(Qt.AlignTop)
         layout.addWidget(widget)
-        parent.setLayout(layout)
+        individual_tab.setLayout(layout)
 
-        # Add parent to tab
-        self.tabs.addTab(parent, title)
+        # Add individual_tab to tab
+        self.tabs.addTab(individual_tab, title)
         widget.setEnabled(True)
         widget.setAutoFillBackground(True)
 
@@ -86,12 +89,17 @@ class Tabbed_Display(QWidget):
         print(mode)
 
         # Publish current index
-        self.parent.movement_mode_pub.publish(bytes(mode))
+        self.movement_mode_publisher.publish(bytes(mode))
           
 
 if __name__ == "__main__":
+    from pid_tuner_widget import PID_Tuner_Widget
+    from thruster_test_widget import Thruster_Test
     import sys
+
     app = QApplication([])
     tabbed_display = Tabbed_Display()
+    tabbed_display.add_tab(PID_Tuner_Widget(), "PID Tuner")
+    tabbed_display.add_tab(Thruster_Test(), "Thusters")
     tabbed_display.show()
     sys.exit(app.exec_())
