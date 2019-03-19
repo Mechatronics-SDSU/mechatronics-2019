@@ -13,6 +13,11 @@ PROTO_PATH = os.path.join("..", "..", "..", "Proto")
 sys.path.append(os.path.join(PROTO_PATH, "Src"))
 sys.path.append(PROTO_PATH)
 
+PARAM_PATH = os.path.join("..", "Params")
+sys.path.append(PARAM_PATH)
+MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
+from mechos_network_configs import MechOS_Network_Configs
+
 import navigation_data_pb2
 import threading
 from MechOS import mechos
@@ -38,9 +43,12 @@ class Position_Estimator(threading.Thread):
         '''
         threading.Thread.__init__(self)
 
+        #Get the mechos network parameters
+        configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
+
         #Node to connect position estimator to mechos network
-        self.pos_estimator_node = mechos.Node("POS_EST")
-        self.pos_estimator_node.create_subscriber("NAV", self.unpack_nav_data_callback)
+        self.pos_estimator_node = mechos.Node("POS_EST", configs["ip"])
+        self.pos_estimator_node.create_subscriber("NAV", self.unpack_nav_data_callback, configs["sub_port"])
 
         #Proto buffer containing all of the navigation data
         self.nav_data_proto = navigation_data_pb2.NAV_DATA()
