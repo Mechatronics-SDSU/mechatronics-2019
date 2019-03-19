@@ -12,8 +12,6 @@ import os
 HELPERS_PATH = os.path.join("..", "Helpers")
 sys.path.append(HELPERS_PATH)
 
-
-from MechOS import mechos
 import time
 import struct
 import numpy as np

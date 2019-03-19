@@ -15,6 +15,11 @@ HELPERS_PATH = os.path.join("..", "Helpers")
 sys.path.append(HELPERS_PATH)
 import util_timer
 
+PARAM_PATH = os.path.join("..", "Params")
+sys.path.append(PARAM_PATH)
+MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
+from mechos_network_configs import MechOS_Network_Configs
+
 from MechOS import mechos
 import serial
 import time
@@ -98,7 +103,10 @@ class Backplane_Responses(threading.Thread):
         self.run_thread = True
         self.daemon = True
 
-        self.param_serv = mechos.Parameter_Server_Client()
+        #Get the mechos network parameters
+        configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
+
+        self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
         parameter_xml_database = os.path.join("..", "Params", "Perseverance.xml")
         parameter_xml_database = os.path.abspath(parameter_xml_database)
         self.param_serv.use_parameter_database(parameter_xml_database)
@@ -287,8 +295,10 @@ class Backplane_Handler(threading.Thread):
 
         self.depth_processing = Pressure_Depth_Transducers()
 
+        #Get the mechos network parameters
+        configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
-        self.param_serv = mechos.Parameter_Server_Client()
+        self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
         parameter_xml_database = os.path.join("..", "Params", "Perseverance.xml")
         parameter_xml_database = os.path.abspath(parameter_xml_database)
         self.param_serv.use_parameter_database(parameter_xml_database)
@@ -352,7 +362,10 @@ class Backplane_Handler(threading.Thread):
 
 if __name__ == "__main__":
 
-    param_serv = mechos.Parameter_Server_Client()
+    #Get the mechos network parameters
+    configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
+
+    param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
     parameter_xml_database = os.path.join("..", "Params", "Perseverance.xml")
     parameter_xml_database = os.path.abspath(parameter_xml_database)
     param_serv.use_parameter_database(parameter_xml_database)
