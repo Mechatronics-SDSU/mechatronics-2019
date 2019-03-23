@@ -224,7 +224,7 @@ class Movement_Controller:
             #the control loop perfrom a simpe Depth PID move. x_pos, y_pos, and
             #yaw are ignored.
             if self.movement_mode == 1:
-                print("Here")
+                
                 if(self.pid_values_update_thread_run == False):
                     self.pid_values_update_thread_run = True
                     self.pid_values_update_thread.start()
