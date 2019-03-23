@@ -50,10 +50,7 @@ class Movement_PID:
         #the PID controller. This includes update time and PID contstants for
         #each degree of freedom.
         self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
-
-        parameter_xml_database = os.path.join("..", "Params", "Perseverance.xml")
-        parameter_xml_database = os.path.abspath(parameter_xml_database)
-        self.param_serv.use_parameter_database(parameter_xml_database)
+        self.param_serv.use_parameter_database(configs["param_server_path"])
 
         #Initialize serial connection to the maestro
         com_port = self.param_serv.get_param("COM_Ports/maestro")

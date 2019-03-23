@@ -53,10 +53,7 @@ class PID_Tuner_Widget(QWidget):
         #Mechos parameter server
         #Initialize parameter server client to get and set parameters related to sub
         self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
-
-        parameter_xml_database = os.path.join("..", "..", "Sub", "Src", "Params", "Perseverance.xml")
-        parameter_xml_database = os.path.abspath(parameter_xml_database)
-        self.param_serv.use_parameter_database(parameter_xml_database)
+        self.param_serv.use_parameter_database(configs["param_server_path"])
 
 
         #Set background color of the widget
