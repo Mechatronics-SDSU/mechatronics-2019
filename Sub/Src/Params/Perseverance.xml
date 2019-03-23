@@ -1,13 +1,13 @@
 <Perseverance>
 	<COM_Ports>
-		<maestro>COM29</maestro>
-		<AHRS>COM41</AHRS>
-		<backplane>COM6</backplane>
+		<maestro>/dev/ttyACM0</maestro>
+		<AHRS>/dev/ttyUSB2</AHRS>
+		<backplane>/dev/ttyUSB0</backplane>
 	</COM_Ports>
 	<Timing>
-		<AHRS>0.01</AHRS>
-		<backplane_response>0.01</backplane_response>
-		<backplane_handler>0.01</backplane_handler>
+		<AHRS>0.1</AHRS>
+		<backplane_response>0.1</backplane_response>
+		<backplane_handler>0.1</backplane_handler>
 		<movement_control>0.1</movement_control>
 	</Timing>
 	<Control>
@@ -27,7 +27,7 @@
 			<dt>.1</dt>
 
 			<roll_pid>
-				<p>9.6</p>
+				<p>5.0</p>
 				<i>0.0</i>
 				<d>7.0</d>
 			</roll_pid>
