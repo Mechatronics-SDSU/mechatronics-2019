@@ -211,9 +211,7 @@ class AHRS(threading.Thread):
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
         self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
-        parameter_xml_database = os.path.join("..", "Params", "Perseverance.xml")
-        parameter_xml_database = os.path.abspath(parameter_xml_database)
-        self.param_serv.use_parameter_database(parameter_xml_database)
+        self.param_serv.use_parameter_database(configs["param_server_path"])
 
         #Initialize a timer for consistent timing on data
         self.ahrs_timer_interval = float(self.param_serv.get_param("Timing/AHRS"))

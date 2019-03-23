@@ -74,9 +74,7 @@ class Movement_Controller:
 
         #Connect to parameters server
         self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
-        parameter_xml_database = os.path.join("..", "Params", "Perseverance.xml")
-        parameter_xml_database = os.path.abspath(parameter_xml_database)
-        self.param_serv.use_parameter_database(parameter_xml_database)
+        self.param_serv.use_parameter_database(configs["param_server_path"])
 
         #Initialize the position estimator thread. The position estimator
         #will estimate the real time current position of the sub with respect to

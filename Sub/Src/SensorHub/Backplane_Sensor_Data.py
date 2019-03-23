@@ -107,9 +107,7 @@ class Backplane_Responses(threading.Thread):
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
         self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
-        parameter_xml_database = os.path.join("..", "Params", "Perseverance.xml")
-        parameter_xml_database = os.path.abspath(parameter_xml_database)
-        self.param_serv.use_parameter_database(parameter_xml_database)
+        self.param_serv.use_parameter_database(configs["param_server_path"])
 
         self.backplane_response_timer = util_timer.Timer()
         self.backplane_response_timer_interval = float(self.param_serv.get_param("Timing/backplane_response"))
@@ -299,9 +297,7 @@ class Backplane_Handler(threading.Thread):
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
         self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
-        parameter_xml_database = os.path.join("..", "Params", "Perseverance.xml")
-        parameter_xml_database = os.path.abspath(parameter_xml_database)
-        self.param_serv.use_parameter_database(parameter_xml_database)
+        self.param_serv.use_parameter_database(configs["param_server_path"])
 
         self.backplane_handler_timer = util_timer.Timer()
         self.backplane_handler_timer_interval = float(self.param_serv.get_param("Timing/backplane_handler"))
@@ -366,9 +362,7 @@ if __name__ == "__main__":
     configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
     param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
-    parameter_xml_database = os.path.join("..", "Params", "Perseverance.xml")
-    parameter_xml_database = os.path.abspath(parameter_xml_database)
-    param_serv.use_parameter_database(parameter_xml_database)
+    param_serv.use_parameter_database(configs["param_server_path"])
 
     com_port = param_serv.get_param("COM_Ports/backplane")
     backplane_handler = Backplane_Handler(com_port)

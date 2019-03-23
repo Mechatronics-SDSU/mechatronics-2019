@@ -33,6 +33,7 @@ class Main_GUI(QWidget):
             N/A
         '''
         QWidget.__init__(self)
+        print(MECHOS_CONFIG_FILE_PATH)
 
         #creates main GUI layout
         self.main_layout = QGridLayout(self)

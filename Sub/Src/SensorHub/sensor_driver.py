@@ -54,9 +54,7 @@ class Sensor_Driver:
         self.nav_data_publisher = self.sensor_driver_node.create_publisher("NAV", configs["pub_port"])
 
         self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
-        parameter_xml_database = os.path.join("..", "Params", "Perseverance.xml")
-        parameter_xml_database = os.path.abspath(parameter_xml_database)
-        self.param_serv.use_parameter_database(parameter_xml_database)
+        self.param_serv.use_parameter_database(configs["param_server_path"])
 
         #Get com ports to connect to sensors
         backplane_com_port = self.param_serv.get_param("COM_Ports/backplane")
