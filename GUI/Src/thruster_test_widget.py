@@ -12,6 +12,11 @@ sys.path.append(os.path.join(PROTO_PATH, "Src"))
 sys.path.append(PROTO_PATH)
 import thrusters_pb2
 
+PARAM_PATH = os.path.join("..", "..", "Sub", "Src", "Params")
+sys.path.append(PARAM_PATH)
+MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
+from mechos_network_configs import MechOS_Network_Configs
+
 from MechOS import mechos
 from PyQt5.QtWidgets import QWidget, QApplication, QGridLayout, QCheckBox, QLabel, QSlider
 from PyQt5.QtWidgets import QLineEdit, QVBoxLayout
@@ -51,9 +56,11 @@ class Thruster_Test(QWidget):
         self._thruster_check_boxes()
         self._thruster_slider()
 
+
+        configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
         #MechOS publisher to send thrust test messages to thruster controller
-        self.thruster_test_node = mechos.Node("THRUSTER_TEST")
-        self.publisher = self.thruster_test_node.create_publisher("TT")
+        self.thruster_test_node = mechos.Node("THRUSTER_TEST", configs["ip"])
+        self.publisher = self.thruster_test_node.create_publisher("TT", configs["pub_port"])
 
         #Initialize the thruster test proto to package thrust requests
         self.thruster_test_proto = thrusters_pb2.Thrusters()

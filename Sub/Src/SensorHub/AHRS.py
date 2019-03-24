@@ -2,7 +2,7 @@
 Copyright 2018, David Pierce Walker-Howell, All rights reserved
 
 Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
-Last Modified 11/16/2018s
+Last Modified 11/16/2018
 Description: This module is the driver program for the Sparton AHRS.
 '''
 import sys
@@ -11,6 +11,11 @@ import os
 HELPER_PATH = os.path.join("..", "Helpers")
 sys.path.append(HELPER_PATH)
 import util_timer
+
+PARAM_PATH = os.path.join("..", "Params")
+sys.path.append(PARAM_PATH)
+MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
+from mechos_network_configs import MechOS_Network_Configs
 
 import serial
 import time
@@ -202,10 +207,11 @@ class AHRS(threading.Thread):
         #create object for Sparton AHRS data packets
         self.sparton_ahrs = SpartonAHRSDataPackets(com_port)
 
-        self.param_serv = mechos.Parameter_Server_Client()
-        parameter_xml_database = os.path.join("..", "Params", "Perseverance.xml")
-        parameter_xml_database = os.path.abspath(parameter_xml_database)
-        self.param_serv.use_parameter_database(parameter_xml_database)
+        #Get the mechos network parameters
+        configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
+
+        self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
+        self.param_serv.use_parameter_database(configs["param_server_path"])
 
         #Initialize a timer for consistent timing on data
         self.ahrs_timer_interval = float(self.param_serv.get_param("Timing/AHRS"))
@@ -279,7 +285,10 @@ class AHRS(threading.Thread):
 
 if __name__ == "__main__":
 
-    param_serv = mechos.Parameter_Server_Client()
+    #Get the mechos network parameters
+    configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
+
+    param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
     parameter_xml_database = os.path.join("..", "Params", "Perseverance.xml")
     parameter_xml_database = os.path.abspath(parameter_xml_database)
     param_serv.use_parameter_database(parameter_xml_database)

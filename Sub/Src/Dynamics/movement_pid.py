@@ -13,10 +13,14 @@ HELPER_PATH = os.path.join("..", "Helpers")
 sys.path.append(HELPER_PATH)
 import util_timer
 
+PARAM_PATH = os.path.join("..", "Params")
+sys.path.append(PARAM_PATH)
+MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
+from mechos_network_configs import MechOS_Network_Configs
+
 PROTO_PATH = os.path.join("..", "..", "..", "Proto")
 sys.path.append(os.path.join(PROTO_PATH, "Src"))
 sys.path.append(PROTO_PATH)
-
 
 from thruster import Thruster
 from pid_controller import PID_Controller
@@ -39,15 +43,14 @@ class Movement_PID:
         Returns:
             N/A
         '''
+        #Get the mechos network parameters
+        configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
         #Initialize parameter server client to get and set parameters related to
         #the PID controller. This includes update time and PID contstants for
         #each degree of freedom.
-        self.param_serv = mechos.Parameter_Server_Client()
-
-        parameter_xml_database = os.path.join("..", "Params", "Perseverance.xml")
-        parameter_xml_database = os.path.abspath(parameter_xml_database)
-        self.param_serv.use_parameter_database(parameter_xml_database)
+        self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
+        self.param_serv.use_parameter_database(configs["param_server_path"])
 
         #Initialize serial connection to the maestro
         com_port = self.param_serv.get_param("COM_Ports/maestro")

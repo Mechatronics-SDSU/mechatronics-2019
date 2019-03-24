@@ -14,6 +14,11 @@ PROTO_PATH = os.path.join("..", "..", "..", "Proto")
 sys.path.append(os.path.join(PROTO_PATH, "Src"))
 sys.path.append(PROTO_PATH)
 
+PARAM_PATH = os.path.join("..", "Params")
+sys.path.append(PARAM_PATH)
+MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
+from mechos_network_configs import MechOS_Network_Configs
+
 import numpy as np
 from MechOS import mechos
 import serial
@@ -124,9 +129,12 @@ class Thruster_Controller:
         #Type of proto to receive thruster values through
         self.type = "THRUSTERS"
 
+        #Get the mechos network parameters
+        configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
+
         #Subscribe to the thrust publisher to receive thrust values
-        self.thruster_control_node = mechos.Node("THRUSTER_CONTROL")
-        self.subscriber = self.thruster_control_node.create_subscriber("THRUST", self._update_thrust)
+        self.thruster_control_node = mechos.Node("THRUSTER_CONTROL", configs["ip"])
+        self.subscriber = self.thruster_control_node.create_subscriber("THRUST", self._update_thrust, configs["sub_port"])
 
         self.thrusters = []
         self.thrust_proto = Mechatronics_pb2.Mechatronics()

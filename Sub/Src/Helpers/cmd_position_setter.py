@@ -5,6 +5,11 @@ sys.path.append(os.path.join(PROTO_PATH, "Src"))
 sys.path.append(PROTO_PATH)
 import desired_position_pb2
 
+PARAM_PATH = os.path.join("..", "Params")
+sys.path.append(PARAM_PATH)
+MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
+from mechos_network_configs import MechOS_Network_Configs
+
 from MechOS import mechos
 import time
 
@@ -18,9 +23,12 @@ class CMD_Position_Setter:
         '''
         self.desired_position_proto = desired_position_pb2.DESIRED_POS()
 
+        #Get the mechos network parameters
+        configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
+
         #Create a MechOS publisher to send desired position data
-        self.position_setter_node = mechos.Node("POS_SETTER")
-        self.position_setter_publisher = self.position_setter_node.create_publisher("DP")
+        self.position_setter_node = mechos.Node("POS_SETTER", configs["ip"])
+        self.position_setter_publisher = self.position_setter_node.create_publisher("DP", configs["pub_port"])
 
     def __choose_operation(self):
         '''

@@ -17,6 +17,11 @@ HELPER_PATH = os.path.join("..", "Helpers")
 sys.path.append(HELPER_PATH)
 import util_timer
 
+PARAM_PATH = os.path.join("..", "Params")
+sys.path.append(PARAM_PATH)
+MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
+from mechos_network_configs import MechOS_Network_Configs
+
 PROTO_PATH = os.path.join("..", "..", "..", "Proto")
 sys.path.append(os.path.join(PROTO_PATH, "Src"))
 sys.path.append(PROTO_PATH)
@@ -47,29 +52,29 @@ class Movement_Controller:
         Returns:
             N/A
         '''
+        #Get the mechos network parameters
+        configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
         #MechOS node to connect movement controller to mechos network
-        self.movement_controller_node = mechos.Node("MOV_CTRL")
+        self.movement_controller_node = mechos.Node("MOV_CTRL", configs["ip"])
 
         #Subscriber to change movement mode
-        self.movement_mode_subscriber = self.movement_controller_node.create_subscriber("MM", self.__update_movement_mode_callback)
+        self.movement_mode_subscriber = self.movement_controller_node.create_subscriber("MM", self.__update_movement_mode_callback, configs["sub_port"])
 
         #Subscriber to get the desired position set by the user/mission controller.
-        self.desired_position_subscriber = self.movement_controller_node.create_subscriber("DP", self.__unpack_desired_position_callback)
+        self.desired_position_subscriber = self.movement_controller_node.create_subscriber("DP", self.__unpack_desired_position_callback, configs["sub_port"])
         self.pid_errors_proto = pid_errors_pb2.PID_ERRORS()
 
         #Publisher that published the PID errors for each degree of freedom
-        self.pid_errors_publisher = self.movement_controller_node.create_publisher("PE")
+        self.pid_errors_publisher = self.movement_controller_node.create_publisher("PE", configs["pub_port"])
 
         #Subscriber to listen for thrust messages from the thruster test widget
-        self.thruster_test_subscriber = self.movement_controller_node.create_subscriber("TT", self.__update_thruster_test_callback)
+        self.thruster_test_subscriber = self.movement_controller_node.create_subscriber("TT", self.__update_thruster_test_callback, configs["sub_port"])
         self.thruster_test_proto = thrusters_pb2.Thrusters() #Thruster protobuf message
 
         #Connect to parameters server
-        self.param_serv = mechos.Parameter_Server_Client()
-        parameter_xml_database = os.path.join("..", "Params", "Perseverance.xml")
-        parameter_xml_database = os.path.abspath(parameter_xml_database)
-        self.param_serv.use_parameter_database(parameter_xml_database)
+        self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
+        self.param_serv.use_parameter_database(configs["param_server_path"])
 
         #Initialize the position estimator thread. The position estimator
         #will estimate the real time current position of the sub with respect to
@@ -219,7 +224,7 @@ class Movement_Controller:
             #the control loop perfrom a simpe Depth PID move. x_pos, y_pos, and
             #yaw are ignored.
             if self.movement_mode == 1:
-                print("Here")
+                
                 if(self.pid_values_update_thread_run == False):
                     self.pid_values_update_thread_run = True
                     self.pid_values_update_thread.start()

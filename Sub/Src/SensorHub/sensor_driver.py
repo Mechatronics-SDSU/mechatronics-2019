@@ -15,6 +15,11 @@ PROTO_PATH = os.path.join("..", "..", "..", "Proto")
 sys.path.append(os.path.join(PROTO_PATH, "Src"))
 sys.path.append(PROTO_PATH)
 
+PARAM_PATH = os.path.join("..", "Params")
+sys.path.append(PARAM_PATH)
+MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
+from mechos_network_configs import MechOS_Network_Configs
+
 import navigation_data_pb2
 from AHRS import AHRS
 from Backplane_Sensor_Data import Backplane_Handler
@@ -41,14 +46,15 @@ class Sensor_Driver:
         #proto buff packaging
         self.nav_data_proto = navigation_data_pb2.NAV_DATA()
 
-        #Mechos nodes to send Sensor Data
-        self.sensor_driver_node = mechos.Node("SENSOR_DRIVER")
-        self.nav_data_publisher = self.sensor_driver_node.create_publisher("NAV")
+        #Get the mechos network parameters
+        configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
-        self.param_serv = mechos.Parameter_Server_Client()
-        parameter_xml_database = os.path.join("..", "Params", "Perseverance.xml")
-        parameter_xml_database = os.path.abspath(parameter_xml_database)
-        self.param_serv.use_parameter_database(parameter_xml_database)
+        #Mechos nodes to send Sensor Data
+        self.sensor_driver_node = mechos.Node("SENSOR_DRIVER", configs["ip"])
+        self.nav_data_publisher = self.sensor_driver_node.create_publisher("NAV", configs["pub_port"])
+
+        self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
+        self.param_serv.use_parameter_database(configs["param_server_path"])
 
         #Get com ports to connect to sensors
         backplane_com_port = self.param_serv.get_param("COM_Ports/backplane")
