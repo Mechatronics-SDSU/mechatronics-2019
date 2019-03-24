@@ -186,7 +186,43 @@ class Movement_PID:
             N/A
         '''
 
-        pass
+        #calculate the error of each degree of freedom
+        error = [0, 0, 0, 0, 0, 0]
+
+        error[0] = desired_roll - curr_roll #roll error
+        error[1] = desired_pitch - curr_pitch #pitch error
+
+        #Calculate yaw error. The logic includes calculating error for choosing shortest angle to travel
+        if(desired_yaw >= curr_yaw):
+            yaw_error = desired_yaw - curr_yaw
+            if(yaw_error > 180):    #This will choose the shortest angle to take to desred position.
+                error[2] = yaw_error - 360
+            else:
+                error[2] = yaw_error
+
+        else:
+            yaw_error = curr_yaw - desired_yaw
+            if(abs(yaw_error) > 180):
+                error[2] = yaw_error + 360
+            else:
+                error[2] = yaw_error
+
+        #Calculate translation error
+        error[3] = desired_z_pos - curr_z_pos
+        error[4] = desired_x_pos - curr_x_pos
+        error[5] = desired_y_pos - curr_y_pos
+
+        roll_control = self.roll_pid_controller.control_step(error[0])
+        pitch_control = self.pitch_pid_controller.control_step(error[1])
+        yaw_control = self.yaw_pid_controller.control_step(error[2])
+        z_control = self.z_pid_controller.control_step(error[3])
+        x_control = self.x_pid_controller.control_step(error[4])
+        z_control = self.z_pid_controller.control_step(error[5])
+
+        #Write the contrls to thrusters
+        self.controlled_thrust(roll_control, pitch_control, yaw_control, x_control, y_control, z_control)
+
+
 
     def simple_depth_move_no_yaw(self, curr_roll, curr_pitch,curr_z_pos,
                           desired_roll, desired_pitch, desired_z_pos):
