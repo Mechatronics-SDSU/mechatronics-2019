@@ -1,31 +1,42 @@
 '''
-Adapted from the origional dvl.py by Jared Guerrero, and in Accordance with Mechatronics Etiquite and
-the Creative Commons Licence LLC.
+	Adapted from the origional dvl.py by Jared Guerrero, and in Accordance with Mechatronics Etiquite and
+	the Creative Commons Licence LLC.
 
-Current Maintainers: Christian Gould and Cole Brower
-Email: Christian.d.gould@gmail.com
-Last Modified 1/29/2019
+	Current Maintainers: Christian Gould and Cole Brower
+	Email: Christian.d.gould@gmail.com
+	Last Modified 1/29/2019
 '''
 import sys
 import os
-PROTO_PATH = os.path.join("..", "..", "..", "Proto")
-sys.path.append(os.path.join(PROTO_PATH, "Src"))
-sys.path.append(PROTO_PATH)
 
-from MechOS import mechos
-from sensorHub import SensorHubBase
 import serial
 import time
 import struct
-from protoFactory import packageProtobuf
-import Mechatronics_pb2
+import numpy as np
+import threading
 
-class DVL_Data_Driver:
+HELPER_PATH = os.path.join("..", "Helpers")
+sys.path.append(HELPER_PATH)
+import util_timer
+
+PARAM_PATH = os.path.join("..", "Params")
+sys.path.append(PARAM_PATH)
+MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
+from mechos_network_configs import MechOS_Network_Configs
+
+from MechOS import mechos
+
+class DVL_DATA_DRIVER:
 	def __init__(self, comport):
 		self.DVLCom = serial.Serial(comport, 115200, timeout=1)
 
-	def Get_Velocity(self):
-	'''
+		#Velocity Sync
+		self.curr_vel = np.array([[0,0,0]], dtype=float)
+		self.prev_vel = np.array([[0,0,0]], dtype=float)
+		self.displacement = np.array([[0,0,0]], dtype=float)
+
+	def __get_velocity(self):
+		'''
 		The DVL has been setup to be cyclic, wherupon the Headerbye 'sync' is used to determine where the string restarts
 
 		#important Variable Descriptions#
@@ -38,80 +49,116 @@ class DVL_Data_Driver:
 		The Velocities must be unpacked from a set of four bytes, as it is packed in a C struct
 		NOTE: the C struct module 'struct' in python will unwrap these bytes into a tuple
 		Be sure to index this to get the data inside the touple to be consistent with Protobuf binaries
-	'''
+		'''
 		SYNC = 0;
 		while(SYNC != "0xa5"):
 			SYNC = hex(ord(self.DVLCom.read()))
-		header = ord(self.DVLCom.read())
-		ID     = ord(self.DVLCom.read())
-		family = ord(self.DVLCom.read())
-		dataSize = self.DVLCom.read(2)
-		dataChecksum = self.DVLCom.read(2)
-		headerChecksum = self.DVLCom.read(2)
+			header = ord(self.DVLCom.read())
+			ID     = ord(self.DVLCom.read())
+			family = ord(self.DVLCom.read())
+			dataSize = self.DVLCom.read(2)
+			dataChecksum = self.DVLCom.read(2)
+			headerChecksum = self.DVLCom.read(2)
 
-		if(hex(ID) == "0x1b"):
-			self.DVLCom.read(16)
+			if(hex(ID) == "0x1b"):
+				self.DVLCom.read(16)
 
-			error = self.DVLCom.read(4)
-			error = struct.unpack('<f', error)
+				error = self.DVLCom.read(4)
+				error = struct.unpack('<f', error)
 
-			self.DVLCom.read(112)
+				self.DVLCom.read(112)
 
-			velX = self.DVLCom.read(4)
-			velX = struct.unpack('<f', velX)
-			velY = self.DVLCom.read(4)
-			velY = struct.unpack('<f', velY)
-			velZ = self.DVLCom.read(4)
-			velZ = struct.unpack('<f', velZ)
+				velX = self.DVLCom.read(4)
+				velX = struct.unpack('<f', velX)
+				velY = self.DVLCom.read(4)
+				velY = struct.unpack('<f', velY)
+				velZ = self.DVLCom.read(4)
+				velZ = struct.unpack('<f', velZ)
 
-			self.DVLCom.flush()
-		return velZ[0], velX[0], velY[0], error[0]
+				self.DVLCom.flush()
 
-class DVL_Publisher(SensorHubBase):
+		return np.array([[velZ[0], velX[0], velY[0]]])
+
+	def __get_displacement(self):
+		'''
+			DISPLACEMENT of X Y Z
+
+			RETURNS: Z X Y in np array
+		'''
+		self.prev_vel = self.curr_vel;
+		self.curr_vel = self.__get_velocity()
+
+		#initial CALCULATION: Trapezoid Rule
+		self.displacement += (.125)*(self.curr_vel + self.prev_vel)/2
+
+		'''
+		The concept, is that we take the average of the two points, and multiply them by
+		their rate of change
+
+
+		(b - a)* (f(a) + f(b))/2
+
+		--(b - a) = 8hz or .125s(p)
+
+		'''
+
+		#TODO
+		#Continuous CALCULATION Simpsons Rule
+		'''
+
+		To make the most of our calculations, we will utilize simpsons rule
+		Following our use of Trapezoid Rule,
+
+		'''
+
+		return self.displacement
+
+	def get_PACKET(self):
+		return np.concatenate((self.__get_velocity(),self.__get_displacement()), axis=None)
+
+class DVL_THREAD(threading.Thread):
 	'''
-	Communicates with the Nortek DVL and publishes Data to sensor hub to be routed to mission planner
-	and movement control
+
+	Communicate with the Nortek DVL
+
+	...
+
+	RETURN: nothing
+
+	PARAMETERS: NONE
+
 	'''
 
 	def __init__(self,comport):
+		super(DVL_THREAD, self).__init__()
 
-		super(DVL_Publisher,self).__init__()
-		#Change type to match protobuf type
-		self.type = "DVL_DATA"
+		#COMMUNICATON: SERIAL PORT
+		self.DVL_PORT = comport;
 
-		#Create an Object for Nortec DVL data
-		self.DVL  = DVL_Data_Driver(comport);
+		#DVL: OBJECT
+		self.Norteck_DVL = DVL_DATA_DRIVER(comport);
 
-		#Define a MechOS node and publisher
-		self.sensorHub_DVL = mechos.Node("SENSORHUB_DVL")
+		#MECHOS:NETWORK HOSTS
 
-		#Override the parent publisher attribute
-		self.publisher = self.sensorHub_DVL.create_publisher("DVL_DATA")
+		#THREAD PARAMS
+		self.threading_lock = threading.Lock()
 
-	def Velocity_TO_Displacement(self):
+
+		#PACKET: VELOCITY(XYZ), DISPLACEMENT(XYZ)
+		self.PACKET = np.array([[0,0,0,0,0,0]]);
+
+
+	def run(self):
 		'''
-		Converts Velocity Data to Displacement data as Components: Dx,Dy,Dz
+		Request data from the Norteck DVL and publish it to the Network
 		'''
-		'''
-			To be implemented with new protobuf
-		'''
-		pass;
+		while(True):
+			with threading.Lock():
+				self.PACKET = self.Norteck_DVL.get_PACKET();
+				#print(DVL.PACKET) --uncomment to test
 
 
-	def publish(self):
-		'''
-		Publishes Velocity Data to the SensorHub SuperClass via the "publish_data" function
-		'''
-		while(1):
-			Z, X, Y, err = self.DVL.Get_Velocity()
-			self.data = [float(x) for x in [Z,X,Y,err]]
-			if( v_t != 0 for v_t in self.data):
-				self.publish_data()
-				#print(self.data) # useful for Debugging
-			time.sleep(0.25)
 
-
-if __name__ == "__main__":
-	# this is simply a listener to the Port, Please Change your port Accordingly
-	DVL = DVL_Publisher('/dev/ttyUSB0');
-	DVL.publish()
+if __name__== '__main__':
+	DVL = DVL_THREAD('/dev/ttyUSB0')
+	DVL.run()
