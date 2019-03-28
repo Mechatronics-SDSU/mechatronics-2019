@@ -19,6 +19,7 @@ from real_time_plotter_widget import Real_Time_Plotter
 from nav_odometery_widget import Navigation_GUI
 from pid_tuner_widget import PID_Tuner_Widget
 from thruster_test_widget import Thruster_Test
+from tabbed_display_widget import Tabbed_Display
 import struct
 
 class Main_GUI(QWidget):
@@ -46,6 +47,9 @@ class Main_GUI(QWidget):
         main_gui_palette.setColor(self.backgroundRole(), QColor(64, 64, 64))
         self.setPalette(main_gui_palette)
 
+        #Place Tabbing System
+        self.set_tabbed_display()
+
         #Place the navigation, IMU, orientation, and odometery display widget
         self.set_nav_odometery()
         self.set_pid_visualizer()
@@ -63,6 +67,18 @@ class Main_GUI(QWidget):
         self.update_timer.timeout.connect(self.update)
         self.update_timer.start(100)
 
+    def set_tabbed_display(self):
+        '''
+        Set up the tabbing system on the main gui.
+
+        Parameters:
+            N/A
+
+        Returns:
+            N/A
+        '''
+        self.tab_widget = Tabbed_Display()
+        self.main_layout.addWidget(self.tab_widget, 0, 1)
 
     def set_nav_odometery(self):
         '''
@@ -89,19 +105,17 @@ class Main_GUI(QWidget):
         Returns:
             N/A
         '''
-
-
         self.pid_tuner = PID_Tuner_Widget()
         self.pid_tuner.setEnabled(False)
         optimal_size = self.pid_tuner.sizeHint()
         self.pid_tuner.setMaximumSize(optimal_size)
-        self.main_layout.addWidget(self.pid_tuner, 0, 1)
+        self.tab_widget.add_tab(self.pid_tuner, "PID Tuner")
 
     def set_thruster_test_widget(self):
         self.thruster_test = Thruster_Test()
         optimal_size = self.thruster_test.sizeHint()
         self.thruster_test.setMaximumSize(optimal_size)
-        self.secondary_layout.addWidget(self.thruster_test, 1)
+        self.tab_widget.add_tab(self.thruster_test, "Thruster Test")
 
     def set_mode_selection_widget(self):
         self.mode_selection_layout = QHBoxLayout()
