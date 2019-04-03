@@ -2,7 +2,7 @@
 	Adapted from the origional dvl.py by Jared Guerrero, and in Accordance with Mechatronics Etiquite and
 	the Creative Commons Licence LLC.
 
-	Current Maintainers: Christian Gould and Cole Brower
+	Current Maintainers: Christian Gould, David Walker-Howell
 	Email: Christian.d.gould@gmail.com
 	Last Modified 1/29/2019
 '''
@@ -31,9 +31,9 @@ class DVL_DATA_DRIVER:
 		self.DVLCom = serial.Serial(comport, 115200, timeout=1)
 
 		#Velocity Sync
-		self.curr_vel = np.array([[0,0,0]], dtype=float)
-		self.prev_vel = np.array([[0,0,0]], dtype=float)
-		self.displacement = np.array([[0,0,0]], dtype=float)
+		self.curr_vel = np.array([0,0,0], dtype=float)
+		self.prev_vel = np.array([0,0,0], dtype=float)
+		self.displacement = np.array([0,0,0], dtype=float)
 
 	def __get_velocity(self):
 		'''
@@ -77,13 +77,15 @@ class DVL_DATA_DRIVER:
 
 				self.DVLCom.flush()
 
-		return np.array([[velZ[0], velX[0], velY[0]]])
+		return np.array([velZ[0], velX[0], velY[0]])
 
 	def __get_displacement(self):
 		'''
-			DISPLACEMENT of X Y Z
+			This function calculates the displacement of the sub in the X Y Z
+			directions. This function will also return the velocities in each direction
+			since the velocities are needed to calculate the displacement.
 
-			RETURNS: Z X Y in np array
+			RETURNS: A numpy array of [velZ, velX, velY, dispZ, dispX, dispY]
 		'''
 		self.prev_vel = self.curr_vel;
 		self.curr_vel = self.__get_velocity()
@@ -111,10 +113,10 @@ class DVL_DATA_DRIVER:
 
 		'''
 
-		return self.displacement
+		return np.concatenate((self.curr_vel, self.displacement), axis=None)
 
 	def get_PACKET(self):
-		return np.concatenate((self.__get_velocity(),self.__get_displacement()), axis=None)
+		return self.__get_displacement()
 
 class DVL_THREAD(threading.Thread):
 	'''
@@ -131,7 +133,9 @@ class DVL_THREAD(threading.Thread):
 
 	def __init__(self,comport):
 		super(DVL_THREAD, self).__init__()
-
+		
+		self.daemon = True
+		
 		#COMMUNICATON: SERIAL PORT
 		self.DVL_PORT = comport;
 
@@ -145,7 +149,7 @@ class DVL_THREAD(threading.Thread):
 
 
 		#PACKET: VELOCITY(XYZ), DISPLACEMENT(XYZ)
-		self.PACKET = np.array([[0,0,0,0,0,0]]);
+		self.PACKET = np.array([0,0,0,0,0,0]);
 
 
 	def run(self):
@@ -154,10 +158,10 @@ class DVL_THREAD(threading.Thread):
 		'''
 		while(True):
 			with threading.Lock():
-				self.PACKET = self.Norteck_DVL.get_PACKET();
+				self.PACKET = self.Norteck_DVL.__get_displacement();
 				#print(DVL.PACKET) --uncomment to test
 
-
+			time.sleep(0.1)
 
 if __name__== '__main__':
 	DVL = DVL_THREAD('/dev/ttyUSB0')

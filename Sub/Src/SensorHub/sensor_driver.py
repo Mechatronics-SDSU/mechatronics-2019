@@ -59,13 +59,16 @@ class Sensor_Driver:
         #Get com ports to connect to sensors
         backplane_com_port = self.param_serv.get_param("COM_Ports/backplane")
         ahrs_com_port = self.param_serv.get_param("COM_Ports/AHRS")
-
+	dvl_com_port = self.param_serv.get_param("COM_Ports/DVL")
 
         #Initialize the backplane handler
         self.backplane_driver_thread = Backplane_Handler(backplane_com_port)
 
         #Initialize ahrs handler
         self.ahrs_driver_thread = AHRS(ahrs_com_port)
+
+	#iNITIALIZE dvl DRIVER THREAD
+	self.dvl_driver_thread = DVL_THREAD(dvl_com_port)
 
         #Threading lock to access shared thread data safely
         self.threading_lock = threading.Lock()
@@ -74,6 +77,7 @@ class Sensor_Driver:
         #Start sensor gathering threads
         self.backplane_driver_thread.start()
         self.ahrs_driver_thread.start()
+	self.dvl_driver_thread.start()
 
     def run(self):
         '''
@@ -89,12 +93,20 @@ class Sensor_Driver:
         while(self.run_thread):
 
             try:
+		
                 #Put data from sensor threads into proto sturcture
-                self.nav_data_proto.roll = self.ahrs_driver_thread.ahrs_data[0]
-                self.nav_data_proto.pitch = self.ahrs_driver_thread.ahrs_data[1]
-                self.nav_data_proto.yaw = self.ahrs_driver_thread.ahrs_data[2]
+		
+		ahrs_data_packet = self.ahrs_driver_thread.ahrs_data
+		self.nav_data_proto.roll = ahrs_data_packet[0]
+                self.nav_data_proto.pitch = ahrs_data_packet[1]
+                self.nav_data_proto.yaw = ahrs_data_packet[2]
 
                 self.nav_data_proto.depth = self.backplane_driver_thread.depth_data
+		
+		
+		dvl_data_packet = self.dvl_driver_thread.PACKET
+		self.nav_data_proto.x_translation = dvl_data_packet[4]
+		self.nav_data_proto.y_translation = dvl_data_packet[5]
 
                 #print(self.nav_data_proto)
                 #Serialize data in proto to send
