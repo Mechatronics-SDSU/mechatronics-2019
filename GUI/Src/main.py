@@ -48,7 +48,6 @@ class Main_GUI(QWidget):
         self.set_nav_odometery()
         self.set_pid_visualizer()
         self.set_thruster_test_widget()
-        self.set_mode_selection_widget()
 
         #MechOS publisher to send movement mode selection
         self.main_gui_node = mechos.Node("MAIN_GUI")
