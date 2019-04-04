@@ -54,7 +54,6 @@ class Main_GUI(QWidget):
         self.set_nav_odometery()
         self.set_pid_visualizer()
         self.set_thruster_test_widget()
-        self.set_mode_selection_widget()
 
 
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
