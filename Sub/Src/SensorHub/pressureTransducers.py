@@ -41,7 +41,6 @@ class Pressure_Depth_Transducers:
 
         #This is the variable that you append raw pressure data to once it is
         #received from the backplane.
-        self.raw_pressure_data = []
         self.depth_scaling = [9.2, 9.2]
         self.depth_bias = [606, 95]
 
@@ -100,11 +99,11 @@ class Pressure_Depth_Transducers:
             depths: A list of two depth readings in feet.
             if data is not received properly, return none
         '''
-        self.raw_depth_data = raw_pressure_data
+                
         if(raw_pressure_data != None):
-            depths = raw_pressure_data
-            depths[0] = (1 / self.depth_scaling[0]) * (depths[0] - self.depth_bias[0])
-            depths[1] = (1 / self.depth_scaling[1]) * (depths[1] - self.depth_bias[1])
+            depths = [0, 0]
+            depths[0] = (1 / self.depth_scaling[0]) * (raw_pressure_data[0] - self.depth_bias[0])
+            depths[1] = (1 / self.depth_scaling[1]) * (raw_pressure_data[1] - self.depth_bias[1])
             self.unfiltered_depth_data = depths
             return depths
         return None
