@@ -137,10 +137,10 @@ class DVL_THREAD(threading.Thread):
 		self.daemon = True
 		
 		#COMMUNICATON: SERIAL PORT
-		self.DVL_PORT = comport;
+		self.DVL_PORT = comport
 
 		#DVL: OBJECT
-		self.Norteck_DVL = DVL_DATA_DRIVER(comport);
+		self.Norteck_DVL = DVL_DATA_DRIVER(comport)
 
 		#MECHOS:NETWORK HOSTS
 
@@ -149,7 +149,7 @@ class DVL_THREAD(threading.Thread):
 
 
 		#PACKET: VELOCITY(XYZ), DISPLACEMENT(XYZ)
-		self.PACKET = np.array([0,0,0,0,0,0]);
+		self.PACKET = np.array([0,0,0,0,0,0])
 
 
 	def run(self):
@@ -158,7 +158,7 @@ class DVL_THREAD(threading.Thread):
 		'''
 		while(True):
 			with threading.Lock():
-				self.PACKET = self.Norteck_DVL.__get_displacement();
+				self.PACKET = self.Norteck_DVL.get_PACKET()
 				#print(DVL.PACKET) --uncomment to test
 
 			time.sleep(0.1)
