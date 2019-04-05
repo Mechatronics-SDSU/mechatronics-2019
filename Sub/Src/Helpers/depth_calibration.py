@@ -13,6 +13,12 @@ import os
 BACKPLANE_PATH = os.path.join("..", "SensorHub")
 sys.path.append(BACKPLANE_PATH)
 
+PARAM_PATH = os.path.join("..", "Params")
+sys.path.append(PARAM_PATH)
+MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
+from mechos_network_configs import MechOS_Network_Configs
+
+
 import numpy as np
 import threading
 import serial
@@ -26,10 +32,12 @@ class Depth_Calibrator:
     Mechatronics parameter server connection, and ensure that we are receiving backplane data
     '''
     def __init__(self):
-        self.param_serv = mechos.Parameter_Server_Client()
-        parameter_xml_database = os.path.join("..", "Params", "Perseverance.xml")
-        parameter_xml_database = os.path.abspath(parameter_xml_database)
-        self.param_serv.use_parameter_database(parameter_xml_database)
+
+        #Get the mechos network parameters
+        configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
+
+        self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
+        self.param_serv.use_parameter_database(configs["param_server_path"])s
 
         backplane_com_port = self.param_serv.get_param("COM_Ports/backplane")
         self.backplane_driver_thread = Backplane_Handler(backplane_com_port)
