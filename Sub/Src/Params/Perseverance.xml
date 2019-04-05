@@ -60,4 +60,4 @@
 		</PID>
 	</Control>
 
-</Perseverance>
+<Sensors>0.0<trans_2_bias>0.0</trans_2_bias><trans_1_bias>602.82</trans_1_bias><trans_1_scaling>0.029999999999972715</trans_1_scaling><trans_2_scaling>0.0</trans_2_scaling></Sensors></Perseverance>

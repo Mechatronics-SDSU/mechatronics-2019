@@ -37,14 +37,14 @@ class Depth_Calibrator:
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
         self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
-        self.param_serv.use_parameter_database(configs["param_server_path"])s
+        self.param_serv.use_parameter_database(configs["param_server_path"])
 
         backplane_com_port = self.param_serv.get_param("COM_Ports/backplane")
         self.backplane_driver_thread = Backplane_Handler(backplane_com_port)
         self.threading_lock = threading.Lock()
         self.run_thread = True
         self.backplane_driver_thread.start()
-
+        time.sleep(1.5) #Makes sure Backplane is up and running
 
 def calculate_depth_scale(input, offset):
     '''
@@ -62,9 +62,13 @@ def calculate_pressure(pressure_x, pressure_y, depth_calibrator):
     our two pressure variables and the depth calibrator object. Repeatedly receive pressure data and take an average
     to get as close as we can to the true reading at that depth
     '''
+    pressure_x = 0
+    pressure_y = 0
     for x in range(0, 100):
-        pressure_x = pressure_x + depth_calibrator.backplane_driver_thread.depth_processing.raw_depth_data[0]
-        pressure_y = pressure_y + depth_calibrator.backplane_driver_thread.depth_processing.raw_depth_data[1]
+        pressure_x = pressure_x + depth_calibrator.backplane_driver_thread.raw_depth_data[0]
+        pressure_y = pressure_y + depth_calibrator.backplane_driver_thread.raw_depth_data[1]
+    
+        time.sleep(0.05)        
     pressure = np.array([(pressure_x/100), (pressure_y/100)])
     return pressure
 
@@ -87,26 +91,28 @@ if __name__ == '__main__':
     '''
     depth_calibrator = Depth_Calibrator()
 
-    raw_pressure_data_x = 0
-    raw_pressure_data_y = 0
-    average = calculate_pressure(raw_pressure_data_x, raw_pressure_data_y, depth_calibrator)
-
     prompt = input("Are you ready to calculate offset?")
+
     if(check_response(prompt)):
+        raw_pressure_data_x = 0
+        raw_pressure_data_y = 0
+        average = calculate_pressure(raw_pressure_data_x, raw_pressure_data_y, depth_calibrator)
         offset = np.array([(average[0]), average[1]])
+        print("Offset", offset)
         depth_calibrator.param_serv.set_param("Sensors/trans_1_bias", str(offset[0]))
         depth_calibrator.param_serv.set_param("Sensors/trans_2_bias", str(offset[1]))
 
-    curr_depth = int(input("Enter the depth you want the sub to calculate scale at: "))
+    curr_depth = float(input("Enter the depth you want the sub to calculate scale at: "))
     ask = input("Begin calculating depth_scale?")
 
     if(check_response(ask)):
-        offset = np.array([(int(depth_calibrator.param_serv.get_param("Sensors/trans_1_bias"))), (int(depth_calibrator.param_serv.get_param("Sensors/trans_2_bias")))])
+        offset = np.array([(float(depth_calibrator.param_serv.get_param("Sensors/trans_1_bias"))), (float(depth_calibrator.param_serv.get_param("Sensors/trans_2_bias")))])
         new_pressure_x = 0
         new_pressure_y = 0
         new_pressure = calculate_pressure(new_pressure_x, new_pressure_y, depth_calibrator)
         difference = np.array([(new_pressure[0] - offset[0]), (new_pressure[1] - offset[1])])
         depth_scale = calculate_depth_scale(curr_depth, difference)
+        print("Scale", depth_scale)
         depth_calibrator.param_serv.set_param("Sensors/trans_1_scaling", str(depth_scale[0]))
         depth_calibrator.param_serv.set_param("Sensors/trans_2_scaling", str(depth_scale[1]))
 
