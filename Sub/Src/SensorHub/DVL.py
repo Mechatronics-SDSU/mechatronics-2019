@@ -50,30 +50,35 @@ class DVL_DATA_DRIVER:
 		NOTE: the C struct module 'struct' in python will unwrap these bytes into a tuple
 		Be sure to index this to get the data inside the touple to be consistent with Protobuf binaries
 		'''
-		SYNC = 0;
-		while(SYNC != "0xa5"):
+		SYNC_flag = False
+		velZ = [0]
+		velX = [0]
+		velY = [0]
+		while(not SYNC_flag):
+		#if(self.DVLCom.inWaiting() > 154):
 			SYNC = hex(ord(self.DVLCom.read()))
-			header = ord(self.DVLCom.read())
-			ID     = ord(self.DVLCom.read())
-			family = ord(self.DVLCom.read())
-			dataSize = self.DVLCom.read(2)
-			dataChecksum = self.DVLCom.read(2)
-			headerChecksum = self.DVLCom.read(2)
+			if(SYNC == "0xa5"):
+				SYNC_flag = True
+				header = ord(self.DVLCom.read())
+				ID     = ord(self.DVLCom.read())
+				family = ord(self.DVLCom.read())
+				dataSize = self.DVLCom.read(2)
+				dataChecksum = self.DVLCom.read(2)
+				headerChecksum = self.DVLCom.read(2)
 
-			if(hex(ID) == "0x1b"):
-				self.DVLCom.read(16)
+				if(hex(ID) == "0x1b"):
+					self.DVLCom.read(16)
+					error = self.DVLCom.read(4)
+					error = struct.unpack('<f', error)
 
-				error = self.DVLCom.read(4)
-				error = struct.unpack('<f', error)
+					self.DVLCom.read(112)
 
-				self.DVLCom.read(112)
-
-				velX = self.DVLCom.read(4)
-				velX = struct.unpack('<f', velX)
-				velY = self.DVLCom.read(4)
-				velY = struct.unpack('<f', velY)
-				velZ = self.DVLCom.read(4)
-				velZ = struct.unpack('<f', velZ)
+					velX = self.DVLCom.read(4)
+					velX = struct.unpack('<f', velX)
+					velY = self.DVLCom.read(4)
+					velY = struct.unpack('<f', velY)
+					velZ = self.DVLCom.read(4)
+					velZ = struct.unpack('<f', velZ)
 
 				self.DVLCom.flush()
 
@@ -157,12 +162,12 @@ class DVL_THREAD(threading.Thread):
 		Request data from the Norteck DVL and publish it to the Network
 		'''
 		while(True):
-			with threading.Lock():
-				self.PACKET = self.Norteck_DVL.get_PACKET()
-				#print(DVL.PACKET) --uncomment to test
+			#with threading.Lock():
+			self.PACKET = self.Norteck_DVL.get_PACKET()
+			#print(self.PACKET) #uncomment to test
 
-			time.sleep(0.1)
+			time.sleep(0.4)
 
 if __name__== '__main__':
-	DVL = DVL_THREAD('/dev/ttyUSB0')
+	DVL = DVL_THREAD('/dev/ttyUSB1')
 	DVL.run()
