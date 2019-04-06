@@ -1,8 +1,9 @@
 <Perseverance>
 	<COM_Ports>
 		<maestro>/dev/ttyACM0</maestro>
-		<AHRS>/dev/ttyUSB2</AHRS>
+		<AHRS>/dev/ttyUSB3</AHRS>
 		<backplane>/dev/ttyUSB0</backplane>
+		<DVL>/dev/ttyUSB1</DVL>
 	</COM_Ports>
 	<Timing>
 		<AHRS>0.1</AHRS>
