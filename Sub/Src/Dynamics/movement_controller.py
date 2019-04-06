@@ -88,7 +88,7 @@ class Movement_Controller:
         self.nav_data_proto = navigation_data_pb2.NAV_DATA()
         self.current_position_subscriber = self.movement_controller_node.create_subscriber("NAV", self.__get_position_callback, configs["sub_port"])
 
-        
+
         #Get movement controller timing
         self.time_interval = float(self.param_serv.get_param("Timing/movement_control"))
 
@@ -100,7 +100,7 @@ class Movement_Controller:
 
         #Initialize current position
         self.current_position = [0, 0, 0, 0, 0, 0]
-        
+
         #Initialize desired position
         self.desired_position = [0, 0, 0, 0, 0, 0]
         self.desired_position_proto = desired_position_pb2.DESIRED_POS()
@@ -163,8 +163,8 @@ class Movement_Controller:
         self.current_position[1] = self.nav_data_proto.pitch
         self.current_position[2] = self.nav_data_proto.yaw
         self.current_position[3] = self.nav_data_proto.depth
-        self.current_position[4] = self.nav_data_proto.x_pos
-        self.current_position[5] = self.nav_data_proto.y_pos
+        self.current_position[4] = self.nav_data_proto.x_translation
+        self.current_position[5] = self.nav_data_proto.y_translation
 
     def __unpack_desired_position_callback(self, desired_position_proto):
         '''
@@ -251,7 +251,7 @@ class Movement_Controller:
             #the control loop perfrom a simpe Depth PID move. x_pos, y_pos, and
             #yaw are ignored.
             if self.movement_mode == 1:
-                
+
                 if(self.pid_values_update_thread_run == False):
                     self.pid_values_update_thread_run = True
                     self.pid_values_update_thread.start()
@@ -270,9 +270,9 @@ class Movement_Controller:
 
                 #Perform the PID control step to move the sub to the desired depth
                 #The error received is the roll, pitch, and depth error
-                error = self.pid_controller.simple_depth_move_no_yaw(current_position[0],
-                                                             current_position[1],
-                                                             current_position[3],
+                error = self.pid_controller.simple_depth_move_no_yaw(self.current_position[0],
+                                                             self.current_position[1],
+                                                             self.current_position[3],
                                                              self.desired_position[0],
                                                              self.desired_position[1],
                                                              self.desired_position[3])
@@ -280,7 +280,7 @@ class Movement_Controller:
                 self.pid_errors_proto.roll_error = error[0]
                 self.pid_errors_proto.pitch_error = error[1]
                 self.pid_errors_proto.z_pos_error = error[2] #depth error
-                #print(self.pid_errors_proto)
+                print(self.pid_errors_proto)
                 serialzed_pid_errors_proto = self.pid_errors_proto.SerializeToString()
                 self.pid_errors_publisher.publish(serialzed_pid_errors_proto)
 
