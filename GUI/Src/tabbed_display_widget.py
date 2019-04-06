@@ -45,9 +45,6 @@ class Tabbed_Display(QWidget):
         self.tabs.currentChanged.connect(self._update_mode)
 
         # Create MechOS node
-       # self.tab_display_node = mechos.Node("GUI_TABS")
-        #self.movement_mode_publisher = self.tab_display_node.create_publisher("MM")
-
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
         self.tab_display_node = mechos.Node("GUI_TABS", configs["ip"])
         self.movement_mode_publisher = self.tab_display_node.create_publisher("MM", configs["pub_port"])
