@@ -27,6 +27,7 @@ sys.path.append(os.path.join(PROTO_PATH, "Src"))
 sys.path.append(PROTO_PATH)
 import desired_position_pb2
 import pid_errors_pb2
+import navigation_data_pb2
 import thrusters_pb2
 
 from position_estimator import Position_Estimator
@@ -76,12 +77,18 @@ class Movement_Controller:
         self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
         self.param_serv.use_parameter_database(configs["param_server_path"])
 
+        #TODO: Remove Position Estimator from Dynamics
         #Initialize the position estimator thread. The position estimator
         #will estimate the real time current position of the sub with respect to
         #the origin set.
-        self.position_estimator_thread = Position_Estimator()
-        self.position_estimator_thread.start()
+        #self.position_estimator_thread = Position_Estimator()
+        #self.position_estimator_thread.start()
 
+        #Proto buffer containing all of the navigation data
+        self.nav_data_proto = navigation_data_pb2.NAV_DATA()
+        self.current_position_subscriber = self.movement_controller_node.create_subscriber("NAV", self.__get_position_callback, configs["sub_port"])
+
+        
         #Get movement controller timing
         self.time_interval = float(self.param_serv.get_param("Timing/movement_control"))
 
@@ -91,6 +98,9 @@ class Movement_Controller:
         #Initialize 6 degree of freedom PID movement controller used for the sub.
         self.pid_controller = Movement_PID()
 
+        #Initialize current position
+        self.current_position = [0, 0, 0, 0, 0, 0]
+        
         #Initialize desired position
         self.desired_position = [0, 0, 0, 0, 0, 0]
         self.desired_position_proto = desired_position_pb2.DESIRED_POS()
@@ -138,6 +148,23 @@ class Movement_Controller:
 
             self.movement_controller_node.spinOnce(self.movement_mode_subscriber)
             time.sleep(0.2)
+    def __get_position_callback(self, nav_data_proto):
+        '''
+        The callback function to unpack the navigation data sent from the sensor driver.
+
+        Parameter:
+            nav_data_proto: Protobuf of type NAV_DATA to unpack
+
+        Returns:
+            N/A
+        '''
+        self.nav_data_proto.ParseFromString(nav_data_proto)
+        self.current_position[0] = self.nav_data_proto.roll
+        self.current_position[1] = self.nav_data_proto.pitch
+        self.current_position[2] = self.nav_data_proto.yaw
+        self.current_position[3] = self.nav_data_proto.depth
+        self.current_position[4] = self.nav_data_proto.x_pos
+        self.current_position[5] = self.nav_data_proto.y_pos
 
     def __unpack_desired_position_callback(self, desired_position_proto):
         '''
@@ -229,9 +256,11 @@ class Movement_Controller:
                     self.pid_values_update_thread_run = True
                     self.pid_values_update_thread.start()
 
+                #TODO: Remove Position Estimator from Dynamics
                 #The current position (roll, pitch, yaw, depth, x_disp, y_disp)
                 #calculated by the position estimator thread.
-                current_position = self.position_estimator_thread.belief_position
+                #current_position = self.position_estimator_thread.belief_position
+                self.movement_controller_node.spinOnce(self.current_position_subscriber)
 
                 #Get the desired position of the sub. Typically this message is
                 #sent from the GUI or mission controller.

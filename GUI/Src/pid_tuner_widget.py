@@ -24,6 +24,7 @@ from PyQt5.QtGui import QColor, QPixmap, QIcon
 from PyQt5.QtCore import Qt, QTimer
 import time
 from real_time_plotter_widget import Real_Time_Plotter
+from set_position_widget import Set_Desired_Position_GUI
 
 class PID_Tuner_Widget(QWidget):
     '''
@@ -71,6 +72,8 @@ class PID_Tuner_Widget(QWidget):
         self._error_plotter()
         self._PID_controller_select()
         self._PID_sliders()
+        self.set_desired_position = Set_Desired_Position_GUI()
+        
 
         #Set up QTimer to update the PID errors
         self.pid_error_update_timer = QTimer()
@@ -78,7 +81,7 @@ class PID_Tuner_Widget(QWidget):
         self.pid_error_update_timer.timeout.connect(lambda: self.pid_gui_node.spinOnce(self.pid_errors_subscriber))
 
         self.primary_linking_layout.addLayout(self.options_linking_layout, 1)
-
+        self.primary_linking_layout.addWidget(self.set_desired_position, 2)
         #Start PID errors update errors. Update 100 timers a second
         self.pid_error_update_timer.start(10)
 
@@ -106,6 +109,7 @@ class PID_Tuner_Widget(QWidget):
         #will update its PID values
         self.PID_save_values_layout = QVBoxLayout()
         self.pid_values_save = QPushButton("Save PID Values")
+        self.pid_values_save.setStyleSheet("background-color:#2C878F; color:#01535B")
         self.pid_values_save.setIcon(QIcon(QPixmap("save_symbol.png")))
         self.pid_values_save.clicked.connect(self._save_pid_values)
         self.PID_save_values_layout.addWidget(self.pid_values_save, 0)

@@ -101,8 +101,14 @@ class Set_Desired_Position_GUI(QWidget):
         self.y_box.setText("0.0")        
 
         self.send_position_button = QPushButton("Send Desired Pos.")
-        self.send_position_button.setStyleSheet("background-color:#2A7E43; color:#81C596")
+        self.send_position_button.setStyleSheet("background-color:#2A7E43; color:#E8FFE8")
         self.send_position_button.clicked.connect(self.send_desired_position)
+
+        #Set current x and y position as [0, 0]
+        self.zero_position_button = QPushButton("Zero Position")
+        self.zero_position_button.setStyleSheet("background-color:#DBDB3A; color:#5A5A00")
+        self.zero_position_button.clicked.connect(self.zero_position)
+        
 
         #Add text boxs and line edit displays to layout
         self.orientation_layout.addWidget(self.yaw_txt, 0, 0)
@@ -118,7 +124,7 @@ class Set_Desired_Position_GUI(QWidget):
         self.orientation_layout.addWidget(self.y_txt, 1, 4)
         self.orientation_layout.addWidget(self.y_box, 1, 5)
         self.orientation_layout.addWidget(self.send_position_button, 2, 3)
-
+        self.orientation_layout.addWidget(self.zero_position_button, 2, 1)
         self.linking_layout.addLayout(self.orientation_layout, 1)
     
     def send_desired_position(self):
@@ -136,11 +142,39 @@ class Set_Desired_Position_GUI(QWidget):
         self.dest_pos_proto.depth = float(self.depth_box.text())
         self.dest_pos_proto.x_pos = float(self.x_box.text())
         self.dest_pos_proto.y_pos = float(self.y_box.text())
+        self.dest_pos_proto.zero_pos = False
 
         serialized_pos_proto = self.dest_pos_proto.SerializeToString()
         print("Sending Position\n", self.dest_pos_proto)
         self.set_position_pub.publish(serialized_pos_proto) 
 
+    def zero_position(self):
+        '''
+        Set the set zero position flag to true so that the sub set's it's current
+        X and Y position as origin.
+
+        Parameters:
+            N/A
+        Returns:
+            N/A
+        '''
+        self.dest_pos_proto.zero_pos = True
+        serialized_pos_proto = self.dest_pos_proto.SerializeToString()
+
+        #Zero roll, pitch, x, and y to stabilize the sub at origin.
+
+        self.roll_box.setText("0.0")
+        self.pitch_box.setText("0.0")
+        self.x_box.setText("0.0")
+        self.y_box.setText("0.0")
+
+        self.dest_pos_proto.roll = 0.0
+        self.dest_pos_proto.pitch = 0.0
+        self.dest_pos_proto.x_pos = 0.0
+        self.dest_pos_proto.y_pos = 0.0
+        self.set_position_pub.publish(serialized_pos_proto)
+        print("Zeroing Position\n", self.dest_pos_proto)
+        
 
 if __name__ == "__main__":
     import sys

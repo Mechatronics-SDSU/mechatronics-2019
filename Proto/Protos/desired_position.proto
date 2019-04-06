@@ -12,4 +12,7 @@ message DESIRED_POS {
     //Desired x and y position with respect to original (0,0) position
     float x_pos  = 5;
     float y_pos  = 6;
+
+    //Set current position as original. Note that the default value is false
+    bool zero_pos = 7;
 }
