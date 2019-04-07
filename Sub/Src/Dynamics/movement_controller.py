@@ -250,7 +250,7 @@ class Movement_Controller:
             #In PID depth, pitch, roll tunning mode, only roll pitch and depth are used in
             #the control loop perfrom a simpe Depth PID move. x_pos, y_pos, and
             #yaw are ignored.
-            if self.movement_mode == 1:
+            if self.movement_mode == 0:
 
                 if(self.pid_values_update_thread_run == False):
                     self.pid_values_update_thread_run = True
@@ -302,7 +302,7 @@ class Movement_Controller:
                 #self.pid_errors_proto.z_pos_error = error[6]
                 #---------------------------------------------------------------------
             #THRUSTER test mode.
-            elif self.movement_mode == 0:
+            elif self.movement_mode == 1:
 
                 self.movement_controller_node.spinOnce(self.thruster_test_subscriber)
 
