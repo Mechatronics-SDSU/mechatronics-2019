@@ -92,7 +92,7 @@ class Movement_Controller:
         #Get movement controller timing
         self.time_interval = float(self.param_serv.get_param("Timing/movement_control"))
 
-        self.movement_mode = 0
+        self.movement_mode = 1
         self.run_thread = True
 
         #Initialize 6 degree of freedom PID movement controller used for the sub.

@@ -84,8 +84,9 @@ class Sensor_Driver:
         self.backplane_driver_thread.start()
         self.ahrs_driver_thread.start()
         self.dvl_driver_thread.start()
-    
-    def _zero_pos_callback(self, zero_pos_proto)
+        self.zero_pos_flag = True
+
+    def _zero_pos_callback(self, zero_pos_proto):
         '''
         Callback function for the zero pos. subscriber to receive the zero position flag
         from the GUI.
@@ -96,8 +97,10 @@ class Sensor_Driver:
         Returns:
             N/A
         '''
+        self.zero_pos_proto.zero_pos = False
         self.zero_pos_proto.ParseFromString(zero_pos_proto)
         self.zero_pos_flag = self.zero_pos_proto.zero_pos
+
 
     def run(self):
         '''
@@ -118,7 +121,9 @@ class Sensor_Driver:
 
                 #Check for zero position flag
                 self.sensor_driver_node.spinOnce(self.zero_pos_sub)
-                self.dvl_driver_thread.reset_integration_flag = self.zero_pos_flag
+                if(self.zero_pos_flag == True):
+                    self.dvl_driver_thread.reset_integration_flag = self.zero_pos_flag
+                    self.zero_pos_flag = False
 
                 ahrs_data_packet = self.ahrs_driver_thread.ahrs_data
                 self.nav_data_proto.roll = ahrs_data_packet[0]

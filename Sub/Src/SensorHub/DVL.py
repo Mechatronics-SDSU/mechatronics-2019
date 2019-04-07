@@ -34,7 +34,7 @@ class DVL_DATA_DRIVER:
 		self.curr_vel = np.array([0,0,0], dtype=float)
 		self.prev_vel = np.array([0,0,0], dtype=float)
 		self.displacement = np.array([0,0,0], dtype=float)
-	
+
 	def reset_integration(self):
 		'''
 		Set the current displacement to zero.
@@ -151,9 +151,9 @@ class DVL_THREAD(threading.Thread):
 
 	def __init__(self,comport):
 		super(DVL_THREAD, self).__init__()
-		
+
 		self.daemon = True
-		
+
 		#COMMUNICATON: SERIAL PORT
 		self.DVL_PORT = comport
 
@@ -180,6 +180,7 @@ class DVL_THREAD(threading.Thread):
 		while(True):
 
 			if(self.reset_integration_flag):
+				print("Here")
 				self.Norteck_DVL.reset_integration()
 				self.reset_integration_flag = False #Reset the flag
 			#with threading.Lock():
