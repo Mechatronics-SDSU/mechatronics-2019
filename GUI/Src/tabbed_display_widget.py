@@ -1,8 +1,15 @@
 import sys
+import os
 from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, QWidget, QAction, QTabWidget, QVBoxLayout
 from PyQt5.QtGui import QIcon, QColor, QPalette
 from PyQt5.QtCore import pyqtSlot, Qt
+
+PARAM_PATH = os.path.join("..", "..", "Sub", "Src", "Params")
+sys.path.append(PARAM_PATH)
+MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
+from mechos_network_configs import MechOS_Network_Configs
 from MechOS import mechos
+import struct
 
 
 class Tabbed_Display(QWidget):
@@ -39,8 +46,9 @@ class Tabbed_Display(QWidget):
         self.tabs.currentChanged.connect(self._update_mode)
 
         # Create MechOS node
-        self.tab_display_node = mechos.Node("GUI_TABS")
-        self.movement_mode_publisher = self.tab_display_node.create_publisher("MM")
+        configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
+        self.tab_display_node = mechos.Node("GUI_TABS", configs["ip"])
+        self.movement_mode_publisher = self.tab_display_node.create_publisher("MM", configs["pub_port"])
 
         
     def add_tab(self, widget, title):
@@ -86,10 +94,10 @@ class Tabbed_Display(QWidget):
         '''
         # Get current index
         mode = self.tabs.currentIndex()
-        print(mode)
-
+        print(type(mode))
+        mode_serialized = struct.pack('b', mode)
         # Publish current index
-        self.movement_mode_publisher.publish(bytes(mode))
+        self.movement_mode_publisher.publish(mode_serialized)
           
 
 if __name__ == "__main__":

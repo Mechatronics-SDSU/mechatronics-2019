@@ -21,6 +21,7 @@ MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
 from mechos_network_configs import MechOS_Network_Configs
 
 import navigation_data_pb2
+import desired_position_pb2
 from AHRS import AHRS
 from Backplane_Sensor_Data import Backplane_Handler
 from DVL import DVL_THREAD
@@ -54,6 +55,10 @@ class Sensor_Driver:
         self.sensor_driver_node = mechos.Node("SENSOR_DRIVER", configs["ip"])
         self.nav_data_publisher = self.sensor_driver_node.create_publisher("NAV", configs["pub_port"])
 
+        #MechOS node to receive zero position message (zero position message is sent in the DP topic)
+        self.zero_pos_sub = self.sensor_driver_node.create_subscriber("DP", self._zero_pos_callback, configs["sub_port"])
+        self.zero_pos_proto = desired_position_pb2.DESIRED_POS() #Protocol buffer for receiving the zero position flag
+
         self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
         self.param_serv.use_parameter_database(configs["param_server_path"])
 
@@ -79,6 +84,23 @@ class Sensor_Driver:
         self.backplane_driver_thread.start()
         self.ahrs_driver_thread.start()
         self.dvl_driver_thread.start()
+        self.zero_pos_flag = True
+
+    def _zero_pos_callback(self, zero_pos_proto):
+        '''
+        Callback function for the zero pos. subscriber to receive the zero position flag
+        from the GUI.
+
+        Parameters:
+            zero_pos_proto: A protocol buffer of type DESIRED_POS, which contains the flag to zero position
+
+        Returns:
+            N/A
+        '''
+        self.zero_pos_proto.zero_pos = False
+        self.zero_pos_proto.ParseFromString(zero_pos_proto)
+        self.zero_pos_flag = self.zero_pos_proto.zero_pos
+
 
     def run(self):
         '''
@@ -97,13 +119,18 @@ class Sensor_Driver:
 
                 #Put data from sensor threads into proto sturcture
 
+                #Check for zero position flag
+                self.sensor_driver_node.spinOnce(self.zero_pos_sub)
+                if(self.zero_pos_flag == True):
+                    self.dvl_driver_thread.reset_integration_flag = self.zero_pos_flag
+                    self.zero_pos_flag = False
+
                 ahrs_data_packet = self.ahrs_driver_thread.ahrs_data
                 self.nav_data_proto.roll = ahrs_data_packet[0]
                 self.nav_data_proto.pitch = ahrs_data_packet[1]
                 self.nav_data_proto.yaw = ahrs_data_packet[2]
 
                 self.nav_data_proto.depth = self.backplane_driver_thread.depth_data
-
 
                 dvl_data_packet = self.dvl_driver_thread.PACKET
                 self.nav_data_proto.x_translation = dvl_data_packet[4]

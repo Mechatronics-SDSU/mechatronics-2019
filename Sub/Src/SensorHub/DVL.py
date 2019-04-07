@@ -35,6 +35,19 @@ class DVL_DATA_DRIVER:
 		self.prev_vel = np.array([0,0,0], dtype=float)
 		self.displacement = np.array([0,0,0], dtype=float)
 
+	def reset_integration(self):
+		'''
+		Set the current displacement to zero.
+
+		Parameters:
+			N/A
+
+		Returns:
+			N/A
+		'''
+		for i in range(3):
+			self.displacement[i] = 0.0
+
 	def __get_velocity(self):
 		'''
 		The DVL has been setup to be cyclic, wherupon the Headerbye 'sync' is used to determine where the string restarts
@@ -92,7 +105,7 @@ class DVL_DATA_DRIVER:
 
 			RETURNS: A numpy array of [velZ, velX, velY, dispZ, dispX, dispY]
 		'''
-		self.prev_vel = self.curr_vel;
+		self.prev_vel = self.curr_vel
 		self.curr_vel = self.__get_velocity()
 
 		#initial CALCULATION: Trapezoid Rule
@@ -138,9 +151,9 @@ class DVL_THREAD(threading.Thread):
 
 	def __init__(self,comport):
 		super(DVL_THREAD, self).__init__()
-		
+
 		self.daemon = True
-		
+
 		#COMMUNICATON: SERIAL PORT
 		self.DVL_PORT = comport
 
@@ -156,12 +169,20 @@ class DVL_THREAD(threading.Thread):
 		#PACKET: VELOCITY(XYZ), DISPLACEMENT(XYZ)
 		self.PACKET = np.array([0,0,0,0,0,0])
 
+		#Set this flag to zero out the integration
+		self.reset_integration_flag = True
+
 
 	def run(self):
 		'''
 		Request data from the Norteck DVL and publish it to the Network
 		'''
 		while(True):
+
+			if(self.reset_integration_flag):
+				print("Here")
+				self.Norteck_DVL.reset_integration()
+				self.reset_integration_flag = False #Reset the flag
 			#with threading.Lock():
 			self.PACKET = self.Norteck_DVL.get_PACKET()
 			#print(self.PACKET) #uncomment to test

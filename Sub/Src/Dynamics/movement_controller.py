@@ -92,7 +92,7 @@ class Movement_Controller:
         #Get movement controller timing
         self.time_interval = float(self.param_serv.get_param("Timing/movement_control"))
 
-        self.movement_mode = 0
+        self.movement_mode = 1
         self.run_thread = True
 
         #Initialize 6 degree of freedom PID movement controller used for the sub.
@@ -250,7 +250,7 @@ class Movement_Controller:
             #In PID depth, pitch, roll tunning mode, only roll pitch and depth are used in
             #the control loop perfrom a simpe Depth PID move. x_pos, y_pos, and
             #yaw are ignored.
-            if self.movement_mode == 1:
+            if self.movement_mode == 0:
 
                 if(self.pid_values_update_thread_run == False):
                     self.pid_values_update_thread_run = True
@@ -268,6 +268,7 @@ class Movement_Controller:
 
                 #print(current_position, self.desired_position)
 
+                #----SIMPLE DEPTH MOVE NO YAW--------------------------------------
                 #Perform the PID control step to move the sub to the desired depth
                 #The error received is the roll, pitch, and depth error
                 error = self.pid_controller.simple_depth_move_no_yaw(self.current_position[0],
@@ -283,9 +284,25 @@ class Movement_Controller:
                 print(self.pid_errors_proto)
                 serialzed_pid_errors_proto = self.pid_errors_proto.SerializeToString()
                 self.pid_errors_publisher.publish(serialzed_pid_errors_proto)
+                #----------------------------------------------------------------------
 
+                #----ADVANCE MOVE (ALL 6 DEGREES OF FREEDOMW)--------------------------
+                #error = self.pid_controller.advance_move(self.current_position[0], 
+                #                                        self.current_position[1], 
+                #                                        self.current_position[2],
+                #                                        self.current_position[4],
+                #                                        self.current_position[5],
+                #                                        self.current_position[3])
+            
+                #self.pid_errors_proto.roll_error = error[0]
+                #self.pid_errors_proto.pitch_error = error[1]
+                #self.pid_errors_proto.yaw_error = error[2]
+                #self.pid_errors_proto.x_pos_error = error[4]
+                #self.pid_errors_proto.y_pos_error = error[5]
+                #self.pid_errors_proto.z_pos_error = error[6]
+                #---------------------------------------------------------------------
             #THRUSTER test mode.
-            elif self.movement_mode == 0:
+            elif self.movement_mode == 1:
 
                 self.movement_controller_node.spinOnce(self.thruster_test_subscriber)
 
