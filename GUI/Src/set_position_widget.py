@@ -98,7 +98,7 @@ class Set_Desired_Position_GUI(QWidget):
         self.y_txt = QLabel()
         self.y_txt.setText("<font color='white'>Y Pos.</font>")
         self.y_box = QLineEdit()
-        self.y_box.setText("0.0")        
+        self.y_box.setText("0.0")
 
         self.send_position_button = QPushButton("Send Desired Pos.")
         self.send_position_button.setStyleSheet("background-color:#2A7E43; color:#E8FFE8")
@@ -174,7 +174,6 @@ class Set_Desired_Position_GUI(QWidget):
         self.dest_pos_proto.y_pos = 0.0
         self.set_position_pub.publish(serialized_pos_proto)
         print("Zeroing Position\n", self.dest_pos_proto)
-        
 
 if __name__ == "__main__":
     import sys
