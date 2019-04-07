@@ -1,4 +1,7 @@
 # mechatronics-2019
+
+ ![MechatronicsGit](https://pbs.twimg.com/profile_images/761612221885452288/dUwJT9It_400x400.jpg)
+
 MechOS Code for the 2019 Autonomous Vehicle
 
  - [x] GUI implemented off the sub
