@@ -221,7 +221,7 @@ class Movement_PID:
 
         #Write the contrls to thrusters
         self.controlled_thrust(roll_control, pitch_control, yaw_control, x_control, y_control, z_control)
-
+        return error
 
 
     def simple_depth_move_no_yaw(self, curr_roll, curr_pitch,curr_z_pos,
