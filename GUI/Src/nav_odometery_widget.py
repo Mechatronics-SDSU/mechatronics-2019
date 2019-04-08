@@ -127,25 +127,25 @@ class Navigation_GUI(QWidget):
         self.earth_pos_layout = QGridLayout()
 
         #Initialize text boxes and line edit displays
-        self.x_txt = QLabel()
-        self.x_txt.setText("<font color='white'>X</font>")
-        self.x_box = QLineEdit()
+        self.x_earth_txt = QLabel()
+        self.x_earth_txt.setText("<font color='white'>X</font>")
+        self.x_earth_box = QLineEdit()
 
-        self.y_txt = QLabel()
-        self.y_txt.setText("<font color='white'>Y</font>")
-        self.y_box = QLineEdit()
+        self.y_earth_txt = QLabel()
+        self.y_earth_txt.setText("<font color='white'>Y</font>")
+        self.y_earth_box = QLineEdit()
 
-        self.z_txt = QLabel()
-        self.z_txt.setText("<font color='white'>Z</font>")
-        self.z_box = QLineEdit()
+        self.z_earth_txt = QLabel()
+        self.z_earth_txt.setText("<font color='white'>Z</font>")
+        self.z_earth_box = QLineEdit()
 
         #Add text boxs and line edit displays to layout
-        self.earth_pos_layout.addWidget(self.x_txt, 0, 0)
-        self.earth_pos_layout.addWidget(self.x_box, 0, 1)
-        self.earth_pos_layout.addWidget(self.y_txt, 0, 2)
-        self.earth_pos_layout.addWidget(self.y_box, 0, 3)
-        self.earth_pos_layout.addWidget(self.z_txt, 0, 4)
-        self.earth_pos_layout.addWidget(self.z_box, 0, 5)
+        self.earth_pos_layout.addWidget(self.x_earth_txt, 0, 0)
+        self.earth_pos_layout.addWidget(self.x_earth_box, 0, 1)
+        self.earth_pos_layout.addWidget(self.y_earth_txt, 0, 2)
+        self.earth_pos_layout.addWidget(self.y_earth_box, 0, 3)
+        self.earth_pos_layout.addWidget(self.z_earth_txt, 0, 4)
+        self.earth_pos_layout.addWidget(self.z_earth_box, 0, 5)
 
         self.linking_layout.addLayout(self.earth_pos_layout, 4)
 
@@ -165,24 +165,24 @@ class Navigation_GUI(QWidget):
 
         self.relative_pos_layout = QGridLayout()
 
-        self.x_txt = QLabel()
-        self.x_txt.setText("<font color='white'>rX</font>")
-        self.x_box = QLineEdit()
+        self.x_rel_txt = QLabel()
+        self.x_rel_txt.setText("<font color='white'>rX</font>")
+        self.x_rel_box = QLineEdit()
 
-        self.y_txt = QLabel()
-        self.y_txt.setText("<font color='white'>rY</font>")
-        self.y_box = QLineEdit()
+        self.y_rel_txt = QLabel()
+        self.y_rel_txt.setText("<font color='white'>rY</font>")
+        self.y_rel_box = QLineEdit()
 
-        self.z_txt = QLabel()
-        self.z_txt.setText("<font color='white'>rZ</font>")
-        self.z_box = QLineEdit()
+        self.z_rel_txt = QLabel()
+        self.z_rel_txt.setText("<font color='white'>rZ</font>")
+        self.z_rel_box = QLineEdit()
 
-        self.relative_pos_layout.addWidget(self.x_txt, 0, 0)
-        self.relative_pos_layout.addWidget(self.x_box, 0, 1)
-        self.relative_pos_layout.addWidget(self.y_txt, 0, 2)
-        self.relative_pos_layout.addWidget(self.y_box, 0, 3)
-        self.relative_pos_layout.addWidget(self.z_txt, 0, 4)
-        self.relative_pos_layout.addWidget(self.z_box, 0, 5)
+        self.relative_pos_layout.addWidget(self.x_rel_txt, 0, 0)
+        self.relative_pos_layout.addWidget(self.x_rel_box, 0, 1)
+        self.relative_pos_layout.addWidget(self.y_rel_txt, 0, 2)
+        self.relative_pos_layout.addWidget(self.y_rel_box, 0, 3)
+        self.relative_pos_layout.addWidget(self.z_rel_txt, 0, 4)
+        self.relative_pos_layout.addWidget(self.z_rel_box, 0, 5)
 
         self.linking_layout.addLayout(self.relative_pos_layout, 6)
 
@@ -202,13 +202,17 @@ class Navigation_GUI(QWidget):
         pitch = self.nav_data_proto.pitch
         yaw = self.nav_data_proto.yaw
         depth = self.nav_data_proto.depth
+        x_pos = self.nav_data_proto.x_translation
+        y_pos = self.nav_data_proto.y_translation
 
         degree_sym = u"\u00b0"
         self.yaw_box.setText('{:6.2f}{}'.format(yaw, degree_sym))
         self.pitch_box.setText('{:6.2f}{}'.format(pitch, degree_sym))
         self.roll_box.setText('{:6.2f}{}'.format(roll, degree_sym))
         self.depth_box.setText('{:6.2f} ft'.format(depth))
-        self.z_box.setText('{:6.2f} ft'.format(depth))
+        self.z_earth_box.setText('{:6.2f} ft'.format(depth))
+        self.x_earth_box.setText('{:6.2f} ft'.format(x_pos))
+        self.y_earth_box.setText('{:6.2f} ft'.format(y_pos))
 
 if __name__ == "__main__":
     import sys
