@@ -29,7 +29,7 @@ class RcThread(QThread):
 		configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 		#MechOS publisher to send movement mode selection
 		self.rc_gui_node = mechos.Node("REMOTE_CONTROL", configs["ip"])
-		self.rc_mode_publisher = self.rc_gui_node.create_publisher("RC", configs["pub_port"])
+		self.rc_mode_publisher = self.rc_gui_node.create_publisher("TT", configs["pub_port"])
 
 		#Initialize the remote control proto to package thrust requests
 		self.remote_control_proto = thrusters_pb2.Thrusters()

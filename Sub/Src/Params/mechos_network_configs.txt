@@ -2,4 +2,4 @@ ip:127.0.0.101
 pub_port:5559
 sub_port:5560
 param_port:8000
-xmlrpc_server_path:/home/mechatronics2019/mechatronics-2019/Sub/Src/Params/Perseverance.xml
+xmlrpc_server_path:/home/claire/GITS/mechatronics-2019/Sub/Src/Params/Perseverance.xml

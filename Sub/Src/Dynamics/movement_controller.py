@@ -288,7 +288,7 @@ class Movement_Controller:
                 #self.pid_errors_proto.z_pos_error = error[6]
                 #---------------------------------------------------------------------
             #THRUSTER test mode.
-            elif self.movement_mode == 1 or 2:
+            elif self.movement_mode == 1 or self.movement_mode==2:
 
                 self.movement_controller_node.spinOnce(self.thruster_test_subscriber)
 
