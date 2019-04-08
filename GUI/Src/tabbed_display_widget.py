@@ -103,11 +103,13 @@ class Tabbed_Display(QWidget):
 if __name__ == "__main__":
     from pid_tuner_widget import PID_Tuner_Widget
     from thruster_test_widget import Thruster_Test
+    from remote_control_main import Remote_Control_Widget
     import sys
 
     app = QApplication([])
     tabbed_display = Tabbed_Display()
     tabbed_display.add_tab(PID_Tuner_Widget(), "PID Tuner")
     tabbed_display.add_tab(Thruster_Test(), "Thusters")
+    tabbed_display.add_tab(remote_control_main(), "Remote Control")
     tabbed_display.show()
     sys.exit(app.exec_())

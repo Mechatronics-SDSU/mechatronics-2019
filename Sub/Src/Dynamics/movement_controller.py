@@ -1,9 +1,9 @@
 '''
 Copyright 2019, David Pierce Walker-Howell, All rights reserved
-
 Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
 Last Modified 02/25/2019
 Description: This module contains a highest level movement controller for Perseverance.
+
                 It contains multiple modes of control for the sub including
                 thruster test mode, PID test mode, manual control mode PID,
                 autonomous mode PID, LQR test mode, manual control mode LQR, and
@@ -46,14 +46,12 @@ class Movement_Controller:
         Initialize the movement controller. This includes connecting publishers
         and subscribers to the MechOS network to configure and control the movement
         operation.
-
         Parameters:
             N/A
-
         Returns:
             N/A
         '''
-        #Get the mechos network parameters
+ 	#Get the mechos network parameters
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
         #MechOS node to connect movement controller to mechos network
@@ -73,6 +71,10 @@ class Movement_Controller:
         self.thruster_test_subscriber = self.movement_controller_node.create_subscriber("TT", self.__update_thruster_test_callback, configs["sub_port"])
         self.thruster_test_proto = thrusters_pb2.Thrusters() #Thruster protobuf message
 
+        #Subscriber to listen for thrust messages from the remote control main widget
+        self.remote_control_test_subscriber = self.movement_controller_node.create_subscriber("RC", self.__update_remote_control_callback, configs["sub_port"])
+        self.remote_control_proto = thrusters_pb2.Thrusters() #Thruster protobuf message
+
         #Connect to parameters server
         self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
         self.param_serv.use_parameter_database(configs["param_server_path"])
@@ -87,7 +89,6 @@ class Movement_Controller:
         #Proto buffer containing all of the navigation data
         self.nav_data_proto = navigation_data_pb2.NAV_DATA()
         self.current_position_subscriber = self.movement_controller_node.create_subscriber("NAV", self.__get_position_callback, configs["sub_port"])
-
 
         #Get movement controller timing
         self.time_interval = float(self.param_serv.get_param("Timing/movement_control"))
@@ -123,10 +124,8 @@ class Movement_Controller:
         '''
         The callback function to select which movement controller mode is being used.
         It does this by setting the movment_mode class attribute
-
         Parameters:
             movement_mode: Raw byte of the mode.
-
         Returns:
             N/A
         '''
@@ -137,10 +136,8 @@ class Movement_Controller:
         '''
         The thread to run to update listen for changes in the movement mode. Started by a
         thread.
-
         Parameters:
             N/A
-
         Returns:
             N/A
         '''
@@ -148,6 +145,7 @@ class Movement_Controller:
 
             self.movement_controller_node.spinOnce(self.movement_mode_subscriber)
             time.sleep(0.2)
+
     def __get_position_callback(self, nav_data_proto):
         '''
         The callback function to unpack the navigation data sent from the sensor driver.
@@ -170,10 +168,8 @@ class Movement_Controller:
         '''
         The callback function to unpack the desired position proto message received
         through MechOS.
-
         Parameters:
             desired_position_proto: Protobuf of type DESIRED_POS to unpack
-
         Returns:
             N/A
         '''
@@ -188,10 +184,8 @@ class Movement_Controller:
     def __update_pid_values(self):
         '''
         Call the RPC server to check if new PID values have been updated.
-
         Parameters:
             N/A
-
         Returns:
             N/A
         '''
@@ -205,10 +199,8 @@ class Movement_Controller:
         '''
         The callback function to unpack and write thrusts to each thruster for
         thruster test.
-
         Parameters:
             thruster_proto: Protobuf of type Thrusters.
-
         Returns:
             N/A
         '''
@@ -226,19 +218,39 @@ class Movement_Controller:
         print(thrusts)
         self.pid_controller.simple_thrust(thrusts)
 
+    def __update_remote_control_callback(self, thruster_proto):
+        '''
+        The callback function to unpack and write thrusts to each thruster for
+        remote control widget.
+        Parameters:
+            thruster_proto: Protobuf of type Thrusters.
+        Returns:
+            N/A
+        '''
+        self.remote_control_proto.ParseFromString(thruster_proto)
+
+        thrusts = [0, 0, 0, 0, 0, 0, 0, 0]
+        thrusts[0] = self.remote_control_proto.thruster_1
+        thrusts[1] = self.remote_control_proto.thruster_2
+        thrusts[2] = self.remote_control_proto.thruster_3
+        thrusts[3] = self.remote_control_proto.thruster_4
+        thrusts[4] = self.remote_control_proto.thruster_5
+        thrusts[5] = self.remote_control_proto.thruster_6
+        thrusts[6] = self.remote_control_proto.thruster_7
+        thrusts[7] = self.remote_control_proto.thruster_8
+        print(thrusts)
+        self.pid_controller.simple_thrust(thrusts)
 
     def run(self):
         '''
         Runs the movement control in the control mode specified by the user. The
         different modes of control are as follows.
-
             '0' --> Thruster test mode.
             '1' --> Roll, Pitch, Depth PID tunning mode.
             '2' --> PID tunning mode. Tunes all 6 degrees of freedom PID controls
-
+            '3' --> Remote control mode.
         Parameters:
             N/A
-
         Returns:
             N/A
         '''
@@ -251,7 +263,7 @@ class Movement_Controller:
             #the control loop perfrom a simpe Depth PID move. x_pos, y_pos, and
             #yaw are ignored.
             if self.movement_mode == 0:
-
+                
                 if(self.pid_values_update_thread_run == False):
                     self.pid_values_update_thread_run = True
                     self.pid_values_update_thread.start()
@@ -277,6 +289,7 @@ class Movement_Controller:
                                                              self.desired_position[0],
                                                              self.desired_position[1],
                                                              self.desired_position[3])
+
                 #Package PID error protos
                 self.pid_errors_proto.roll_error = error[0]
                 self.pid_errors_proto.pitch_error = error[1]
@@ -305,6 +318,14 @@ class Movement_Controller:
             elif self.movement_mode == 1:
 
                 self.movement_controller_node.spinOnce(self.thruster_test_subscriber)
+
+            time.sleep(self.time_interval)
+
+            #Remote control mode
+            elif self.movement_mode == 3:
+
+		#TO DO: control the "regular control" RC thread run here instead of in the RC GUI
+                self.movement_controller_node.spinOnce(self.remote_control_test_subscriber)
 
             time.sleep(self.time_interval)
 
