@@ -67,19 +67,20 @@ def calculate_pressure(pressure_x, pressure_y, depth_calibrator):
     for x in range(0, 100):
         pressure_x = pressure_x + depth_calibrator.backplane_driver_thread.raw_depth_data[0]
         pressure_y = pressure_y + depth_calibrator.backplane_driver_thread.raw_depth_data[1]
-    
-        time.sleep(0.05)        
+
+        time.sleep(0.05)
     pressure = np.array([(pressure_x/100), (pressure_y/100)])
     return pressure
 
-def check_response(input):
+def check_response(question):
     '''
     Return true if user's keyboard input is a y. If the user wants to proceed, we proceed. If not, ask the question again
     '''
-    if input == 'y' or input == 'Y':
+    if question == 'y' or question == 'Y':
         return True
     else:
-        return check_response(input)
+        question = input("Sorry, invalid response. Please enter 'y'")
+        return check_response(question)
 
 if __name__ == '__main__':
     '''
