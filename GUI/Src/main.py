@@ -206,6 +206,8 @@ from pid_tuner_widget import PID_Tuner_Widget
 from thruster_test_widget import Thruster_Test
 from remote_control_main import Remote_Control_Widget
 from tabbed_display_widget import Tabbed_Display
+from regularControl import RcThread
+import numpy
 import struct
 
 class Main_GUI(QWidget):
@@ -306,19 +308,6 @@ class Main_GUI(QWidget):
 		self.remote_control.setMaximumSize(optimal_size)
 		self.tab_widget.add_tab(self.remote_control, "Remote Control")
 
-	def set_mode_selection_widget(self):
-		self.mode_selection_layout = QHBoxLayout()
-		self.mode_selection = QComboBox()
-		self.mode_selection.addItems(["0: Thruster Test Mode",
-									 "1: PID Test/Tuning Mode",
-									 "2: Remote Control Mode"])
-		self.mode_selection.currentIndexChanged.connect(self._change_movement_mode)
-		self.mode_selection_label = QLabel("Movement Mode Selection:")
-		self.mode_selection_label.setStyleSheet("color: white")
-		self.mode_selection_layout.addWidget(self.mode_selection_label, 0)
-		self.mode_selection_layout.addWidget(self.mode_selection, 1)
-		self.secondary_layout.addLayout(self.mode_selection_layout, 2)
-
 
 	def _change_movement_mode(self):
 		'''
@@ -339,6 +328,11 @@ class Main_GUI(QWidget):
 			self.pid_tuner.setEnabled(True)
 			self.pid_tuner.pid_error_update_timer.start()
 		elif mode == 2:
+			#print("here")
+			#Start thread for Remote Control
+			#self.start_rc_thread = RcThread()
+			#self.start_rc_thread.start()
+
 			self.remote_control.setEnabled(True)
 			self.thruster_test.setEnabled(False)
 			self.pid_tuner.setEnabled(False)
@@ -346,8 +340,6 @@ class Main_GUI(QWidget):
 
 		mode_serialized = struct.pack('b', mode)
 		self.movement_mode_publisher.publish(mode_serialized)
-
-
 
 if __name__ == "__main__":
 

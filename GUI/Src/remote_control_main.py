@@ -62,8 +62,8 @@ class Remote_Control_Widget(QWidget):
 		self.update_timer.start(100)
 
 		#If in RC mode, start thread to read incoming xbox values
-		self.start_rc_thread = RcThread()
-		self.start_rc_thread.start()
+		#self.start_rc_thread = RcThread()
+		#self.start_rc_thread.start()
 
 	def set_gui_label(self):
 		'''

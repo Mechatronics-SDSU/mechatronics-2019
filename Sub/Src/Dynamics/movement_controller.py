@@ -71,10 +71,6 @@ class Movement_Controller:
         self.thruster_test_subscriber = self.movement_controller_node.create_subscriber("TT", self.__update_thruster_test_callback, configs["sub_port"])
         self.thruster_test_proto = thrusters_pb2.Thrusters() #Thruster protobuf message
 
-        #Subscriber to listen for thrust messages from the remote control main widget
-        self.remote_control_test_subscriber = self.movement_controller_node.create_subscriber("RC", self.__update_remote_control_callback, configs["sub_port"])
-        self.remote_control_proto = thrusters_pb2.Thrusters() #Thruster protobuf message
-
         #Connect to parameters server
         self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
         self.param_serv.use_parameter_database(configs["param_server_path"])
@@ -218,29 +214,6 @@ class Movement_Controller:
         print(thrusts)
         self.pid_controller.simple_thrust(thrusts)
 
-    def __update_remote_control_callback(self, thruster_proto):
-        '''
-        The callback function to unpack and write thrusts to each thruster for
-        remote control widget.
-        Parameters:
-            thruster_proto: Protobuf of type Thrusters.
-        Returns:
-            N/A
-        '''
-        self.remote_control_proto.ParseFromString(thruster_proto)
-
-        thrusts = [0, 0, 0, 0, 0, 0, 0, 0]
-        thrusts[0] = self.remote_control_proto.thruster_1
-        thrusts[1] = self.remote_control_proto.thruster_2
-        thrusts[2] = self.remote_control_proto.thruster_3
-        thrusts[3] = self.remote_control_proto.thruster_4
-        thrusts[4] = self.remote_control_proto.thruster_5
-        thrusts[5] = self.remote_control_proto.thruster_6
-        thrusts[6] = self.remote_control_proto.thruster_7
-        thrusts[7] = self.remote_control_proto.thruster_8
-        print(thrusts)
-        self.pid_controller.simple_thrust(thrusts)
-
     def run(self):
         '''
         Runs the movement control in the control mode specified by the user. The
@@ -315,19 +288,12 @@ class Movement_Controller:
                 #self.pid_errors_proto.z_pos_error = error[6]
                 #---------------------------------------------------------------------
             #THRUSTER test mode.
-            elif self.movement_mode == 1:
+            elif self.movement_mode == 1 or 2:
 
                 self.movement_controller_node.spinOnce(self.thruster_test_subscriber)
 
             time.sleep(self.time_interval)
 
-            #Remote control mode
-            elif self.movement_mode == 3:
-
-		#TO DO: control the "regular control" RC thread run here instead of in the RC GUI
-                self.movement_controller_node.spinOnce(self.remote_control_test_subscriber)
-
-            time.sleep(self.time_interval)
 
 if __name__ == "__main__":
     movement_controller = Movement_Controller()

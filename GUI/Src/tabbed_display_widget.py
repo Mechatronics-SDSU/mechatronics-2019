@@ -9,6 +9,10 @@ sys.path.append(PARAM_PATH)
 MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
 from mechos_network_configs import MechOS_Network_Configs
 from MechOS import mechos
+
+from regularControl import RcThread
+import numpy
+
 import struct
 
 
@@ -94,7 +98,10 @@ class Tabbed_Display(QWidget):
         '''
         # Get current index
         mode = self.tabs.currentIndex()
-        print(type(mode))
+        print(mode)
+        if mode == 2:
+                self.start_rc_thread = RcThread()
+                self.start_rc_thread.start()
         mode_serialized = struct.pack('b', mode)
         # Publish current index
         self.movement_mode_publisher.publish(mode_serialized)
