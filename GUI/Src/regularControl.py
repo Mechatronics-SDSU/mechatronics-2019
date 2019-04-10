@@ -38,15 +38,15 @@ class RcThread(QThread):
 		self.wait()
 
 	def run(self):
-		self.clock = pygame.time.Clock()
-		pygame.init()
-		pygame.joystick.init()
-		self.controller = pygame.joystick.Joystick(0)
-		self.controller.init()
-		while True:
-			for event in pygame.event.get():
-				self.Regular(event)
-				self.clock.tick(15)
+			self.clock = pygame.time.Clock()
+			pygame.init()
+			pygame.joystick.init()
+			self.controller = pygame.joystick.Joystick(0)
+			self.controller.init()
+			while self.threadrunning == True:
+				for event in pygame.event.get():
+					self.Regular(event)
+					self.clock.tick(30)
 
 	def Regular(self,XBOX_INPUT):
 		'''

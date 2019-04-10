@@ -99,13 +99,20 @@ class Tabbed_Display(QWidget):
         # Get current index
         mode = self.tabs.currentIndex()
         print(mode)
+	
+	# If on remote control tab, start the remote control thread
         if mode == 2:
                 self.start_rc_thread = RcThread()
                 self.start_rc_thread.start()
+                self.start_rc_thread.threadrunning = True
+        elif mode == 1 or mode == 0:
+                self.start_rc_thread.threadrunning = False
+		
         mode_serialized = struct.pack('b', mode)
+
         # Publish current index
         self.movement_mode_publisher.publish(mode_serialized)
-          
+        return mode
 
 if __name__ == "__main__":
     from pid_tuner_widget import PID_Tuner_Widget
