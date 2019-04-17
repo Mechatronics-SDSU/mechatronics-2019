@@ -343,11 +343,13 @@ class Backplane_Handler(threading.Thread):
                     #if pressure data is popped from queue, process it
                     if "Press" in backplane_data.keys():
                         raw_depth_data = backplane_data["Press"]
+                        print(raw_depth_data)
                         depth_data = self.depth_processing.process_depth_data(raw_depth_data)
-                        
+
                         if(depth_data != None):
                             with self.threading_lock:
                                 self.raw_depth_data = raw_depth_data
+                                print(self.raw_depth_data)
                                 self.depth_data = depth_data[0, 0]
 
             except Exception as e:

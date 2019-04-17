@@ -64,11 +64,14 @@ def calculate_pressure(pressure_x, pressure_y, depth_calibrator):
     '''
     pressure_x = 0
     pressure_y = 0
+    while(depth_calibrator.backplane_driver_thread.raw_depth_data[0] == 0):
+        print("No depth data")
     for x in range(0, 100):
         pressure_x = pressure_x + depth_calibrator.backplane_driver_thread.raw_depth_data[0]
         pressure_y = pressure_y + depth_calibrator.backplane_driver_thread.raw_depth_data[1]
 
         time.sleep(0.05)
+    print(pressure_x)
     pressure = np.array([(pressure_x/100), (pressure_y/100)])
     return pressure
 

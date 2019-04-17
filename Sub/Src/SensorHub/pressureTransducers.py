@@ -13,7 +13,7 @@ HELPERS_PATH = os.path.join("..", "Helpers")
 sys.path.append(HELPERS_PATH)
 PARAMS_PATH = os.path.join("..", "Params")
 sys.path.append(PARAMS_PATH)
-MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
+MECHOS_CONFIG_FILE_PATH = os.path.join(PARAMS_PATH, "mechos_network_configs.txt")
 
 import time
 import struct
@@ -51,8 +51,8 @@ class Pressure_Depth_Transducers:
 
         #This is the variable that you append raw pressure data to once it is
         #received from the backplane.
-        self.depth_scaling = [self.param_serv.get_param("Sensors/trans_1_scaling"), self.param_serv.get_param("Sensors/trans_2_scaling")]
-        self.depth_bias = [self.param_serv.get_param("Sensors/trans_1_bias"), self.param_serv.get_param("Sensors/trans_2_bias")]
+        self.depth_scaling = [float(self.param_serv.get_param("Sensors/trans_1_scaling")), float(self.param_serv.get_param("Sensors/trans_2_scaling"))]
+        self.depth_bias = [float(self.param_serv.get_param("Sensors/trans_1_bias")), float(self.param_serv.get_param("Sensors/trans_2_bias"))]
 
         #Initialize Kalman Filter Parameters( Note this needs to be edited per type of transducer and number of transducers)
         #Currently set up for two transducers
