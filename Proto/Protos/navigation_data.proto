@@ -13,4 +13,8 @@ message NAV_DATA {
     float x_translation = 5;
     float y_translation = 6;
 
+    //Absolute X and Y position of the sub
+    float x_absolute_pos = 7;
+    float y_absolute_pos = 8;
+
 }
