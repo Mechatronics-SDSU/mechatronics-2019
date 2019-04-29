@@ -29,6 +29,10 @@ from MechOS import mechos
 import serial
 import threading
 import time
+import math
+
+DEG2RAD = math.pi / 180.0
+PIov2 = math.pi / 2.0
 
 class Sensor_Driver:
     '''
@@ -85,6 +89,7 @@ class Sensor_Driver:
         self.ahrs_driver_thread.start()
         self.dvl_driver_thread.start()
         self.zero_pos_flag = True
+        self.absolute_position = [0, 0, 0]
 
     def _zero_pos_callback(self, zero_pos_proto):
         '''
@@ -100,7 +105,7 @@ class Sensor_Driver:
         self.zero_pos_proto.zero_pos = False
         self.zero_pos_proto.ParseFromString(zero_pos_proto)
         self.zero_pos_flag = self.zero_pos_proto.zero_pos
-
+    
 
     def run(self):
         '''
@@ -124,6 +129,7 @@ class Sensor_Driver:
                 if(self.zero_pos_flag == True):
                     self.dvl_driver_thread.reset_integration_flag = self.zero_pos_flag
                     self.zero_pos_flag = False
+                    self.absolute_position = [0, 0, 0]
 
                 ahrs_data_packet = self.ahrs_driver_thread.ahrs_data
                 self.nav_data_proto.roll = ahrs_data_packet[0]
@@ -135,6 +141,19 @@ class Sensor_Driver:
                 dvl_data_packet = self.dvl_driver_thread.PACKET
                 self.nav_data_proto.x_translation = dvl_data_packet[4]
                 self.nav_data_proto.y_translation = dvl_data_packet[5]
+
+                #Calculate the absolute position of the sub
+                yaw = ahrs_data_packet[2] * DEG2RAD
+                disp_x = dvl_data_packet[4]
+                disp_y = dvl_data_packet[5]
+
+                #Using 2d rotation matrix
+                self.absolute_position[0] = self.absolute_position[0] + (disp_x*math.cos(yaw) - disp_y*math.sin(yaw))
+                self.absolute_position[1] = self.absolute_position[1] + (disp_x*math.sin(yaw) + disp_y*math.cos(yaw))
+
+                #Set the absolute positions within the nav proto
+                self.nav_data_proto.x_absolute_pos = self.absolute_position[0]
+                self.nav_data_proto.y_absolute_pos = self.absolute_position[1]
 
                 print(self.nav_data_proto)
                 #Serialize data in proto to send
