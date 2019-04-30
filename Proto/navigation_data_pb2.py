@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\x15navigation_data.proto\"q\n\x08NAV_DATA\x12\x0c\n\x04roll\x18\x01 \x01(\x02\x12\r\n\x05pitch\x18\x02 \x01(\x02\x12\x0b\n\x03yaw\x18\x03 \x01(\x02\x12\r\n\x05\x64\x65pth\x18\x04 \x01(\x02\x12\x15\n\rx_translation\x18\x05 \x01(\x02\x12\x15\n\ry_translation\x18\x06 \x01(\x02\x62\x06proto3')
+  serialized_pb=_b('\n\x15navigation_data.proto\"\xa1\x01\n\x08NAV_DATA\x12\x0c\n\x04roll\x18\x01 \x01(\x02\x12\r\n\x05pitch\x18\x02 \x01(\x02\x12\x0b\n\x03yaw\x18\x03 \x01(\x02\x12\r\n\x05\x64\x65pth\x18\x04 \x01(\x02\x12\x15\n\rx_translation\x18\x05 \x01(\x02\x12\x15\n\ry_translation\x18\x06 \x01(\x02\x12\x16\n\x0ex_absolute_pos\x18\x07 \x01(\x02\x12\x16\n\x0ey_absolute_pos\x18\x08 \x01(\x02\x62\x06proto3')
 )
 
 
@@ -74,6 +74,20 @@ _NAV_DATA = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='x_absolute_pos', full_name='NAV_DATA.x_absolute_pos', index=6,
+      number=7, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='y_absolute_pos', full_name='NAV_DATA.y_absolute_pos', index=7,
+      number=8, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -86,8 +100,8 @@ _NAV_DATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=25,
-  serialized_end=138,
+  serialized_start=26,
+  serialized_end=187,
 )
 
 DESCRIPTOR.message_types_by_name['NAV_DATA'] = _NAV_DATA
