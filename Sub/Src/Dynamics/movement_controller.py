@@ -98,11 +98,13 @@ class Movement_Controller:
         #Initialize 6 degree of freedom PID movement controller used for the sub.
         self.pid_controller = Movement_PID()
 
-        #Initialize current position
+        #Initialize current position [roll, pitch, yaw, depth, x_abs_pos, y_abs_pos]
         self.current_position = [0, 0, 0, 0, 0, 0]
 
         #Initialize desired position
-        self.desired_position = [0, 0, 0, 0, 0, 0]
+        #The last element is for relative or absolute x and y movement. 
+        #Use false for relative and true for absolute
+        self.desired_position = [0, 0, 0, 0, 0, 0, False]
         self.desired_position_proto = desired_position_pb2.DESIRED_POS()
 
         #Set up thread to update PID values. The GUI has the ability to change
@@ -170,8 +172,8 @@ class Movement_Controller:
         self.current_position[1] = self.nav_data_proto.pitch
         self.current_position[2] = self.nav_data_proto.yaw
         self.current_position[3] = self.nav_data_proto.depth
-        self.current_position[4] = self.nav_data_proto.x_translation
-        self.current_position[5] = self.nav_data_proto.y_translation
+        self.current_position[4] = self.nav_data_proto.x_absolute_pos
+        self.current_position[5] = self.nav_data_proto.y_absolute_pos
 
     def __unpack_desired_position_callback(self, desired_position_proto):
         '''
@@ -191,6 +193,7 @@ class Movement_Controller:
         self.desired_position[3] = self.desired_position_proto.depth
         self.desired_position[4] = self.desired_position_proto.x_pos
         self.desired_position[5] = self.desired_position_proto.y_pos
+        self.desired_position[6] = self.desired_position_proto.pos_ref
 
     def __update_pid_values(self):
         '''

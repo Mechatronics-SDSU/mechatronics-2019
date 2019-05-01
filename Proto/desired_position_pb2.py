@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\x16\x64\x65sired_position.proto\"v\n\x0b\x44\x45SIRED_POS\x12\x0c\n\x04roll\x18\x01 \x01(\x02\x12\r\n\x05pitch\x18\x02 \x01(\x02\x12\x0b\n\x03yaw\x18\x03 \x01(\x02\x12\r\n\x05\x64\x65pth\x18\x04 \x01(\x02\x12\r\n\x05x_pos\x18\x05 \x01(\x02\x12\r\n\x05y_pos\x18\x06 \x01(\x02\x12\x10\n\x08zero_pos\x18\x07 \x01(\x08\x62\x06proto3')
+  serialized_pb=_b('\n\x16\x64\x65sired_position.proto\"\x87\x01\n\x0b\x44\x45SIRED_POS\x12\x0c\n\x04roll\x18\x01 \x01(\x02\x12\r\n\x05pitch\x18\x02 \x01(\x02\x12\x0b\n\x03yaw\x18\x03 \x01(\x02\x12\r\n\x05\x64\x65pth\x18\x04 \x01(\x02\x12\r\n\x05x_pos\x18\x05 \x01(\x02\x12\r\n\x05y_pos\x18\x06 \x01(\x02\x12\x10\n\x08zero_pos\x18\x07 \x01(\x08\x12\x0f\n\x07pos_ref\x18\x08 \x01(\x08\x62\x06proto3')
 )
 
 
@@ -81,6 +81,13 @@ _DESIRED_POS = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='pos_ref', full_name='DESIRED_POS.pos_ref', index=7,
+      number=8, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -93,8 +100,8 @@ _DESIRED_POS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=26,
-  serialized_end=144,
+  serialized_start=27,
+  serialized_end=162,
 )
 
 DESCRIPTOR.message_types_by_name['DESIRED_POS'] = _DESIRED_POS
