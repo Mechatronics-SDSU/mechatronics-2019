@@ -29,6 +29,15 @@ class Image_Capture(QWidget):
 
         self.setLayout(layout)
 
+        self.image_lab = Image_Label()
+        self.image_lab.show()
+
+        #FIX ME: Camera widget should be called to pop up behind the image capture widget
+        #ex = Camera_Streaming()
+        #ex.show()
+
+        self.i = 0
+
     def paintEvent(self, event):
         qp = QPainter(self)
         br = QBrush(QColor(1,1,0,0))  
@@ -49,10 +58,16 @@ class Image_Capture(QWidget):
         self.point1y = self.begin.y()
 
         #Print upper left coordinate of rectangle
-        yfile.write("NEW COORDINATES: ")
+        yfile.write("("+self.image_lab.cb.currentText()+") ")
+        yfile.write("COORDINATES #"+(str)(self.i)+": ")
         point = " ("+(str)(self.point1x)+", "+(str)(self.point1y)+")"
         yfile.write(point)
 
+        #FIX ME: Start qthread that takes pictures with the camera at a certain FPS rate
+        #FIX ME: Set qthread flag variable to true
+
+        #Update coordinate number
+        self.i = self.i+1
         self.update()
 
     def mouseMoveEvent(self, event):
@@ -85,14 +100,14 @@ class Image_Capture(QWidget):
 
         yfile.write("\n")
 
+        #FIX ME: Set qthread flag variable to false, which will cause thread to stop running
+
         self.update()
 
 def main():
    app = QApplication(sys.argv)
-   ex = Image_Capture()
-   ex.show()
-   ex2 = Image_Label()
-   ex2.show()
+   image_cap = Image_Capture()
+   image_cap.show()
    sys.exit(app.exec_())
 
 if __name__ == '__main__':

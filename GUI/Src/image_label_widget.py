@@ -21,7 +21,6 @@ class Image_Label(QWidget):
       yfile = open("yolo_data.txt", "a")
       yfile.write("YOLO TRAINING Data")
       yfile.write("\n\n")
-      self.cb.currentIndexChanged.connect(self.selectionchange)
 
       self.setGeometry(30,30,200,200)
 
@@ -30,14 +29,6 @@ class Image_Label(QWidget):
 
       layout.addWidget(self.cb)
       self.setLayout(layout)
-
-   def selectionchange(self):
-
-      yfile = open("yolo_data.txt", "a")
-      yfile.write("Picture ID: ")
-      yfile.write(self.cb.currentText())
-      yfile.write("\n")
-      print("Item = ", self.cb.currentText())
 
 		
 def main():
