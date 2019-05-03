@@ -36,13 +36,13 @@ def Calibrate(thrusters, P, event):
     '''
     if event.type == pygame.JOYAXISMOTION:
         if event.axis == 1:
-            return set_thruster_value(thrusters, 0, round(event.value, P))
+            return set_thruster_value(thrusters, 0, event.value)
         elif event.axis == 2:
-              return set_thruster_value(thrusters, 3, (-1*(round(event.value, P))))
+              return set_thruster_value(thrusters, 3, (-1*event.value))
         elif event.axis  == 4:
-            return set_thruster_value(thrusters, 2, round(event.value,P))
+            return set_thruster_value(thrusters, 2, event.value)
         elif event.axis == 5:
-            return set_thruster_value(thrusters, 3, round(event.value,P))
+            return set_thruster_value(thrusters, 3, event.value)
     elif event.type == pygame.JOYBUTTONDOWN:
         if event.button == 4:
             return set_thruster_value(thrusters, 1, -1)
@@ -58,7 +58,6 @@ def Calibrate(thrusters, P, event):
 
 def main():
     thrusters = np.matrix([[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0]])
-    P = 2
     clock = pygame.time.Clock()
     pygame.init()
     pygame.joystick.init()
@@ -66,7 +65,7 @@ def main():
     joystick.init()
     while True:
         for event in pygame.event.get():
-            Calibrate(thrusters, P, event)
+            Calibrate(thrusters, event)
             clock.tick(15)
 
 if __name__ == '__main__':
