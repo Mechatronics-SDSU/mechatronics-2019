@@ -8,18 +8,18 @@ def set_thruster_value(thrusters, num, value):
     Returns: The same thruster list, this time with speeds corresponding to the Xbox input sent
     '''
     if num == 0:
-        thrusters[0, 1] = -1 * value
-        thrusters[6, 1] = -1 * value
+        thrusters[0, 1] = value #inverted
+        thrusters[6, 1] = value #ditto
     elif num == 1:
         thrusters[1, 1] = value
         thrusters[5, 1] = value
     elif num == 2:
-        thrusters[2, 1] = -1 * value
-        thrusters[4, 1] = -1 * value
+        thrusters[2, 1] = value #see above
+        thrusters[4, 1] = value #sigh
     elif num == 3:
         thrusters[3, 1] = value
         thrusters[7, 1] = value
-    #print(np.array(thrusters[:,1]))
+    print(np.array(thrusters[:,1])
     return np.array(thrusters[:,1])
 
 def Calibrate(thrusters, P, event):
@@ -36,13 +36,13 @@ def Calibrate(thrusters, P, event):
     '''
     if event.type == pygame.JOYAXISMOTION:
         if event.axis == 1:
-            return set_thruster_value(thrusters, 0, event.value)
+            return set_thruster_value(thrusters, 0, round(event.value, P))
         elif event.axis == 2:
-              return set_thruster_value(thrusters, 3, (-1*event.value))
+              return set_thruster_value(thrusters, 3, round(-1 * event.value, P))
         elif event.axis  == 4:
-            return set_thruster_value(thrusters, 2, event.value)
+            return set_thruster_value(thrusters, 2, round(event.value, P))
         elif event.axis == 5:
-            return set_thruster_value(thrusters, 3, event.value)
+            return set_thruster_value(thrusters, 3, round(event.value, P))
     elif event.type == pygame.JOYBUTTONDOWN:
         if event.button == 4:
             return set_thruster_value(thrusters, 1, -1)
@@ -57,7 +57,8 @@ def Calibrate(thrusters, P, event):
             return set_thruster_value(thrusters, 1, 0)
 
 def main():
-    thrusters = np.matrix([[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0]])
+    thrusters = np.matrix([[0, 0.00], [1, 0.00], [2, 0.00], [3, 0.00], [4, 0.00], [5, 0.00], [6, 0.00], [7, 0.00]])
+    P = 2
     clock = pygame.time.Clock()
     pygame.init()
     pygame.joystick.init()
@@ -65,8 +66,7 @@ def main():
     joystick.init()
     while True:
         for event in pygame.event.get():
-            Calibrate(thrusters, event)
-            clock.tick(15)
+            Calibrate(thrusters, P, event)
 
 if __name__ == '__main__':
     main()
