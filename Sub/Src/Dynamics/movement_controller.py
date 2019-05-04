@@ -87,14 +87,14 @@ class Movement_Controller:
         #Proto buffer containing all of the navigation data
         self.nav_data_proto = navigation_data_pb2.NAV_DATA()
         self.current_position_subscriber = self.movement_controller_node.create_subscriber("NAV", self.__get_position_callback, configs["sub_port"])
-
+        self.sub_killed_subscriber = self.movement_controller_node.create_subscriber("KS", self._update_sub_killed_state, configs["sub_port"])
 
         #Get movement controller timing
         self.time_interval = float(self.param_serv.get_param("Timing/movement_control"))
 
         self.movement_mode = 1
         self.run_thread = True
-
+        self.sub_killed = 1
         #Initialize 6 degree of freedom PID movement controller used for the sub.
         self.pid_controller = Movement_PID()
 
@@ -119,6 +119,10 @@ class Movement_Controller:
         self.movement_mode_thread_run = True
         self.movement_mode_thread.start()
 
+    def _update_sub_killed_state(self, killed_state):
+        '''
+        '''
+        self.sub_killed = struct.unpack('b', killed_state)[0]
     def __update_movement_mode_callback(self, movement_mode):
         '''
         The callback function to select which movement controller mode is being used.
@@ -147,6 +151,7 @@ class Movement_Controller:
         while self.movement_mode_thread_run:
 
             self.movement_controller_node.spinOnce(self.movement_mode_subscriber)
+            self.movement_controller_node.spinOnce(self.sub_killed_subscriber)
             time.sleep(0.2)
     def __get_position_callback(self, nav_data_proto):
         '''
@@ -243,15 +248,18 @@ class Movement_Controller:
             N/A
         '''
         current_position = [0, 0, 0, 0, 0, 0]
-
+        sub_killed = True
         while(self.run_thread):
 
+            if(self.sub_killed == 1):
+                self.pid_controller.simple_thrust([0, 0, 0, 0, 0, 0, 0, 0])
+                print("Sub_Killed")
             #PID Depth, pitch, roll Tunning Mode
             #In PID depth, pitch, roll tunning mode, only roll pitch and depth are used in
             #the control loop perfrom a simpe Depth PID move. x_pos, y_pos, and
             #yaw are ignored.
-            if self.movement_mode == 0:
-
+            elif self.movement_mode == 0:
+                sub_killed = False
                 if(self.pid_values_update_thread_run == False):
                     self.pid_values_update_thread_run = True
                     self.pid_values_update_thread.start()
@@ -293,7 +301,7 @@ class Movement_Controller:
                 #                                        self.current_position[4],
                 #                                        self.current_position[5],
                 #                                        self.current_position[3])
-            
+
                 #self.pid_errors_proto.roll_error = error[0]
                 #self.pid_errors_proto.pitch_error = error[1]
                 #self.pid_errors_proto.yaw_error = error[2]
@@ -303,7 +311,7 @@ class Movement_Controller:
                 #---------------------------------------------------------------------
             #THRUSTER test mode.
             elif self.movement_mode == 1:
-
+                sub_killed = False
                 self.movement_controller_node.spinOnce(self.thruster_test_subscriber)
 
             time.sleep(self.time_interval)
