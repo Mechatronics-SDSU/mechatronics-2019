@@ -28,24 +28,24 @@
 			<dt>.1</dt>
 
 			<roll_pid>
-				<p>5.0</p>
+				<p>0.0</p>
 				<i>0.0</i>
 				<d>0.0</d>
 			</roll_pid>
 			<pitch_pid>
-				<p>3.0</p>
+				<p>2.5</p>
 				<i>0.0</i>
 				<d>0.0</d>
 			</pitch_pid>
 			<yaw_pid>
-				<p>0</p>
-				<i>0</i>
-				<d>0</d>
+				<p>0.0</p>
+				<i>0.0</i>
+				<d>0.0</d>
 			</yaw_pid>
 			<x_pid>
-				<p>7</p>
-				<i>3</i>
-				<d>0</d>
+				<p>0.0</p>
+				<i>0.0</i>
+				<d>0.0</d>
 			</x_pid>
 			<y_pid>
 				<p>0</p>
