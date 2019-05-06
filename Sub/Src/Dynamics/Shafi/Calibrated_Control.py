@@ -1,64 +1,53 @@
 import pygame
 import numpy as np
 
-def set_thruster_value(thrusters, num, value):
+def set_thruster_value(input_matrix):
     '''
-    This function accesses the speed of every single thruster and changes it accordingly.
-    Parameters: List of thrusters, thruster to change (along with sibling thruster), and Xbox input
-    Returns: The same thruster list, this time with speeds corresponding to the Xbox input sent
+    Parameters: Matrix of xbox inputs
+    Returns: the dot product of the xbox input along with this mathematically
+    predetermined map by me, not by Christian at all. Why do you ask?
     '''
-    if num == 0:
-        thrusters[0, 1] = value #inverted
-        thrusters[6, 1] = value #ditto
-    elif num == 1:
-        thrusters[1, 1] = value
-        thrusters[5, 1] = value
-    elif num == 2:
-        thrusters[2, 1] = value #see above
-        thrusters[4, 1] = value #sigh
-    elif num == 3:
-        thrusters[3, 1] = value
-        thrusters[7, 1] = value
-    print(np.array(thrusters[:,1])
-    return np.array(thrusters[:,1])
+    thruster_matrix = np.matrix(\
+    '1 0 0 0 0 0 1 0; \
+    0 -1 0 0 0 -1 0 0; \
+    0 0 0 -1 0 0 0 -1; \
+    0 0 1 0 1 0 0 0; \
+    0 1 0 0 0 1 0 0; \
+    0 0 0 1 0 0 0 1')
 
-def Calibrate(thrusters, P, event):
+    print(np.dot(input_matrix, thruster_matrix))
+    return np.dot(input_matrix, thruster_matrix)
+
+def Calibrate(event):
     '''
-    The numbers in the loop might seem extremely intimidating, but they are not important
-    The axes were derived from trial and error, and may change depending on controller
-    The threshold value of 0.3 that you see for axes 2 and 5 are because those are analog
-    triggers with a certain "dead zone". They never truly go to -1, which they're supposed
-    to do when the triggers are released. That's why I just set the whole thing to zero and
-    got rid of thruster power to if we go lower than -0.3. Otherwise, on this current controller,
-    axis 1 is the left control stick's vertical movement, axis 2 is the left analog trigger, axis 4
-    is the right control stick's vertical movement, and axis 5 is the right analog trigger. Button 4
-    is the left bumper, button 5 is the right bumper
+    Parameters: Xbox event
+    Returns: Dot product of xbox values corresponding to the correct thruster
     '''
     if event.type == pygame.JOYAXISMOTION:
         if event.axis == 1:
-            return set_thruster_value(thrusters, 0, round(event.value, P))
+            return set_thruster_value(np.array([(-1 *event.value), 0, 0, 0, 0, 0])) #up down on left joystick, inverted
         elif event.axis == 2:
-              return set_thruster_value(thrusters, 3, round(-1 * event.value, P))
+            if event.value < 0:
+                return set_thruster_value(np.array([0, 0, 0, 0, 0, 0])) #xbox trigger initial state is set to 1. this will cause the motors to continue spinning if trigger is released
+            return set_thruster_value(np.array([0, 0, event.value, 0, 0, 0])) #left trigger
         elif event.axis  == 4:
-            return set_thruster_value(thrusters, 2, round(event.value, P))
+            return set_thruster_value(np.array([0, 0, 0, (-1 *event.value), 0, 0])) #up/down on right joystick
         elif event.axis == 5:
-            return set_thruster_value(thrusters, 3, round(event.value, P))
+            if event.value < 0: #same reason as the left trigger
+                return set_thruster_value(np.array([0, 0, 0, 0, 0, 0]))
+            return set_thruster_value(np.array([0, 0, 0, 0, 0, event.value])) #right trigger
     elif event.type == pygame.JOYBUTTONDOWN:
         if event.button == 4:
-            return set_thruster_value(thrusters, 1, -1)
+            return set_thruster_value(np.array([0, 1, 0, 0, 0, 0])) #left bumper
         elif event.button == 5:
-            return set_thruster_value(thrusters, 1 ,1)
+            return set_thruster_value(np.array([0, 0, 0, 0, 1, 0])) #right bumper
         elif event.button == 11:
             return "SWAP"
     elif event.type == pygame.JOYBUTTONUP:
-        if event.button == 4:
-            return set_thruster_value(thrusters, 1, 0)
-        elif event.button == 5:
-            return set_thruster_value(thrusters, 1, 0)
+        if event.button == 4 or event.button == 5:
+            return set_thruster_value(np.array([0, 0, 0, 0, 0, 0])) #reset the matrix once the button is released
 
 def main():
-    thrusters = np.matrix([[0, 0.00], [1, 0.00], [2, 0.00], [3, 0.00], [4, 0.00], [5, 0.00], [6, 0.00], [7, 0.00]])
-    P = 2
     clock = pygame.time.Clock()
     pygame.init()
     pygame.joystick.init()
@@ -66,7 +55,7 @@ def main():
     joystick.init()
     while True:
         for event in pygame.event.get():
-            Calibrate(thrusters, P, event)
+            Calibrate(event)
 
 if __name__ == '__main__':
     main()
