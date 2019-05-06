@@ -11,7 +11,7 @@ from mechos_network_configs import MechOS_Network_Configs
 
 from MechOS import mechos
 
-from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QVBoxLayout, QComboBox
+from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QVBoxLayout, QComboBox, QCheckBox
 from PyQt5.QtWidgets import QHBoxLayout, QLabel
 from PyQt5.QtCore import QTimer
 from PyQt5.QtGui import QColor
@@ -55,11 +55,17 @@ class Main_GUI(QWidget):
         self.set_pid_visualizer()
         self.set_thruster_test_widget()
 
-
+        #Add a button to kill/unkill the sub
+        self.kill_thrusters_checkbox = QCheckBox("Kill Sub")
+        self.kill_thrusters_checkbox.setStyleSheet("color: white")
+        self.kill_thrusters_checkbox.stateChanged.connect(self._udpate_sub_killed_state)
+        self.main_layout.addWidget(self.kill_thrusters_checkbox, 1, 1)
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
         #MechOS publisher to send movement mode selection
         self.main_gui_node = mechos.Node("MAIN_GUI", configs["ip"])
         self.movement_mode_publisher = self.main_gui_node.create_publisher("MM", configs["pub_port"])
+        self.sub_killed_publisher = self.main_gui_node.create_publisher("KS", configs["pub_port"])
+
 
         #update GUI every 100 milliseconds
         self.update_timer = QTimer()
@@ -128,6 +134,21 @@ class Main_GUI(QWidget):
         self.mode_selection_layout.addWidget(self.mode_selection, 1)
         self.secondary_layout.addLayout(self.mode_selection_layout, 2)
 
+    def _udpate_sub_killed_state(self):
+        '''
+        Kill or Unkill the sub based on the sub killed checkbox state.
+
+        Parameters:
+            N/A
+        Returns:
+            N/A
+        '''
+        if self.kill_thrusters_checkbox.isChecked():
+            killed_state = struct.pack('b', 1)
+            self.sub_killed_publisher.publish(killed_state)
+        else:
+            killed_state = struct.pack('b', 0)
+            self.sub_killed_publisher.publish(killed_state)
 
     def _change_movement_mode(self):
         '''
@@ -154,7 +175,7 @@ class Main_GUI(QWidget):
 
 
 if __name__ == "__main__":
-
+    print("Hello")
     main_app = QApplication([])
     main_app.setStyle('Fusion')
     main_widget = Main_GUI()
