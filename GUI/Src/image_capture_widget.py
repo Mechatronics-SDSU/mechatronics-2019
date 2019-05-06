@@ -9,6 +9,8 @@ import os
 
 from image_label_widget import Image_Label
 
+from webcam_thread import Webcam_Thread
+
 from PyQt5.QtWidgets import QWidget, QApplication, QHBoxLayout, QMainWindow
 from PyQt5.QtGui import QPainter, QBrush, QColor, QPalette
 from PyQt5.QtCore import QRect, QPoint, Qt
@@ -59,12 +61,15 @@ class Image_Capture(QWidget):
 
         #Print upper left coordinate of rectangle
         yfile.write("("+self.image_lab.cb.currentText()+") ")
-        yfile.write("COORDINATES #"+(str)(self.i)+": ")
+        yfile.write("COORDINATES #"+(str)(self.i+1)+": ")
         point = " ("+(str)(self.point1x)+", "+(str)(self.point1y)+")"
         yfile.write(point)
 
         #FIX ME: Start qthread that takes pictures with the camera at a certain FPS rate
+        self.start_wc_thread = Webcam_Thread()
+        self.start_wc_thread.start()
         #FIX ME: Set qthread flag variable to true
+        self.start_wc_thread.threadrunning = True
 
         #Update coordinate number
         self.i = self.i+1
@@ -77,6 +82,7 @@ class Image_Capture(QWidget):
     def mouseReleaseEvent(self, event):
         self.begin = event.pos()
         self.end = event.pos()
+        self.start_wc_thread.threadrunning = False
 
 	#Write Points to file
         point = (str)(self.begin)
