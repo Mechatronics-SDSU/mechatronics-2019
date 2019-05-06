@@ -27,15 +27,13 @@ def Calibrate(event):
         if event.axis == 1:
             return set_thruster_value(np.array([(-1 *event.value), 0, 0, 0, 0, 0])) #up down on left joystick, inverted
         elif event.axis == 2:
-            if event.value < 0:
-                return set_thruster_value(np.array([0, 0, 0, 0, 0, 0])) #xbox trigger initial state is set to 1. this will cause the motors to continue spinning if trigger is released
-            return set_thruster_value(np.array([0, 0, event.value, 0, 0, 0])) #left trigger
+            #xbox trigger initial state is set to 1. this will cause the motors to continue spinning if trigger is released
+            return set_thruster_value(np.array([0, 0, ((event.value + 1)/2), 0, 0, 0])) #left trigger
         elif event.axis  == 4:
             return set_thruster_value(np.array([0, 0, 0, (-1 *event.value), 0, 0])) #up/down on right joystick
         elif event.axis == 5:
-            if event.value < 0: #same reason as the left trigger
-                return set_thruster_value(np.array([0, 0, 0, 0, 0, 0]))
-            return set_thruster_value(np.array([0, 0, 0, 0, 0, event.value])) #right trigger
+            #same reason as the left trigger
+            return set_thruster_value(np.array([0, 0, 0, 0, 0, ((event.value + 1)/2)])) #right trigger
     elif event.type == pygame.JOYBUTTONDOWN:
         if event.button == 4:
             return set_thruster_value(np.array([0, 1, 0, 0, 0, 0])) #left bumper
