@@ -9,8 +9,6 @@ import os
 
 from image_label_widget import Image_Label
 
-from webcam_thread import Webcam_Thread
-
 from PyQt5.QtWidgets import QWidget, QApplication, QHBoxLayout, QMainWindow
 from PyQt5.QtGui import QPainter, QBrush, QColor, QPalette
 from PyQt5.QtCore import QRect, QPoint, Qt
@@ -34,11 +32,11 @@ class Image_Capture(QWidget):
         self.image_lab = Image_Label()
         self.image_lab.show()
 
-        #FIX ME: Camera widget should be called to pop up behind the image capture widget
-        #ex = Camera_Streaming()
-        #ex.show()
+        #FIXME: Camera widget should be called to pop up behind the image capture widget
 
         self.i = 0
+
+        #FIXME: Establish mechOS subscriber to listen for photos being passed 
 
     def paintEvent(self, event):
         qp = QPainter(self)
@@ -48,12 +46,9 @@ class Image_Capture(QWidget):
 
     def mousePressEvent(self, event):
         self.begin = event.pos()
-        self.end = event.pos()
 
+        '''
         yfile = open("yolo_data.txt", "a")
-
-	#Write Points to file
-        point = (str)(self.begin)
 	
         #Save individual values of x and y for upper left coordinate to print later
         self.point1x = self.begin.x()
@@ -64,32 +59,27 @@ class Image_Capture(QWidget):
         yfile.write("COORDINATES #"+(str)(self.i+1)+": ")
         point = " ("+(str)(self.point1x)+", "+(str)(self.point1y)+")"
         yfile.write(point)
+        '''
 
-        #FIX ME: Start qthread that takes pictures with the camera at a certain FPS rate
-        self.start_wc_thread = Webcam_Thread()
-        self.start_wc_thread.start()
-        #FIX ME: Set qthread flag variable to true
-        self.start_wc_thread.threadrunning = True
+        self.threadrunning = True
 
+        '''
         #Update coordinate number
         self.i = self.i+1
         self.update()
+        '''
 
     def mouseMoveEvent(self, event):
         self.end = event.pos()
         self.update()
 
     def mouseReleaseEvent(self, event):
-        self.begin = event.pos()
         self.end = event.pos()
-        self.start_wc_thread.threadrunning = False
-
-	#Write Points to file
-        point = (str)(self.begin)
+        self.threadrunning = False
  
         #Save individual values of x and y for lower right coordinate to print later
-        self.point2x = self.begin.x()
-        self.point2y = self.begin.y()
+        self.point2x = self.end.x()
+        self.point2y = self.end.y()
 
         #Print lower right coordinate of rectangle
         yfile = open("yolo_data.txt", "a")
@@ -103,10 +93,7 @@ class Image_Capture(QWidget):
         #Print lower left coordinate of rectangle
         point = " ("+(str)(self.point1x)+", "+(str)(self.point2y)+") "
         yfile.write(point)
-
         yfile.write("\n")
-
-        #FIX ME: Set qthread flag variable to false, which will cause thread to stop running
 
         self.update()
 
