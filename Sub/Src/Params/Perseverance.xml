@@ -16,17 +16,26 @@
 		<Movement_Mode>
 			<default>1</default>
 		</Movement_Mode>
-    <Limits>
-      <min_roll>0</min_roll>
-      <max_roll>0</max_roll>
-      <min_pitch>0</min_pitch>
-      <max_pitch>0</max_pitch>
-      <min_z>0</min_z>
-      <max_z>0</max_z>
-    </Limits>
+    	<Limits>
+      		<min_roll>0</min_roll>
+      		<max_roll>0</max_roll>
+      		<min_pitch>0</min_pitch>
+      		<max_pitch>0</max_pitch>
+      		<min_z>0</min_z>
+      		<max_z>0</max_z>
+    	</Limits>
+		<Thruster_Strengths>
+			<T1>.5</T1>
+			<T2>0</T2>
+			<T3>0</T3>
+			<T4>0</T4>
+			<T5>0</T5>
+			<T6>0</T6>
+			<T7>0</T7>
+			<T8>0</T8>
+		</Thruster_Strengths>
 		<PID>
 			<dt>.1</dt>
-
 			<roll_pid>
 				<p>0.0</p>
 				<i>10.0</i>

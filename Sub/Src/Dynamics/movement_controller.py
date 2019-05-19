@@ -109,9 +109,11 @@ class Movement_Controller:
         #the proportional, integral, and derivative constants by setting them in
         #the parameter server. These values should only be checked in the PID tunning
         #modes.
+        #This update thread also updates the strength parameter for each thruster.
         self.pid_values_update_thread = threading.Thread(target=self.__update_pid_values)
         self.pid_values_update_thread.daemon = True
         self.pid_values_update_thread_run = False
+        self.pid_values_update_thread_freeze == True #If frozen, the thread will do nothing to not waste resources
 
         #Set up a thread to listen to a movement mode change.
         self.movement_mode_thread = threading.Thread(target=self.update_movement_mode_thread)
@@ -203,7 +205,8 @@ class Movement_Controller:
         while(self.pid_values_update_thread_run):
             #Checks the parameters server to obtain possible new PID constants
             #for every control degree of freedom.
-            self.pid_controller.set_up_PID_controllers()
+            if(self.pid_values_update_thread_freeze == False):
+                self.pid_controller.set_up_PID_controllers()
             time.sleep(0.1)
 
     def __update_thruster_test_callback(self, thruster_proto):
@@ -254,12 +257,16 @@ class Movement_Controller:
             if(self.sub_killed == 1):
                 self.pid_controller.simple_thrust([0, 0, 0, 0, 0, 0, 0, 0])
                 print("Sub_Killed")
+
             #PID Depth, pitch, roll Tunning Mode
             #In PID depth, pitch, roll tunning mode, only roll pitch and depth are used in
             #the control loop perfrom a simpe Depth PID move. x_pos, y_pos, and
             #yaw are ignored.
             elif self.movement_mode == 0:
-                sub_killed = False
+                
+                #unfreeze the thread that updates the pid values.
+                self.pid_values_update_thread_freeze = False
+
                 if(self.pid_values_update_thread_run == False):
                     self.pid_values_update_thread_run = True
                     self.pid_values_update_thread.start()
@@ -289,7 +296,7 @@ class Movement_Controller:
                 self.pid_errors_proto.roll_error = error[0]
                 self.pid_errors_proto.pitch_error = error[1]
                 self.pid_errors_proto.z_pos_error = error[2] #depth error
-                print(self.pid_errors_proto)
+                
                 serialzed_pid_errors_proto = self.pid_errors_proto.SerializeToString()
                 self.pid_errors_publisher.publish(serialzed_pid_errors_proto)
                 #----------------------------------------------------------------------
@@ -311,7 +318,7 @@ class Movement_Controller:
                 #---------------------------------------------------------------------
             #THRUSTER test mode.
             elif self.movement_mode == 1:
-                sub_killed = False
+                self.pid_values_update_thread_freeze = True
                 self.movement_controller_node.spinOnce(self.thruster_test_subscriber)
 
             time.sleep(self.time_interval)
