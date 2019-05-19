@@ -9,8 +9,8 @@ from image_capture_widget import Image_Capture
 class Webcam_Thread(QThread):
 
         def __init__(self):
-
                 QThread.__init__(self)
+
                 self.x = 0
                 print("Thread initiated")
                 #FIXME: Set up camera/start streaming
