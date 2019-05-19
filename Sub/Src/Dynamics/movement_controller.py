@@ -113,7 +113,7 @@ class Movement_Controller:
         self.pid_values_update_thread = threading.Thread(target=self.__update_pid_values)
         self.pid_values_update_thread.daemon = True
         self.pid_values_update_thread_run = False
-        self.pid_values_update_thread_freeze == True #If frozen, the thread will do nothing to not waste resources
+        self.pid_values_update_thread_freeze = True #If frozen, the thread will do nothing to not waste resources
 
         #Set up a thread to listen to a movement mode change.
         self.movement_mode_thread = threading.Thread(target=self.update_movement_mode_thread)
