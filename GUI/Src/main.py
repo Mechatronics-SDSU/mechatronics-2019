@@ -53,7 +53,7 @@ class Main_GUI(QWidget):
 
         #Place the navigation, IMU, orientation, and odometery display widget
         self.set_nav_odometery()
-        #self.set_pid_visualizer()
+        self.set_pid_visualizer()
         self.set_thruster_test_widget()
         self.set_kill_button()
 
@@ -106,7 +106,7 @@ class Main_GUI(QWidget):
         self.nav_odom = Navigation_GUI()
         optimal_size = self.nav_odom.sizeHint()
         self.nav_odom.setMaximumSize(optimal_size)
-        self.main_layout.addWidget(self.nav_odom, 0, 0)
+        self.secondary_layout.addWidget(self.nav_odom, 0)
 
     def set_pid_visualizer(self):
         '''
