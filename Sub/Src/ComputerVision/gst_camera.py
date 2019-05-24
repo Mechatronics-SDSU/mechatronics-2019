@@ -4,6 +4,7 @@ Author: Alexa Becerra <alexa.becerra99@gmail.com>
 Description: Aquisition of camera images and UDP streaming.
 '''
 import os
+import signal
 import PySpin
 import sys
 import gi
@@ -11,15 +12,16 @@ import io
 from io import BytesIO
 
 gi.require_version('Gst', '1.0')
-gi.require_version('Gtk', '3.0')
 gi.require_version('GstVideo', '1.0')
-from gi.repository import GObject, Gst, Gtk
+from gi.repository import GObject, Gst
 from gi.repository import GdkX11, GstVideo
 
-Gst.debug_set_active(True)
-Gst.debug_set_default_threshold(3)
+#Gst.debug_set_active(True)
+#Gst.debug_set_default_threshold(3)
 GObject.threads_init()
 Gst.init(None)
+global pipeline
+global camera
 
 '''
 Gstreamer pipeline to handle buffers of images and UDP streaming.
@@ -28,7 +30,7 @@ class PointGrey_AppSrc:
 
 	def __init__(self):
 		self.is_push_buffer_allowed = None
-		self._mainloop = GObject.MainLoop()
+		self._mainloop = GObject.MainLoop.new(None, False)
 		udp_sink_pipeline = "appsrc name=source ! image/jpeg,framerate=(fraction)30/1 ! decodebin ! videoscale ! capsfilter caps=video/x-raw,width=640,height=480 ! queue ! jpegenc ! rtpjpegpay ! udpsink host=127.0.0.1 port=5200"
 
 		self._pipeline = Gst.parse_launch(udp_sink_pipeline)
@@ -72,56 +74,58 @@ class PointGrey_AppSrc:
 			else:
 				'''print("Enough data on buffer.")'''
 
-def main():
-	sender = PointGrey_AppSrc()
-	sender.play()
-	index = 1
+class Camera:
+	def __init__(self):
+		self._system = PySpin.System.GetInstance()
+		# Get camera object
+		self._cam_list = self._system.GetCameras()
+		self._cam = self._cam_list.GetByIndex(0)
+		# Initialize camera/Node mode/color format
+		self._cam.Init()
+		node_map = self._cam.GetNodeMap()
 
-	system = PySpin.System.GetInstance()
+		node_acq_mode = PySpin.CEnumerationPtr(node_map.GetNode('AcquisitionMode'))
+		node_acq_mode_cont = node_acq_mode.GetEntryByName('Continuous')
+		acq_mode_cont = node_acq_mode_cont.GetValue()
+		node_acq_mode.SetIntValue(acq_mode_cont)
+		self._cam.PixelFormat.SetValue(PySpin.PixelFormat_RGB8)
+		self._cam.BeginAcquisition()
 
-	# Get camera object
-	cam_list = system.GetCameras()
-	cam = cam_list.GetByIndex(0)
-
-	# Initialize camera/Node mode/color format
-	cam.Init()
-	node_map = cam.GetNodeMap()
-
-	node_acq_mode = PySpin.CEnumerationPtr(node_map.GetNode('AcquisitionMode'))
-	node_acq_mode_cont = node_acq_mode.GetEntryByName('Continuous')
-	acq_mode_cont = node_acq_mode_cont.GetValue()
-	node_acq_mode.SetIntValue(acq_mode_cont)
-	cam.PixelFormat.SetValue(PySpin.PixelFormat_RGB8)
-
-	# Start acquisition
-	cam.BeginAcquisition()
-
-	index = 1
-	while index < 500:
-		# every 3rd image is sent
-		filename = 'Acquisition-%d.jpg' % index
-		image = cam.GetNextImage()
+        def saveImage(self, filename):
+		# every 3rd image is saved
+		image = self._cam.GetNextImage()
 		image.Release()
-		image = cam.GetNextImage()
+		image = sel._cam.GetNextImage()
 		image.Release()
-
-		# grab image to be sent, save, and delete immedietly afterwards
-		image = cam.GetNextImage()
+		image = self._cam.GetNextImage()
 		image.Save(filename)
-		sender.push(filename)
 		image.Release()
-		os.remove(filename)
-		index += 1
+		
+	def __deinit__(self):
+		self._cam.EndAcquisition()
+		self._cam.DeInit()
+		del self._cam
+		self._cam_list.Clear()
+		self._system.ReleaseInstance()
 
-	cam.EndAcquisition()
 
-	# De-initialize, otherwise seg faults
-	cam.DeInit()
-
-	# Clear references to images and cameras
-	del cam
-	cam_list.Clear()
-	system.ReleaseInstance()
+#handles ctr-C for graceful exiting
+def signalHandler(sig, frame):
+	print('Exiting')
+	pipeline.stop()
+	camera.__deinit__()
+	sys.exit(0)
 
 if __name__ =='__main__':
-    main()
+	signal.signal(signal.SIGINT, signalHandler)
+	pipeline = PointGrey_AppSrc()
+	camera = Camera()
+	pipeline.play()
+	index = 1
+	while True:
+		filename = 'Acquisition-%d.jpg' % index
+		camera.saveImage(filename)
+		pipeline.push(filename)
+		#image deleted immediately after
+		os.remove(filename)
+		index += 1
