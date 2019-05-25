@@ -8,14 +8,21 @@ import sys
 import os
 
 from image_label_widget import Image_Label
+from webcam_thread import Webcam_Thread
 
 from PyQt5.QtWidgets import QWidget, QApplication, QHBoxLayout, QMainWindow
 from PyQt5.QtGui import QPainter, QBrush, QColor, QPalette
 from PyQt5.QtCore import QRect, QPoint, Qt
 
 class Image_Capture(QWidget):
+
     def __init__(self):
+
         super().__init__()
+
+        #START WEBCAM THREAD
+        self.web_thread = Webcam_Thread()
+        self.web_thread.start()
 
         layout = QHBoxLayout()
 
@@ -45,9 +52,12 @@ class Image_Capture(QWidget):
         qp.drawRect(QRect(self.begin, self.end))       
 
     def mousePressEvent(self, event):
-        self.begin = event.pos()
 
-        '''
+        self.begin = event.pos()
+        self.end = event.pos()
+
+        self.web_thread.threadrunning = True
+
         yfile = open("yolo_data.txt", "a")
 	
         #Save individual values of x and y for upper left coordinate to print later
@@ -59,23 +69,21 @@ class Image_Capture(QWidget):
         yfile.write("COORDINATES #"+(str)(self.i+1)+": ")
         point = " ("+(str)(self.point1x)+", "+(str)(self.point1y)+")"
         yfile.write(point)
-        '''
 
-        self.threadrunning = True
-
-        '''
         #Update coordinate number
         self.i = self.i+1
         self.update()
-        '''
 
     def mouseMoveEvent(self, event):
         self.end = event.pos()
         self.update()
 
     def mouseReleaseEvent(self, event):
+
+        self.begin = event.pos()
         self.end = event.pos()
-        self.threadrunning = False
+        
+        self.web_thread.threadrunning = False
  
         #Save individual values of x and y for lower right coordinate to print later
         self.point2x = self.end.x()
