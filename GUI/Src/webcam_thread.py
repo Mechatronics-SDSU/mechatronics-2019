@@ -11,9 +11,12 @@ class Webcam_Thread(QThread):
                 QThread.__init__(self)
 
                 self.threadrunning = False
+
                 print("Thread initiated")
 
                 #FIXME: Set up camera/start streaming
+
+                #FIXME: Establish mechOS subscriber to listen for photos being passed
 
         def __del__(self):
 
@@ -21,9 +24,9 @@ class Webcam_Thread(QThread):
 
         def run(self):
 
-                #FIXME: Use subscriber to capture pictures at the same FPS as the sub is moving
-
                 while self.threadrunning == False:
+
+                        print("thread stopped")
 
                         self.sleep(1)
 
@@ -31,9 +34,12 @@ class Webcam_Thread(QThread):
 
                         print("thread running")
 
-                        #FIXME: Print picures, coordinates, and label
+                        self.sleep(1)
+
+                        #FIXME: Use subscriber to capture pictures at the same FPS as the sub is moving
 
                         #FIXME: Save Pictures to text file
+
 
 
 

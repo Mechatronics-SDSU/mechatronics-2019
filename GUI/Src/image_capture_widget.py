@@ -20,10 +20,6 @@ class Image_Capture(QWidget):
 
         super().__init__()
 
-        #START WEBCAM THREAD
-        self.web_thread = Webcam_Thread()
-        self.web_thread.start()
-
         layout = QHBoxLayout()
 
         self.setGeometry(30,30,1200,900)
@@ -39,11 +35,9 @@ class Image_Capture(QWidget):
         self.image_lab = Image_Label()
         self.image_lab.show()
 
-        #FIXME: Camera widget should be called to pop up behind the image capture widget
+        #FIXME: Camera widget/window should be called to pop up behind the image capture widget
 
-        self.i = 0
-
-        #FIXME: Establish mechOS subscriber to listen for photos being passed 
+        self.i = 0 
 
     def paintEvent(self, event):
         qp = QPainter(self)
@@ -52,6 +46,10 @@ class Image_Capture(QWidget):
         qp.drawRect(QRect(self.begin, self.end))       
 
     def mousePressEvent(self, event):
+
+        #START WEBCAM THREAD
+        self.web_thread = Webcam_Thread()
+        self.web_thread.start()
 
         self.begin = event.pos()
         self.end = event.pos()
