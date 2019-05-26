@@ -11,8 +11,6 @@ gi.require_version('GstVideo', '1.0')
 from gi.repository import GObject, Gst
 from gi.repository import GdkX11, GstVideo
 
-#Gst.debug_set_active(True)
-#Gst.debug_set_default_threshold(3)
 GObject.threads_init()
 Gst.init(None)
 
