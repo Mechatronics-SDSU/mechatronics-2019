@@ -1,8 +1,3 @@
-'''
-Copyright 2019, Alexa Becerra, All rights reserved
-Author: Alexa Becerra <alexa.becerra99@gmail.com>
-Description: Aquisition of camera images and UDP streaming.
-'''
 import os
 import signal
 import PySpin
@@ -20,12 +15,11 @@ from gi.repository import GdkX11, GstVideo
 #Gst.debug_set_default_threshold(3)
 GObject.threads_init()
 Gst.init(None)
+
 global pipeline
 global camera
 
-'''
-Gstreamer pipeline to handle buffers of images and UDP streaming.
-'''
+
 class PointGrey_AppSrc:
 
 	def __init__(self):
@@ -119,13 +113,13 @@ def signalHandler(sig, frame):
 if __name__ =='__main__':
 	signal.signal(signal.SIGINT, signalHandler)
 	pipeline = PointGrey_AppSrc()
-	camera = Camera()
+	camera = Camera()   
 	pipeline.play()
 	index = 1
 	while True:
 		filename = 'Acquisition-%d.jpg' % index
 		camera.saveImage(filename)
 		pipeline.push(filename)
-		#image deleted immediately after
+		#image deleted immedietley after
 		os.remove(filename)
 		index += 1
