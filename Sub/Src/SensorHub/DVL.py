@@ -48,7 +48,7 @@ class DVL_DATA_DRIVER:
 		for i in range(3):
 			self.displacement[i] = 0.0
 
-	def __get_velocity(self):
+	def __get_velocity(self, inFeet=True):
 		'''
 		The DVL has been setup to be cyclic, wherupon the Headerbye 'sync' is used to determine where the string restarts
 
@@ -56,6 +56,9 @@ class DVL_DATA_DRIVER:
 		-----------
 		SYNC -- Determines the sync byte to determine the system
 		ID -- Determines the type of Data that will be Sent as a stream: Note that this is changeable
+
+        NOTE: The Velocity will be returned from the DVL in m/s
+        We Make a conversion to ft/s
 
 		SEE: DVL integrators Guide from NORTEC There is one Freely avaliable online, (it's on a git)
 
@@ -95,6 +98,11 @@ class DVL_DATA_DRIVER:
 
 				self.DVLCom.flush()
 
+        # conversion to ft/s
+        if inFeet==True:
+            return np.array([velZ[0], velX[0], velY[0]]) * 3.28084
+
+        # normal return as m/s
 		return np.array([velZ[0], velX[0], velY[0]])
 
 	def __get_displacement(self):
