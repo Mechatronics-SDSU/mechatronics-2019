@@ -2,7 +2,7 @@
 Copyright 2019, Claire Fiorino, All rights reserved
 Author: Claire Fiorino<Claire Fiorino>
 Last Modified 04/27/2019
-Description: This PyQt widget is for capturing images to train the YOLO network
+Description: This PyQt widget is for capturing images to train the YOLO network. It consists of a drop-down menu where you can select the object you want to identify, and a transparent window (that is supposed to pop up in front of a camera stream) where you can click and draw rectangles around those objects.
 '''
 import sys
 import os
@@ -35,9 +35,12 @@ class Image_Capture(QWidget):
         self.image_lab = Image_Label()
         self.image_lab.show()
 
-        #FIXME: Camera widget/window should be called to pop up behind the image capture widget
+        #FIXME: Camera stream widget should be called to pop up behind the image capture widget
 
-        self.i = 0 
+        #START WEBCAM THREAD
+        self.web_thread = Webcam_Thread()
+        self.web_thread.start()
+        self.web_thread.threadrunning = True
 
     def paintEvent(self, event):
         qp = QPainter(self)
@@ -47,30 +50,21 @@ class Image_Capture(QWidget):
 
     def mousePressEvent(self, event):
 
-        #START WEBCAM THREAD
-        self.web_thread = Webcam_Thread()
-        self.web_thread.start()
-
         self.begin = event.pos()
         self.end = event.pos()
+	
+        name = "img"+(str)(self.web_thread.num)+".txt"
+        yfile = open(name, "a")
 
-        self.web_thread.threadrunning = True
-
-        yfile = open("yolo_data.txt", "a")
+        #Print index of object being identified followed by space
+        yfile.write((str)(self.image_lab.cb.currentIndex())+" ")
 	
         #Save individual values of x and y for upper left coordinate to print later
-        self.point1x = self.begin.x()
-        self.point1y = self.begin.y()
+        global point1x
+        point1x = self.begin.x()
 
-        #Print upper left coordinate of rectangle
-        yfile.write("("+self.image_lab.cb.currentText()+") ")
-        yfile.write("COORDINATES #"+(str)(self.i+1)+": ")
-        point = " ("+(str)(self.point1x)+", "+(str)(self.point1y)+")"
-        yfile.write(point)
-
-        #Update coordinate number
-        self.i = self.i+1
-        self.update()
+        global point1y
+        point1y = self.begin.y()
 
     def mouseMoveEvent(self, event):
         self.end = event.pos()
@@ -80,25 +74,30 @@ class Image_Capture(QWidget):
 
         self.begin = event.pos()
         self.end = event.pos()
-        
-        self.web_thread.threadrunning = False
+
+        name = "img"+(str)(self.web_thread.num)+".txt"
+        yfile = open(name, "a")
  
         #Save individual values of x and y for lower right coordinate to print later
         self.point2x = self.end.x()
         self.point2y = self.end.y()
 
-        #Print lower right coordinate of rectangle
-        yfile = open("yolo_data.txt", "a")
-        point = " ("+(str)(self.point2x)+", "+(str)(self.point2y)+")"
-        yfile.write(point)
+        #Print x value of coordinate at center of rectangle followed by space
+        middlex = (self.point2x-point1x)/2
+        yfile.write((str)(1/middlex)+" ")
 
-        #Print upper right coordinate of rectangle
-        point = " ("+(str)(self.point2x)+", "+(str)(self.point1y)+")"
-        yfile.write(point)
+        #Print y value of coordinate at center of rectangle followed by space
+        middley = (self.point2y-point1y)/2
+        yfile.write((str)(1/middley)+" ")
 
-        #Print lower left coordinate of rectangle
-        point = " ("+(str)(self.point1x)+", "+(str)(self.point2y)+") "
-        yfile.write(point)
+        #Print width of rectangle followed by space
+        width = self.point2x-point1x
+        yfile.write((str)(1/width)+" ")
+
+        #Print height of rectangle followed by space
+        height = self.point2x-point1x
+        yfile.write((str)(1/width)+" ")
+
         yfile.write("\n")
 
         self.update()

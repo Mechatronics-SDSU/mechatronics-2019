@@ -1,3 +1,10 @@
+'''
+Copyright 2019, Claire Fiorino, All rights reserved
+Author: Claire Fiorino<Claire Fiorino>
+Last Modified 04/27/2019
+Description: This PyQt thread is for printing the paths of the jpeg images to a text file to train the YOLO network. 
+'''
+
 import sys
 import os
 import time
@@ -10,35 +17,40 @@ class Webcam_Thread(QThread):
 
                 QThread.__init__(self)
 
-                self.threadrunning = False
-
-                print("Thread initiated")
-
-                #FIXME: Set up camera/start streaming
-
-                #FIXME: Establish mechOS subscriber to listen for photos being passed
+                #"num" is the number of the jpeg image that is saved
+                self.num = 0        
 
         def __del__(self):
 
                 self.wait()
 
+        def print_image_names(self):
+        '''
+        This opens the "train.txt" file and prints the paths of each jpeg image
+        '''
+
+                #FIXME: Will make file in directory "build\darknet\x64\data\
+                yfile = open("train.txt", "a")
+                
+                #Print image paths in text file
+                image_name = "data/obj/img"+(str)(self.num)+".jpg"
+                yfile.write(image_name)
+                yfile.write("\n")
+
         def run(self):
 
                 while self.threadrunning == False:
-
-                        print("thread stopped")
 
                         self.sleep(1)
 
                 while self.threadrunning == True:
 
-                        print("thread running")
+                        self.print_image_names()
 
-                        self.sleep(1)
+                        self.num = self.num+1
 
-                        #FIXME: Use subscriber to capture pictures at the same FPS as the sub is moving
+                        self.sleep(5) #argument inside sleep function has to align with the rate at which the sub is taking pictures
 
-                        #FIXME: Save Pictures to text file
 
 
 

@@ -18,9 +18,6 @@ class Image_Label(QWidget):
       layout = QHBoxLayout()
       self.cb = QComboBox()
       self.cb.addItems(["Right Post", "Left Post", "Buoy", "Target"])
-      yfile = open("yolo_data.txt", "a")
-      yfile.write("YOLO TRAINING Data")
-      yfile.write("\n\n")
 
       self.setGeometry(30,30,200,200)
 
