@@ -15,5 +15,7 @@ message DESIRED_POS {
 
     //Set current position as original. Note that the default value is false
     bool zero_pos = 7;
+
+    //False = absolute
     bool pos_ref = 8;
 }

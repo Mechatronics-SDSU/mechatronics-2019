@@ -187,13 +187,26 @@ class Movement_Controller:
             N/A
         '''
         self.desired_position_proto.ParseFromString(desired_position_proto)
+
+        self.desired_position[6] = self.desired_position_proto.pos_ref
+
+        if(self.desired_position[6]): #relative translate
+            #Relative movement overwrites the yaw position and just uses whatever the current yaw position
+            #is.
+            self.desired_position[4] = self.desired_position_proto.x_pos + self.current_position[4]
+            self.desired_position[5] = self.desired_position_proto.y_pos + self.current_position[5]
+            self.desired_position[2] = self.current_position[2]
+        
+        else: #absolute movement
+            self.desired_position[4] = self.desired_position_proto.x_pos
+            self.desired_position[5] = self.desired_position_proto.y_pos
+            self.desired_position[2] = self.desired_position_proto.yaw
+        
         self.desired_position[0] = self.desired_position_proto.roll
         self.desired_position[1] = self.desired_position_proto.pitch
-        self.desired_position[2] = self.desired_position_proto.yaw
         self.desired_position[3] = self.desired_position_proto.depth
-        self.desired_position[4] = self.desired_position_proto.x_pos
-        self.desired_position[5] = self.desired_position_proto.y_pos
-        self.desired_position[6] = self.desired_position_proto.pos_ref
+        
+        
 
     def __update_pid_values(self):
         '''

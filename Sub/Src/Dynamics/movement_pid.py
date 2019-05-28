@@ -26,6 +26,7 @@ from thruster import Thruster
 from pid_controller import PID_Controller
 from MechOS import mechos
 import serial
+import math
 
 class Movement_PID:
     '''
@@ -220,8 +221,14 @@ class Movement_PID:
 
         #Calculate translation error
         error[3] = desired_z_pos - curr_z_pos
-        error[4] = desired_x_pos - curr_x_pos
-        error[5] = desired_y_pos - curr_y_pos
+
+        #Calculate the error in the x and y position (relative to the sub) given the current position.
+        #Using rotation matrix.
+        error_abs_x = desired_x_pos - curr_x_pos
+        error_abs_y = desired_y_pos - curr_y_pos
+        yaw_rad = math.radians(curr_yaw) #convert yaw from degrees to radians
+        error[4] = (math.cos(yaw_rad) * error_abs_x) + (math.sin(yaw_rad) * error_abs_y)
+        error[5] = (-1 * math.sin(yaw_rad) * error_abs_x) + (math.cos(yaw_rad) * error_abs_y)
 
         roll_control = self.roll_pid_controller.control_step(error[0])
         pitch_control = self.pitch_pid_controller.control_step(error[1])
