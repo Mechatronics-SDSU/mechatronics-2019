@@ -15,7 +15,7 @@ def set_thruster_value(input_matrix):
     0 1 0 0 0 1 0 0; \
     0 0 0 1 0 0 0 1')
 
-    print(np.dot(input_matrix, thruster_matrix))
+    #print(np.dot(input_matrix, thruster_matrix))
     return np.dot(input_matrix, thruster_matrix)
 
 def Calibrate(event):
@@ -39,11 +39,13 @@ def Calibrate(event):
             return set_thruster_value(np.array([0, 1, 0, 0, 0, 0])) #left bumper
         elif event.button == 5:
             return set_thruster_value(np.array([0, 0, 0, 0, 1, 0])) #right bumper
-        elif event.button == 11:
+        elif event.button == 1:
             return "SWAP"
     elif event.type == pygame.JOYBUTTONUP:
         if event.button == 4 or event.button == 5:
             return set_thruster_value(np.array([0, 0, 0, 0, 0, 0])) #reset the matrix once the button is released
+    else:
+        return set_thruster_value(np.array([0, 0, 0, 0, 0, 0]))
 
 def main():
     clock = pygame.time.Clock()
@@ -54,6 +56,7 @@ def main():
     while True:
         for event in pygame.event.get():
             Calibrate(event)
+            clock.tick(15)
 
 if __name__ == '__main__':
     main()

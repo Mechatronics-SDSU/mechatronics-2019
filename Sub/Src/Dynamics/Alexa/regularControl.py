@@ -1,4 +1,4 @@
-  '''
+'''
 Copyright 2018, Alexa Becerra, All rights reserved
 Author: Alexa Becerra <alexa.becerra99@gmail.com>
 Description: Regular controls for thruster values.
@@ -57,7 +57,7 @@ def Regular(XBOX_INPUT):
             InputArray = numpy.array([0, 0 , 0, 0, 0, XBOX_INPUT.value])
             return dotProduct(InputArray)
     elif XBOX_INPUT.type == pygame.JOYBUTTONDOWN:
-        if XBOX_INPUT.button == 11:
+        if XBOX_INPUT.button == 1:
             return "Swap"
 
 def dotProduct(Input):

@@ -3,8 +3,8 @@ import time
 import threading
 
 from abc import ABCMeta, abstractmethod
-from communicationUtils.Networking import Publisher as PubClass
-from communicationUtils.Networking import Subscriber as SubClass
+from Networking import Publisher as PubClass
+from Networking import Subscriber as SubClass
 
 class Node(object, metaclass=ABCMeta):
 
