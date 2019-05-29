@@ -159,7 +159,7 @@ class Drive:
                                                                 x_pos=current_pos[3], y_pos=current_pos[4], zero_pos=False, pos_ref=False)
         
         #Publish the desired position proto to move yaw and depth
-        self.mission_commander_object.desired_pos_publihser.publish(serialize_dest_proto)
+        self.mission_commander_object.desired_pos_publisher.publish(serialize_dest_proto)
         
         while((abs(pointing_yaw - current_pos[3]) > self.yaw_tolerance) 
                         and (abs(self.desired_pos[5] - current_pos[5]) > self.depth_tolerance)):

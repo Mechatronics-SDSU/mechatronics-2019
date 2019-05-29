@@ -202,8 +202,8 @@ class Navigation_GUI(QWidget):
         pitch = self.nav_data_proto.pitch
         yaw = self.nav_data_proto.yaw
         depth = self.nav_data_proto.depth
-        x_pos = self.nav_data_proto.x_translation
-        y_pos = self.nav_data_proto.y_translation
+        x_pos = self.nav_data_proto.x_absolute_pos
+        y_pos = self.nav_data_proto.y_absolute_pos
 
         degree_sym = u"\u00b0"
         self.yaw_box.setText('{:6.2f}{}'.format(yaw, degree_sym))
