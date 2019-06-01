@@ -140,8 +140,6 @@ class Mission_Commander:
                 self.mission_tasks.append(Drive(self, desired_pos, wait_time, buffer_zone, task_name, timeout,
                                         pos_ref))
                 self.mission_tasks[-1].print_task_information()
-    def run(self):
-        for task in self.mission_tasks:
-            task.run()
+
 if __name__ == "__main__":
     mission_commander = Mission_Commander('mission_example.json')
