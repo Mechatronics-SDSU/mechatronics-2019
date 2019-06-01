@@ -234,8 +234,8 @@ class Drive:
 
             #Check if the sub is in the bufferzone of the desired_position
             current_pos = self.mission_commander_object.current_pos
-             if((abs(current_pos[3] - self.desired_pos[3]) <= self.buffer_zone) 
-                            and (abs(current_pos[4] - self.desired_pos[4]) <= self.buffer_zone)):
+            dist_from_desired_pos = sqrt( (current_pos[3] - self.desired_pos[3])**2 + (current_pos[4] - self.desired_pos[4])**2 )
+             if(dist_from_desired_pos <= self.buffer_zone):
                 in_buffer_zone = True
                 print("Task", self.task_name, "is within the buffer zone of the desired position.")
                 break
