@@ -22,10 +22,11 @@ class rcNode(Node):
     '''
 
     def run(self, message, port):
-        (self._publishers[port]).publish(message)
+        while True:
+            (self._publishers[port]).publish(message)
 
 def main():
-    remote_control = rcNode('udp://127.0.0.101', "remote control", 'udp')
+    remote_control = rcNode('udp://192.168.1.14', "remote control", 'udp')
     isRegular = False #Calibrate will run first
     remote_control.add_publisher(5558, 'udp', 0.001)
     clock = pygame.time.Clock()
@@ -45,6 +46,6 @@ def main():
                     remote_control.run((Calibrate(event)), 5558)
                 else:
                     remote_control.run((Regular(event)), 5558)
-                    
+
 if __name__ == '__main__':
     main()
