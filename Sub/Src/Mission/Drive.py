@@ -19,8 +19,8 @@ class Drive:
     position.
     '''
 
-    def __init__(self, mission_commander_object,desired_pos, wait_time, buffer_zone, task_name="simple_drive"
-                timeout=2, lock_orientation=False, pos_reference="relative"):
+    def __init__(self, mission_commander_object, desired_pos, wait_time, buffer_zone, task_name="simple_drive",
+                timeout=2, pos_reference="relative"):
         '''
         Initialize the Simple Drive task with the parameters to get the sub
         to drive to a desired position relative to its current position.
@@ -78,15 +78,15 @@ class Drive:
         print("Task Type: Drive")
         print("Task Name:", self.task_name)
         print("Position Reference:", self.pos_reference)
-        print("Desired Position: roll=%.2f, pitch=%.2f, yaw=%.2f, x=%.2f, y=%.2f, z(depth)=%.2f" % (self.desired_pos[0], 
+        print("Desired Position: roll=%.2fdeg, pitch=%.2fdeg, yaw=%.2fdeg, x=%.2fft, y=%.2fft, z(depth)=%.2fft" % (self.desired_pos[0], 
                                                                                                     self.desired_pos[1], 
                                                                                                     self.desired_pos[2],
                                                                                                     self.desired_pos[3],
                                                                                                     self.desired_pos[4],
                                                                                                     self.desired_pos[5]))
-        print("Timeout:", self.timeout)
-        print("Buffer Zone:", self.buffer_zone)
-        print("Wait Time(Hold Final Position Time):", self.wait_time)
+        print("Timeout: %.2fs" % self.timeout)
+        print("Buffer Zone: %.2fft" % self.buffer_zone)
+        print("Wait Time(Hold Final Position Time): %.2fs" % self.wait_time)
 
     def timer_thread_callback(self):
         '''
@@ -117,9 +117,9 @@ class Drive:
             pitch: The desired pitch angle of the sub
             yaw: The deisred yaw angle(heading) of the sub
             x_pos: The desired x posititon of the sub. If pos_ref is "absolute" then this will be the abolute x value to go to.
-                    Else if pos_ref is "relative", then this will be the translation distance in the x direction
+                    elif pos_ref is "relative", then this will be the translation distance in the x direction
             y_pos: The desired y posititon of the sub. If pos_ref is false then this will be the abolute y value to go to.
-                    Else if pos_ref is true, then this will be the translation distance in the y direction
+                    elif pos_ref is true, then this will be the translation distance in the y direction
             depth: The desired depth in ft.
             zero_pos: Set the current x and y position as origin.
             pos_ref: If "absolute" then the sub x and y are absolute coordinate positions relative to the set origin. Else
@@ -210,7 +210,7 @@ class Drive:
                                                                 x_pos=self.desired_pos[3], y_pos=self.desired_pos[4], zero_pos=False, 
                                                                 pos_ref=False)
         #If position reference for movement is relative
-        else if(self.pos_reference == "relative"):
+        elif(self.pos_reference == "relative"):
             serialized_dest_proto = self.set_desired_position_proto(roll=0, pitch=0, yaw=current_pos[2], depth=self.desired_pos[5], 
                                                                 x_pos=self.desired_pos[3], y_pos=self.desired_pos[4], zero_pos=False, 
                                                                 pos_ref=True)
@@ -235,7 +235,7 @@ class Drive:
             #Check if the sub is in the bufferzone of the desired_position
             current_pos = self.mission_commander_object.current_pos
             dist_from_desired_pos = sqrt( (current_pos[3] - self.desired_pos[3])**2 + (current_pos[4] - self.desired_pos[4])**2 )
-             if(dist_from_desired_pos <= self.buffer_zone):
+            if(dist_from_desired_pos <= self.buffer_zone):
                 in_buffer_zone = True
                 print("Task", self.task_name, "is within the buffer zone of the desired position.")
                 break
