@@ -70,7 +70,11 @@
 	</Control>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 <Sensors>0.0<trans_2_bias>0.0</trans_2_bias><trans_1_bias>602.82</trans_1_bias><trans_1_scaling>0.029999999999972715</trans_1_scaling><trans_2_scaling>0.0</trans_2_scaling></Sensors></Perseverance>
 =======
 <Sensors><trans_2_bias>1</trans_2_bias><trans_1_bias>1</trans_1_bias><trans_1_scaling>1</trans_1_scaling><trans_2_scaling>1</trans_2_scaling></Sensors></Perseverance>
 >>>>>>> Debugging Pressure Sensors.
+=======
+<Sensors><trans_2_bias>1</trans_2_bias><trans_1_bias>1</trans_1_bias><trans_1_scaling>1</trans_1_scaling><trans_2_scaling>1</trans_2_scaling></Sensors></Perseverance>
+>>>>>>> da275889a93b87bd6eebf7676a4b691861f603e0
