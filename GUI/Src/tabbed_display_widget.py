@@ -21,6 +21,7 @@ class Tabbed_Display(QWidget):
     def __init__(self):
         '''
         Initializes a Tabbed Display widget.
+
         Parameters:
             individual_tab: The individual_tab Qwidget
         '''
@@ -57,9 +58,11 @@ class Tabbed_Display(QWidget):
     def add_tab(self, widget, title):
         '''
         Creates a new tab and adds a Qwidget to it.
+
         Parameters:
             widget: The Qwidget to be displayed.
             title: (string) The title of the Tab
+
         Returns:
             N/A
         '''
@@ -86,8 +89,10 @@ class Tabbed_Display(QWidget):
     def _update_mode(self):
         '''
         Publishes the current tab index.
+
         Parameters:
             N/A
+
         Returns:
             N/A
         '''

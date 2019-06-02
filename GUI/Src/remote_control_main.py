@@ -32,8 +32,10 @@ class Remote_Control_Widget(QWidget):
 	def __init__(self):
 		'''
 		Initialize the main GUI with widgets
+
 		Parameters:
 		N/A
+
 		'''
 
 		QWidget.__init__(self)

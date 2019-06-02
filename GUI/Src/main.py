@@ -31,6 +31,7 @@ class Main_GUI(QWidget):
 	def __init__(self):
 		'''
 		Initialize the main GUI with widgets
+
 		Parameters:
 			N/A
 		'''
@@ -70,8 +71,10 @@ class Main_GUI(QWidget):
 	def set_tabbed_display(self):
         	'''
         	Set up the tabbing system on the main gui.
+
         	Parameters:
             		N/A
+
         	Returns:
             		N/A
         	'''

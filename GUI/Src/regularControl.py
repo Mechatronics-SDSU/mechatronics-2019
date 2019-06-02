@@ -113,7 +113,9 @@ class RcThread(QThread):
 
 		'''
 		Parameters:
+
 			N/A
+
 		Returns:
 			N/A
 		'''
@@ -137,3 +139,4 @@ class RcThread(QThread):
 
 		#publish data to mechos network
 		self.rc_mode_publisher.publish(serialized_thruster_data)
+
