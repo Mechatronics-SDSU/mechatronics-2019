@@ -87,15 +87,17 @@ class Pressure_Depth_Transducers:
 
         #Perfrom kalman filtering to obtain the most probable pressure and depth
         if(depths == None):
+            depths = [0, 0]
             return None
 
         #TODO: KALMAN FILTER
         measurement = np.array([[depths[0]], [depths[1]]])
         self.mu, self.cov = self.kf.predict(self.mu, self.cov, np.array([[0]]), measurement)
-
+        #TODO: Take out Kalman Filer
         depth = self.mu
+
         #return pressure, depth
-        return depth
+        return np.array([[depths[0]]])
 
     def _unpack(self, raw_pressure_data):
         '''
