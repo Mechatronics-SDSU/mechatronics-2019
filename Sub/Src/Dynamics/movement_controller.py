@@ -120,11 +120,13 @@ class Movement_Controller:
         self.movement_mode_thread.daemon = True
         self.movement_mode_thread_run = True
         self.movement_mode_thread.start()
-
+        print("Sub Initially Killed")
     def _update_sub_killed_state(self, killed_state):
         '''
         '''
+
         self.sub_killed = struct.unpack('b', killed_state)[0]
+        print("Sub Killed:", self.sub_killed)
     def __update_movement_mode_callback(self, movement_mode):
         '''
         The callback function to select which movement controller mode is being used.
@@ -256,14 +258,14 @@ class Movement_Controller:
 
             if(self.sub_killed == 1):
                 self.pid_controller.simple_thrust([0, 0, 0, 0, 0, 0, 0, 0])
-                print("Sub_Killed")
+
 
             #PID Depth, pitch, roll Tunning Mode
             #In PID depth, pitch, roll tunning mode, only roll pitch and depth are used in
             #the control loop perfrom a simpe Depth PID move. x_pos, y_pos, and
             #yaw are ignored.
             elif self.movement_mode == 0:
-                
+
                 #unfreeze the thread that updates the pid values.
                 self.pid_values_update_thread_freeze = False
 
