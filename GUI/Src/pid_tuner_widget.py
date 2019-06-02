@@ -302,9 +302,25 @@ class PID_Tuner_Widget(QWidget):
         k_i = self.param_serv.get_param('Control/PID/' + self.channel + '/i')
         k_d = self.param_serv.get_param('Control/PID/' + self.channel + '/d')
 
+        #Set the max of each channel as the value from the Parameter server
+
+        k_p_disp = "%.3f" % (float(k_p) + 0.10*float(k_p))
+        k_i_disp = "%.3f" % (float(k_i) + 0.10*float(k_i))
+        k_d_disp = "%.3f" % (float(k_d) + 0.10*float(k_d))
+
+        self.k_p_max_value_line_edit.setText(k_p_disp)
+        self.k_i_max_value_line_edit.setText(k_i_disp)
+        self.k_d_max_value_line_edit.setText(k_d_disp)
+
+        #Set the precision to the max precision of the 
+        self.k_p_precision_combobox.setCurrentIndex(3)
+        self.k_i_precision_combobox.setCurrentIndex(3)
+        self.k_d_precision_combobox.setCurrentIndex(3)
+        
+        self._update_PID_precision()
+
         self._update_gain_displays(k_p, k_i, k_d)
         self._update_sliders(k_p, k_i, k_d)
-
     def _save_pid_values(self):
         '''
         This is the callback for the save pid values button. When it is pressed,
@@ -359,8 +375,8 @@ class PID_Tuner_Widget(QWidget):
         self.precision_k_d = float(self.k_d_precision_combobox.currentText())
         self.k_d_slider.setMaximum(self.max_k_d * (1 / self.precision_k_d))
 
-        self._update_gain_displays(k_p, k_i, k_d)
-        self._update_sliders(k_p, k_i, k_d)
+        #self._update_gain_displays(k_p, k_i, k_d)
+        #self._update_sliders(k_p, k_i, k_d)
 
     def _update_gains_with_slider(self):
         '''

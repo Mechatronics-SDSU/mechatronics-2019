@@ -69,14 +69,14 @@ class Movement_PID:
         self.thrusters[6] = Thruster(maestro_serial_obj, 7, [0, 0, 1], [-1, -1, 0], max_thrust, False)
         self.thrusters[7] = Thruster(maestro_serial_obj, 8, [1, 0, 0], [0, -1, 0], max_thrust, False)
 
-
         #Initialize the PID controllers for control system
         self.set_up_PID_controllers()
 
     def set_up_PID_controllers(self):
         '''
         Setup the PID controllers with the initial values set in the subs
-        parameter xml server file.
+        parameter xml server file. Also update the strength parameter for 
+        each thrusters.
 
         Parameters:
             N/A
@@ -115,6 +115,14 @@ class Movement_PID:
         z_i = float(self.param_serv.get_param("Control/PID/z_pid/i"))
         z_d = float(self.param_serv.get_param("Control/PID/z_pid/d"))
         self.z_pid_controller = PID_Controller(z_p, z_i, z_d, d_t)
+
+        #Thruster Strengths (these are used to give more strengths to weeker thrusters in the case that the sub is imbalanced)
+        #Each index corresponds to the thruster id.
+        self.thruster_strengths = [0, 0, 0, 0, 0, 0, 0, 0]
+        for i in range(len(self.thruster_strengths)):
+            param_path = "Control/Thruster_Strengths/T%d" % (i+1) 
+            self.thruster_strengths[i] = float(self.param_serv.get_param(param_path))
+
 
     def simple_thrust(self, thrusts):
         '''
@@ -159,7 +167,10 @@ class Movement_PID:
                      (x_control * thruster.orientation[0]) + \
                      (y_control * thruster.orientation[1]) + \
                      (z_control * thruster.orientation[2])
-            self.thrusters[thruster_id].set_thrust(thrust)
+
+            #Write the thrust to the given thruster. Some thrusters have an additional percentage strength
+            #to account for imbalances in the subs weigth.
+            self.thrusters[thruster_id].set_thrust(thrust + self.thruster_strengths[thruster_id]*thrust)
 
     def advance_move(self, curr_roll, curr_pitch, curr_yaw, curr_x_pos, curr_y_pos,
                     curr_z_pos, desired_roll, desired_pitch, desired_yaw,

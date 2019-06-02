@@ -20,6 +20,7 @@ from nav_odometery_widget import Navigation_GUI
 from pid_tuner_widget import PID_Tuner_Widget
 from thruster_test_widget import Thruster_Test
 from tabbed_display_widget import Tabbed_Display
+from kill_sub_widget import Kill_Button
 import struct
 
 class Main_GUI(QWidget):
@@ -54,23 +55,30 @@ class Main_GUI(QWidget):
         self.set_nav_odometery()
         self.set_pid_visualizer()
         self.set_thruster_test_widget()
+        self.set_kill_button()
 
-        #Add a button to kill/unkill the sub
-        self.kill_thrusters_checkbox = QCheckBox("Kill Sub")
-        self.kill_thrusters_checkbox.setStyleSheet("color: white")
-        self.kill_thrusters_checkbox.stateChanged.connect(self._udpate_sub_killed_state)
-        self.main_layout.addWidget(self.kill_thrusters_checkbox, 1, 1)
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
         #MechOS publisher to send movement mode selection
         self.main_gui_node = mechos.Node("MAIN_GUI", configs["ip"])
         self.movement_mode_publisher = self.main_gui_node.create_publisher("MM", configs["pub_port"])
-        self.sub_killed_publisher = self.main_gui_node.create_publisher("KS", configs["pub_port"])
+        #self.sub_killed_publisher = self.main_gui_node.create_publisher("KS", configs["pub_port"])
 
 
         #update GUI every 100 milliseconds
         self.update_timer = QTimer()
         self.update_timer.timeout.connect(self.update)
         self.update_timer.start(100)
+
+    def set_kill_button(self):
+        '''
+        Parameters:
+            N/A
+
+        Returns:
+            N/A
+        '''
+        self.kill_button = Kill_Button()
+        self.main_layout.addWidget(self.kill_button, 1, 1)
 
     def set_tabbed_display(self):
         '''
