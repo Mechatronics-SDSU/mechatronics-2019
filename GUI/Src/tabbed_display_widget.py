@@ -121,4 +121,4 @@ if __name__ == "__main__":
     tabbed_display.add_tab(Thruster_Test(), "Thusters")
     tabbed_display.add_tab(remote_control_main(), "Remote Control")
     tabbed_display.show()
-sys.exit(app.exec_())
+    sys.exit(app.exec_())
