@@ -69,12 +69,9 @@
         </PID>
     </Control>
     <Sensors>
-        <trans_2_bias>1</trans_2_bias>
-        <trans_1_bias>1</trans_1_bias>
-        <trans_1_scaling>1</trans_1_scaling>
-        <trans_2_scaling>1</trans_2_scaling>
+        <trans_2_bias>0.0</trans_2_bias>
+        <trans_1_bias>601.09</trans_1_bias>
+        <trans_1_scaling>-0.18199999999999364</trans_1_scaling>
+        <trans_2_scaling>-0.0</trans_2_scaling>
     </Sensors>
 </Perseverance>
-
-
-

@@ -115,7 +115,7 @@ if __name__ == '__main__':
         new_pressure_x = 0
         new_pressure_y = 0
         new_pressure = calculate_pressure(new_pressure_x, new_pressure_y, depth_calibrator)
-        difference = np.array([(abs(new_pressure[0] - offset[0]), (abs(new_pressure[1] - offset[1])])
+        difference = np.array([abs(new_pressure[0] - offset[0]), abs(new_pressure[1] - offset[1])])
         depth_scale = calculate_depth_scale(curr_depth, difference)
         print("Scale", depth_scale)
         depth_calibrator.param_serv.set_param("Sensors/trans_1_scaling", str(depth_scale[0]))
