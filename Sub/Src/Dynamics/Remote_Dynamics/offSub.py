@@ -11,19 +11,11 @@ from Shafi.Calibrated_Control import Calibrate, set_thruster_value
 from NodeClass import Node
 
 class rcNode(Node):
-    '''
-    def __init__(self, host, topic, type):
-        self._host = host
-        self._topic = topic
-        self._type = type
-        self._domain = socket.AF_INET
-        self._publishers = {} #Key: port. Value: publisher
-        self._subscribers = {}
-    '''
+    def __init__(self)
+        super(rcNode,self).__init__()
 
     def run(self, message, port):
-        while True:
-            (self._publishers[port]).publish(message)
+        (self._publishers[port]).publish(message)
 
 def main():
     remote_control = rcNode('udp://192.168.1.14', "remote control", 'udp')
