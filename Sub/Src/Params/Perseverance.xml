@@ -25,9 +25,9 @@
             <max_z>0</max_z>
         </Limits>
         <Thruster_Strengths>
-            <T1>0</T1>
+            <T1>.25</T1>
             <T2>0</T2>
-            <T3>0</T3>
+            <T3>.25</T3>
             <T4>0</T4>
             <T5>0</T5>
             <T6>0</T6>
@@ -38,12 +38,12 @@
             <dt>.1</dt>
             <roll_pid>
                 <p>0.0</p>
-                <i>10.0</i>
+                <i>0.0</i>
                 <d>0.0</d>
             </roll_pid>
             <pitch_pid>
-                <p>8.0</p>
-                <i>10.0</i>
+                <p>0.0</p>
+                <i>0.0</i>
                 <d>0.0</d>
             </pitch_pid>
             <yaw_pid>
@@ -62,7 +62,7 @@
                 <d>0</d>
             </y_pid>
             <z_pid>
-                <p>8.0</p>
+                <p>19.062</p>
                 <i>0.0</i>
                 <d>0.0</d>
             </z_pid>
