@@ -298,7 +298,7 @@ class Movement_Controller:
                 self.pid_errors_proto.roll_error = error[0]
                 self.pid_errors_proto.pitch_error = error[1]
                 self.pid_errors_proto.z_pos_error = error[2] #depth error
-                
+
                 serialzed_pid_errors_proto = self.pid_errors_proto.SerializeToString()
                 self.pid_errors_publisher.publish(serialzed_pid_errors_proto)
                 #----------------------------------------------------------------------

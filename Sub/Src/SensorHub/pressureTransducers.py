@@ -11,11 +11,16 @@ import os
 
 HELPERS_PATH = os.path.join("..", "Helpers")
 sys.path.append(HELPERS_PATH)
+PARAMS_PATH = os.path.join("..", "Params")
+sys.path.append(PARAMS_PATH)
+MECHOS_CONFIG_FILE_PATH = os.path.join(PARAMS_PATH, "mechos_network_configs.txt")
 
 import time
 import struct
 import numpy as np
 from Kalman_Filter import Kalman_Filter
+from mechos_network_configs import MechOS_Network_Configs
+from MechOS import mechos
 import threading
 
 
@@ -39,11 +44,15 @@ class Pressure_Depth_Transducers:
         #Initialize base classes
         super(Pressure_Depth_Transducers, self).__init__()
 
+        configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
+        self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
+        self.param_serv.use_parameter_database(configs["param_server_path"])
+
+
         #This is the variable that you append raw pressure data to once it is
         #received from the backplane.
-        self.raw_pressure_data = []
-        self.depth_scaling = [9.2, 9.2]
-        self.depth_bias = [606, 95]
+        self.depth_scaling = [float(self.param_serv.get_param("Sensors/trans_1_scaling")), float(self.param_serv.get_param("Sensors/trans_2_scaling"))]
+        self.depth_bias = [float(self.param_serv.get_param("Sensors/trans_1_bias")), float(self.param_serv.get_param("Sensors/trans_2_bias"))]
 
         #Initialize Kalman Filter Parameters( Note this needs to be edited per type of transducer and number of transducers)
         #Currently set up for two transducers
@@ -78,15 +87,17 @@ class Pressure_Depth_Transducers:
 
         #Perfrom kalman filtering to obtain the most probable pressure and depth
         if(depths == None):
+            depths = [0, 0]
             return None
 
         #TODO: KALMAN FILTER
         measurement = np.array([[depths[0]], [depths[1]]])
         self.mu, self.cov = self.kf.predict(self.mu, self.cov, np.array([[0]]), measurement)
-
+        #TODO: Take out Kalman Filer
         depth = self.mu
+
         #return pressure, depth
-        return depth
+        return np.array([[depths[0]]])
 
     def _unpack(self, raw_pressure_data):
         '''
@@ -100,11 +111,11 @@ class Pressure_Depth_Transducers:
             depths: A list of two depth readings in feet.
             if data is not received properly, return none
         '''
-        self.raw_depth_data = raw_pressure_data
+
         if(raw_pressure_data != None):
-            depths = raw_pressure_data
-            depths[0] = (1 / self.depth_scaling[0]) * (depths[0] - self.depth_bias[0])
-            depths[1] = (1 / self.depth_scaling[1]) * (depths[1] - self.depth_bias[1])
+            depths = [0, 0]
+            depths[0] = (1 / self.depth_scaling[0]) * (raw_pressure_data[0] - self.depth_bias[0])
+            depths[1] = (1 / self.depth_scaling[1]) * (raw_pressure_data[1] - self.depth_bias[1])
             self.unfiltered_depth_data = depths
             return depths
         return None
