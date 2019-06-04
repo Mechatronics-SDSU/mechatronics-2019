@@ -118,7 +118,17 @@ if __name__ == '__main__':
         difference = np.array([abs(new_pressure[0] - offset[0]), abs(new_pressure[1] - offset[1])])
         depth_scale = calculate_depth_scale(curr_depth, difference)
         print("Scale", depth_scale)
+
+        #If the thruser depth scale is calculated to be zero, then that transducer may not be plugged in.
+        #Set the parameter in the parameter to 1 in order to make sure there is no divisions by zero.
+        if(depth_scale[0] == 0):
+            depth_scale[0] = 1
+            print("**Possible Error with Depth Scale for Transducer 1**. Depth Scale Param being overriden to 1.")
         depth_calibrator.param_serv.set_param("Sensors/trans_1_scaling", str(depth_scale[0]))
+
+        if(depth_scale[1] == 0):
+            depth_scale[1] = 1
+            print("**Possible Error with Depth Scale for Transducer 2**. Depth Scale Param being overriden to 1.")
         depth_calibrator.param_serv.set_param("Sensors/trans_2_scaling", str(depth_scale[1]))
 
     time.sleep(0.1)
