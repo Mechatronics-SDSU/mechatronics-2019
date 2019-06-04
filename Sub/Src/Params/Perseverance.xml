@@ -6,10 +6,10 @@
         <DVL>/dev/ttyUSB1</DVL>
     </COM_Ports>
     <Timing>
-        <AHRS>0.1</AHRS>
-        <backplane_response>0.1</backplane_response>
-        <backplane_handler>0.1</backplane_handler>
-        <movement_control>0.1</movement_control>
+        <AHRS>0.05</AHRS>
+        <backplane_response>0.05</backplane_response>
+        <backplane_handler>0.05</backplane_handler>
+        <movement_control>0.05</movement_control>
     </Timing>
     <Control>
         <max_thrust>80</max_thrust>
@@ -35,7 +35,7 @@
             <T8>0</T8>
         </Thruster_Strengths>
         <PID>
-            <dt>.1</dt>
+            <dt>.05</dt>
             <roll_pid>
                 <p>0.0</p>
                 <i>0.0</i>
@@ -62,7 +62,7 @@
                 <d>0</d>
             </y_pid>
             <z_pid>
-                <p>19.062</p>
+                <p>20.0</p>
                 <i>0.0</i>
                 <d>0.0</d>
             </z_pid>
