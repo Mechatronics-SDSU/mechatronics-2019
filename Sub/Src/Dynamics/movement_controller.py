@@ -57,6 +57,7 @@ class Movement_Controller(threading.Thread):
         Returns:
             N/A
         '''
+        super(Movement_Controller, self).__init__()
         #Get the mechos network parameters
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
@@ -125,7 +126,7 @@ class Movement_Controller(threading.Thread):
         self.pid_values_update_thread_freeze = True #If frozen, the thread will do nothing to not waste resources
 
         #Set up a thread to listen to a requests from GUI. This includes movement mode and desired_position
-        self.gui_control_thread = threading.Thread(target=self.update_gui_requrests_thread)
+        self.gui_control_thread = threading.Thread(target=self.update_gui_requests_thread)
         self.gui_control_thread.daemon = True
         self.gui_control_thread_run = True
         self.gui_control_thread.start()
@@ -165,7 +166,7 @@ class Movement_Controller(threading.Thread):
         Returns:
             N/A
         '''
-        while self.movement_mode_thread_run:
+        while self.gui_control_thread_run:
 
             self.movement_controller_node.spinOnce(self.movement_mode_subscriber)
             self.movement_controller_node.spinOnce(self.sub_killed_subscriber)

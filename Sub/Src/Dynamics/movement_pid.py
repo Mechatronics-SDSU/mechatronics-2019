@@ -261,7 +261,7 @@ class Movement_PID:
         pitch_control = self.pitch_pid_controller.control_step(error[1])
 
         #depth error
-        print("Current depth position:", curr_z_pos, "Desired_depth_position:", desired_z_pos)
+        #print("Current depth position:", curr_z_pos, "Desired_depth_position:", desired_z_pos)
         error[2] = desired_z_pos - curr_z_pos
         z_control = self.z_pid_controller.control_step(error[2])
         

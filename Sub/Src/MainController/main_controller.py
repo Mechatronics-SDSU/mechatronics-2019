@@ -72,7 +72,7 @@ class Main_Controller:
         Run the Main controller of the sub
         '''
         while(self.run_main_controller):
-            print_sensor_data(self.movement_controller.current_position)
+            continue
         
 if __name__ == "__main__":
     main_controller = Main_Controller()

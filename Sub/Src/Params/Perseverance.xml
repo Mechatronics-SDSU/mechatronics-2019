@@ -9,7 +9,7 @@
         <AHRS>0.025</AHRS>
         <backplane_response>0.025</backplane_response>
         <backplane_handler>0.025</backplane_handler>
-        <movement_control>0.05</movement_control>
+        <movement_control>0.025</movement_control>
     </Timing>
     <Control>
         <max_thrust>80</max_thrust>
