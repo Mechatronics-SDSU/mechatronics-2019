@@ -120,11 +120,14 @@ class Sensor_Driver:
 
         #Get x and y position
         #TODO: Need to move the position estimator to here in the sensor driver
-        sensor_data[3:4] = self.dvl_driver_thread.PACKET[4:5]
+        dvl_data = self.dvl_driver_thread.PACKET
+        sensor_data[3] = dvl_data[4]
+        sensor_data[4] = dvl_data[5]
 
         #Get the depth from the Backplane
-        sensor_data[-1] = self.backplane_driver_thread.depth_data
+        sensor_data[5] = self.backplane_driver_thread.depth_data
 
+        return(sensor_data)
 
     def run(self):
         '''

@@ -11,13 +11,13 @@ Description: The main process on the sub that will orchatrate
 import sys
 import os
 
-SENSOR_HUB_PATH = os.path.join(".", "SensorHub")
+SENSOR_HUB_PATH = os.path.join("..", "SensorHub")
 sys.path.append(SENSOR_HUB_PATH)
 from sensor_driver import Sensor_Driver
 
-MOVEMENT_CONT_PATH = os.path.join(".", "Dynamics")
+MOVEMENT_CONT_PATH = os.path.join("..", "Dynamics")
 sys.path.append(MOVEMENT_CONT_PATH)
-
+import time
 
 
 
@@ -50,12 +50,16 @@ class Main_Controller:
         Returns:
             N/A
         '''
+        if(sensor_data == None):
+            print("Sensor Data Currently Unavailable to display")
+            return
+
         print("\nRoll: %0.2f" % (sensor_data[0]))
-        print("\nPitch: %0.2f" % (sensor_data[1]))
-        print("\Yaw: %0.2f" % (sensor_data[2]))
-        print("\nX Pos.: %0.2f" % (sensor_data[3]))
-        print("\nY Pos.: %0.2f" % (sensor_data[4]))
-        print("\nDepth: %0.2f" % (sensor_data[5]))
+        print("Pitch: %0.2f" % (sensor_data[1]))
+        print("Yaw: %0.2f" % (sensor_data[2]))
+        print("X Pos.: %0.2f" % (sensor_data[3]))
+        print("Y Pos.: %0.2f" % (sensor_data[4]))
+        print("Depth: %0.2f" % (sensor_data[5]))
     def run(self):
         '''
         Run the Main controller of the sub
@@ -63,3 +67,8 @@ class Main_Controller:
         while(self.run_main_controller):
             sensor_data = self.sensor_controller._get_sensor_data()
             self.print_sensor_data(sensor_data)
+            time.sleep(0.025)
+if __name__ == "__main__":
+    main_controller = Main_Controller()
+    main_controller.run()
+
