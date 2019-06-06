@@ -40,16 +40,20 @@ from MechOS import mechos
 import struct
 import threading
 
-class Movement_Controller(threading.Thread):
+MOVEMENT_AXIS = ["Roll", "Pitch", "Yaw", "X Pos.", "Y Pos.", "Depth"]
+
+class Navigation_Controller(threading.Thread):
     '''
-    This main movement controller for the sub. It lets the user select which
-    control system to is currently used to move and balance the sub.
+    This main Navigation controller for the sub. It is made up of two main components.
+    This first main is the sensor driver, which provides navigation data from the sensor.
+    The second component is the movement controller components, which controls the movement
+    pid control system. There is also a command_listener that listens for requests from the gui/mission commander.
     '''
     def __init__(self):
         '''
-        Initialize the movement controller. This includes connecting publishers
-        and subscribers to the MechOS network to configure and control the movement
-        operation.
+        Initialize the navigation controller. This includes getting parameters from the 
+        parameter server, initializing subscribers to listen for command messages, and
+        initalizing the sensor driver.
 
         Parameters:
             N/A
@@ -57,55 +61,60 @@ class Movement_Controller(threading.Thread):
         Returns:
             N/A
         '''
-        super(Movement_Controller, self).__init__()
+
+        #Initialize the parent class of 
+        super(Navigation_Controller, self).__init__()
+
         #Get the mechos network parameters
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
         #MechOS node to connect movement controller to mechos network
-        self.movement_controller_node = mechos.Node("MOV_CTRL", configs["ip"])
+        self.navigation_controller_node = mechos.Node("MOV_CTRL", configs["ip"])
 
         #Subscriber to change movement mode
-        self.movement_mode_subscriber = self.movement_controller_node.create_subscriber("MM", self.__update_movement_mode_callback, configs["sub_port"])
+        self.movement_mode_subscriber = self.navigation_controller_node.create_subscriber("MM", self.__update_movement_mode_callback, configs["sub_port"])
 
         #Subscriber to get the desired position set by the user/mission controller.
-        self.desired_position_subscriber = self.movement_controller_node.create_subscriber("DP", self.__unpack_desired_position_callback, configs["sub_port"])
-        self.pid_errors_proto = pid_errors_pb2.PID_ERRORS()
+        self.desired_position_subscriber = self.navigation_controller_node.create_subscriber("DP", self.__unpack_desired_position_callback, configs["sub_port"])
 
+        #TODO: Create a thread that publishes the errors
         #Publisher that published the PID errors for each degree of freedom
-        self.pid_errors_publisher = self.movement_controller_node.create_publisher("PE", configs["pub_port"])
+        self.pid_errors_proto = pid_errors_pb2.PID_ERRORS()
+        self.pid_errors_publisher = self.navigation_controller_node.create_publisher("PE", configs["pub_port"])
 
         #Subscriber to listen for thrust messages from the thruster test widget
-        self.thruster_test_subscriber = self.movement_controller_node.create_subscriber("TT", self.__update_thruster_test_callback, configs["sub_port"])
+        self.thruster_test_subscriber = self.navigation_controller_node.create_subscriber("TT", self.__update_thruster_test_callback, configs["sub_port"])
         self.thruster_test_proto = thrusters_pb2.Thrusters() #Thruster protobuf message
 
         #Connect to parameters server
         self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
         self.param_serv.use_parameter_database(configs["param_server_path"])
 
-        #TODO: Remove Position Estimator from Dynamics
-        #Initialize the position estimator thread. The position estimator
-        #will estimate the real time current position of the sub with respect to
-        #the origin set.
-        #self.position_estimator_thread = Position_Estimator()
-        #self.position_estimator_thread.start()
-
         #Initialize the sensor driver, which will run all the threads to recieve 
         #sensor data.
         self.sensor_driver = Sensor_Driver()
-
-        #Proto buffer containing all of the navigation data
-        #self.nav_data_proto = navigation_data_pb2.NAV_DATA()
-        #self.current_position_subscriber = self.movement_controller_node.create_subscriber("NAV", self.__get_position_callback, configs["sub_port"])
         
-        self.sub_killed_subscriber = self.movement_controller_node.create_subscriber("KS", self._update_sub_killed_state, configs["sub_port"])
+        #Subscriber to command listener to listen if the sub is killed.
+        self.sub_killed_subscriber = self.navigation_controller_node.create_subscriber("KS", self._update_sub_killed_state, configs["sub_port"])
 
         #Get movement controller timing
+        #TODO: Implement a Net timer to produce more accurate timing!
         self.time_interval = float(self.param_serv.get_param("Timing/movement_control"))
 
-        self.movement_mode = 1
+        #Initial movement mode to match GUI.
+        #0 --> PID tuner
+        #1 --> Thruster tester
+        self.movement_mode = 0
+
+        #Allow the naviagtion controller thread to run
         self.run_thread = True
+
+        #1--> Thrusters are softkilled (by software)
+        #0--> Thrusters are unkilled and can be commanded.
         self.sub_killed = 1
+
         #Initialize 6 degree of freedom PID movement controller used for the sub.
+        #Primary control system for the sub
         self.pid_controller = Movement_PID()
 
         #Initialize current position [roll, pitch, yaw, x_pos, y_pos, depth]
@@ -125,11 +134,11 @@ class Movement_Controller(threading.Thread):
         self.pid_values_update_thread_run = False
         self.pid_values_update_thread_freeze = True #If frozen, the thread will do nothing to not waste resources
 
-        #Set up a thread to listen to a requests from GUI. This includes movement mode and desired_position
-        self.gui_control_thread = threading.Thread(target=self.update_gui_requests_thread)
-        self.gui_control_thread.daemon = True
-        self.gui_control_thread_run = True
-        self.gui_control_thread.start()
+        #Set up a thread to listen to a requests from GUI/mission_commander. This includes movement mode and desired_position
+        self.command_listener_thread = threading.Thread(target=self.command_listener)
+        self.command_listener_thread.daemon = True
+        self.command_listener_thread_run = True
+        self.command_listener_thread.start()
 
         self.daemon = True
 
@@ -155,7 +164,7 @@ class Movement_Controller(threading.Thread):
 
         self.movement_mode = struct.unpack('b', movement_mode)[0]
 
-    def update_gui_requests_thread(self):
+    def command_listener(self):
         '''
         The thread to run to update requests from the gui for changes in the movement mode,
         sub_killed, and desired position. Started by a thread.
@@ -166,31 +175,14 @@ class Movement_Controller(threading.Thread):
         Returns:
             N/A
         '''
-        while self.gui_control_thread_run:
+        while self.command_listener_thread_run:
 
-            self.movement_controller_node.spinOnce(self.movement_mode_subscriber)
-            self.movement_controller_node.spinOnce(self.sub_killed_subscriber)
-            self.movement_controller_node.spinOnce(self.desired_position_subscriber)
+            self.navigation_controller_node.spinOnce(self.movement_mode_subscriber)
+            self.navigation_controller_node.spinOnce(self.sub_killed_subscriber)
+            self.navigation_controller_node.spinOnce(self.desired_position_subscriber)
             time.sleep(0.2)
-    """
-    def __get_position_callback(self, nav_data_proto):
-        '''
-        The callback function to unpack the navigation data sent from the sensor driver.
+ 
 
-        Parameter:
-            nav_data_proto: Protobuf of type NAV_DATA to unpack
-
-        Returns:
-            N/A
-        '''
-        self.nav_data_proto.ParseFromString(nav_data_proto)
-        self.current_position[0] = self.nav_data_proto.roll
-        self.current_position[1] = self.nav_data_proto.pitch
-        self.current_position[2] = self.nav_data_proto.yaw
-        self.current_position[3] = self.nav_data_proto.x_translation
-        self.current_position[4] = self.nav_data_proto.y_translation
-        self.current_position[5] = self.nav_data_proto.depth
-    """
     def __unpack_desired_position_callback(self, desired_position_proto):
         '''
         The callback function to unpack the desired position proto message received
@@ -209,6 +201,10 @@ class Movement_Controller(threading.Thread):
         self.desired_position[3] = self.desired_position_proto.x_pos
         self.desired_position[4] = self.desired_position_proto.y_pos
         self.desired_position[5] = self.desired_position_proto.depth
+
+        print("\n\nNew Desire Position Recieved:")
+        for index, dp in enumerate(self.desired_position):
+            print("%s: %0.2f" % (MOVEMENT_AXIS[index], dp), end='')
 
     def __update_pid_values(self):
         '''
@@ -249,7 +245,11 @@ class Movement_Controller(threading.Thread):
         thrusts[5] = self.thruster_test_proto.thruster_6
         thrusts[6] = self.thruster_test_proto.thruster_7
         thrusts[7] = self.thruster_test_proto.thruster_8
-        print(thrusts)
+        
+        print("\nTesting Thrusters")
+        for index, value in enumerate(thrusts):
+            print("Thruster %d: %d%" % (index, value),end='')
+
         self.pid_controller.simple_thrust(thrusts)
 
 
@@ -269,10 +269,11 @@ class Movement_Controller(threading.Thread):
             N/A
         '''
         current_position = [0, 0, 0, 0, 0, 0]
-        sub_killed = True
+
         while(self.run_thread):
 
             if(self.sub_killed == 1):
+                #Turn off all thrusters
                 self.pid_controller.simple_thrust([0, 0, 0, 0, 0, 0, 0, 0])
 
 
@@ -289,22 +290,11 @@ class Movement_Controller(threading.Thread):
                     self.pid_values_update_thread_run = True
                     self.pid_values_update_thread.start()
 
-                #TODO: Remove Position Estimator from Dynamics
-                #The current position (roll, pitch, yaw, depth, x_disp, y_disp)
-                #calculated by the position estimator thread.
-                #current_position = self.position_estimator_thread.belief_position
-                #self.movement_controller_node.spinOnce(self.current_position_subscriber)
-
+                #Get the current position form sensor driver
                 current_position = self.sensor_driver._get_sensor_data()
+
                 if(current_position != None):
                     self.current_position = current_position
-                
-                #Get the desired position of the sub. Typically this message is
-                #sent from the GUI or mission controller.
-                #TODO:Put this in the thread with the movement mode
-                #self.movement_controller_node.spinOnce(self.desired_position_subscriber)
-
-                #print(current_position, self.desired_position)
 
                 #----SIMPLE DEPTH MOVE NO YAW--------------------------------------
                 #Perform the PID control step to move the sub to the desired depth
@@ -342,12 +332,12 @@ class Movement_Controller(threading.Thread):
             #THRUSTER test mode.
             elif self.movement_mode == 1:
                 self.pid_values_update_thread_freeze = True
-                self.movement_controller_node.spinOnce(self.thruster_test_subscriber)
+                self.navigation_controller_node.spinOnce(self.thruster_test_subscriber)
 
             #Use Net timer to sink up timing
             time.sleep(self.time_interval)
 
 if __name__ == "__main__":
-    movement_controller = Movement_Controller()
+    navigation_controller = navigation_controller()
 
-    movement_controller.run()
+    navigation_controller.run()
