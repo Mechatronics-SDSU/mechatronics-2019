@@ -46,18 +46,18 @@ class Sensor_Driver:
             N/A
         '''
         #proto buff packaging
-        self.nav_data_proto = navigation_data_pb2.NAV_DATA()
+        #self.nav_data_proto = navigation_data_pb2.NAV_DATA()
 
         #Get the mechos network parameters
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
         #Mechos nodes to send Sensor Data
         self.sensor_driver_node = mechos.Node("SENSOR_DRIVER", configs["ip"])
-        self.nav_data_publisher = self.sensor_driver_node.create_publisher("NAV", configs["pub_port"])
+        #self.nav_data_publisher = self.sensor_driver_node.create_publisher("NAV", configs["pub_port"])
 
         #MechOS node to receive zero position message (zero position message is sent in the DP topic)
-        self.zero_pos_sub = self.sensor_driver_node.create_subscriber("DP", self._zero_pos_callback, configs["sub_port"])
-        self.zero_pos_proto = desired_position_pb2.DESIRED_POS() #Protocol buffer for receiving the zero position flag
+        #self.zero_pos_sub = self.sensor_driver_node.create_subscriber("DP", self._zero_pos_callback, configs["sub_port"])
+        #self.zero_pos_proto = desired_position_pb2.DESIRED_POS() #Protocol buffer for receiving the zero position flag
 
         self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
         self.param_serv.use_parameter_database(configs["param_server_path"])
@@ -73,7 +73,7 @@ class Sensor_Driver:
         #Initialize ahrs handler
         self.ahrs_driver_thread = AHRS(ahrs_com_port)
 
-	#iNITIALIZE dvl DRIVER THREAD
+	    #Initialize DVL thread
         self.dvl_driver_thread = DVL_THREAD(dvl_com_port)
 
         #Threading lock to access shared thread data safely
@@ -100,6 +100,30 @@ class Sensor_Driver:
         self.zero_pos_proto.zero_pos = False
         self.zero_pos_proto.ParseFromString(zero_pos_proto)
         self.zero_pos_flag = self.zero_pos_proto.zero_pos
+
+    def _get_sensor_data(self):
+        '''
+        This function is to be used to get the sensor data and return it. It can
+        be used if sensor_driver is being imported and NOT used as a thread.
+
+        Parameters:
+            N/A
+        Returns:
+            sensor_data: All the sensor navigation data from AHRS, DVL, and 
+                    Backplane.
+                    form --> [roll, pitch, yaw, x_pos, y_pos, depth]
+        '''
+        sensor_data = [0, 0, 0, 0, 0, 0]
+        
+        #Get the AHRS data
+        sensor_data[0:2] = self.ahrs_driver_thread.ahrs_data
+
+        #Get x and y position
+        #TODO: Need to move the position estimator to here in the sensor driver
+        sensor_data[3:4] = self.dvl_driver_thread.PACKET[4:5]
+
+        #Get the depth from the Backplane
+        sensor_data[-1] = self.backplane_driver_thread.depth_data
 
 
     def run(self):
