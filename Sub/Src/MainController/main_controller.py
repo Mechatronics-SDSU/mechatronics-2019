@@ -11,15 +11,14 @@ Description: The main process on the sub that will orchatrate
 import sys
 import os
 
-SENSOR_HUB_PATH = os.path.join("..", "SensorHub")
-sys.path.append(SENSOR_HUB_PATH)
-from sensor_driver import Sensor_Driver
+#SENSOR_HUB_PATH = os.path.join("..", "SensorHub")
+#sys.path.append(SENSOR_HUB_PATH)
+#from sensor_driver import Sensor_Driver
 
 MOVEMENT_CONT_PATH = os.path.join("..", "Dynamics")
 sys.path.append(MOVEMENT_CONT_PATH)
+from movement_controller import Movement_Controller
 import time
-
-
 
 class Main_Controller:
     '''
@@ -35,9 +34,16 @@ class Main_Controller:
         '''
         #Initialize the sensor driver. This will start
         #the threads to collect sensor data.
-        self.sensor_controller = Sensor_Driver()
+        #self.sensor_controller = Sensor_Driver()
+
+        #Initialize the movement controller thread
+        self.movement_controller = Movement_Controller()
 
         self.run_main_controller = True
+
+        #Start up threads
+        #Start the movement controller
+        self.movement_controller.start()
 
     def print_sensor_data(self, sensor_data):
         '''
@@ -60,14 +66,14 @@ class Main_Controller:
         print("X Pos.: %0.2f" % (sensor_data[3]))
         print("Y Pos.: %0.2f" % (sensor_data[4]))
         print("Depth: %0.2f" % (sensor_data[5]))
+        
     def run(self):
         '''
         Run the Main controller of the sub
         '''
         while(self.run_main_controller):
-            sensor_data = self.sensor_controller._get_sensor_data()
-            self.print_sensor_data(sensor_data)
-            time.sleep(0.025)
+            print_sensor_data(self.movement_controller.current_position)
+        
 if __name__ == "__main__":
     main_controller = Main_Controller()
     main_controller.run()

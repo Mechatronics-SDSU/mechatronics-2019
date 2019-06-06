@@ -17,6 +17,10 @@ HELPER_PATH = os.path.join("..", "Helpers")
 sys.path.append(HELPER_PATH)
 import util_timer
 
+SENSOR_HUB_PATH = os.path.join("..", "SensorHub")
+sys.path.append(SENSOR_HUB_PATH)
+from sensor_driver import Sensor_Driver
+
 PARAM_PATH = os.path.join("..", "Params")
 sys.path.append(PARAM_PATH)
 MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
@@ -36,7 +40,7 @@ from MechOS import mechos
 import struct
 import threading
 
-class Movement_Controller:
+class Movement_Controller(threading.Thread):
     '''
     This main movement controller for the sub. It lets the user select which
     control system to is currently used to move and balance the sub.
@@ -84,9 +88,14 @@ class Movement_Controller:
         #self.position_estimator_thread = Position_Estimator()
         #self.position_estimator_thread.start()
 
+        #Initialize the sensor driver, which will run all the threads to recieve 
+        #sensor data.
+        self.sensor_driver = Sensor_Driver()
+
         #Proto buffer containing all of the navigation data
-        self.nav_data_proto = navigation_data_pb2.NAV_DATA()
-        self.current_position_subscriber = self.movement_controller_node.create_subscriber("NAV", self.__get_position_callback, configs["sub_port"])
+        #self.nav_data_proto = navigation_data_pb2.NAV_DATA()
+        #self.current_position_subscriber = self.movement_controller_node.create_subscriber("NAV", self.__get_position_callback, configs["sub_port"])
+        
         self.sub_killed_subscriber = self.movement_controller_node.create_subscriber("KS", self._update_sub_killed_state, configs["sub_port"])
 
         #Get movement controller timing
@@ -98,10 +107,10 @@ class Movement_Controller:
         #Initialize 6 degree of freedom PID movement controller used for the sub.
         self.pid_controller = Movement_PID()
 
-        #Initialize current position
+        #Initialize current position [roll, pitch, yaw, x_pos, y_pos, depth]
         self.current_position = [0, 0, 0, 0, 0, 0]
 
-        #Initialize desired position
+        #Initialize desired position [roll, pitch, yaw, x_pos, y_pos, depth]
         self.desired_position = [0, 0, 0, 0, 0, 0]
         self.desired_position_proto = desired_position_pb2.DESIRED_POS()
 
@@ -115,12 +124,16 @@ class Movement_Controller:
         self.pid_values_update_thread_run = False
         self.pid_values_update_thread_freeze = True #If frozen, the thread will do nothing to not waste resources
 
-        #Set up a thread to listen to a movement mode change.
-        self.movement_mode_thread = threading.Thread(target=self.update_movement_mode_thread)
-        self.movement_mode_thread.daemon = True
-        self.movement_mode_thread_run = True
-        self.movement_mode_thread.start()
+        #Set up a thread to listen to a requests from GUI. This includes movement mode and desired_position
+        self.gui_control_thread = threading.Thread(target=self.update_gui_requrests_thread)
+        self.gui_control_thread.daemon = True
+        self.gui_control_thread_run = True
+        self.gui_control_thread.start()
+
+        self.daemon = True
+
         print("Sub Initially Killed")
+
     def _update_sub_killed_state(self, killed_state):
         '''
         '''
@@ -141,10 +154,10 @@ class Movement_Controller:
 
         self.movement_mode = struct.unpack('b', movement_mode)[0]
 
-    def update_movement_mode_thread(self):
+    def update_gui_requests_thread(self):
         '''
-        The thread to run to update listen for changes in the movement mode. Started by a
-        thread.
+        The thread to run to update requests from the gui for changes in the movement mode,
+        sub_killed, and desired position. Started by a thread.
 
         Parameters:
             N/A
@@ -156,7 +169,9 @@ class Movement_Controller:
 
             self.movement_controller_node.spinOnce(self.movement_mode_subscriber)
             self.movement_controller_node.spinOnce(self.sub_killed_subscriber)
+            self.movement_controller_node.spinOnce(self.desired_position_subscriber)
             time.sleep(0.2)
+    """
     def __get_position_callback(self, nav_data_proto):
         '''
         The callback function to unpack the navigation data sent from the sensor driver.
@@ -171,10 +186,10 @@ class Movement_Controller:
         self.current_position[0] = self.nav_data_proto.roll
         self.current_position[1] = self.nav_data_proto.pitch
         self.current_position[2] = self.nav_data_proto.yaw
-        self.current_position[3] = self.nav_data_proto.depth
-        self.current_position[4] = self.nav_data_proto.x_translation
-        self.current_position[5] = self.nav_data_proto.y_translation
-
+        self.current_position[3] = self.nav_data_proto.x_translation
+        self.current_position[4] = self.nav_data_proto.y_translation
+        self.current_position[5] = self.nav_data_proto.depth
+    """
     def __unpack_desired_position_callback(self, desired_position_proto):
         '''
         The callback function to unpack the desired position proto message received
@@ -190,9 +205,9 @@ class Movement_Controller:
         self.desired_position[0] = self.desired_position_proto.roll
         self.desired_position[1] = self.desired_position_proto.pitch
         self.desired_position[2] = self.desired_position_proto.yaw
-        self.desired_position[3] = self.desired_position_proto.depth
-        self.desired_position[4] = self.desired_position_proto.x_pos
-        self.desired_position[5] = self.desired_position_proto.y_pos
+        self.desired_position[3] = self.desired_position_proto.x_pos
+        self.desired_position[4] = self.desired_position_proto.y_pos
+        self.desired_position[5] = self.desired_position_proto.depth
 
     def __update_pid_values(self):
         '''
@@ -277,11 +292,16 @@ class Movement_Controller:
                 #The current position (roll, pitch, yaw, depth, x_disp, y_disp)
                 #calculated by the position estimator thread.
                 #current_position = self.position_estimator_thread.belief_position
-                self.movement_controller_node.spinOnce(self.current_position_subscriber)
+                #self.movement_controller_node.spinOnce(self.current_position_subscriber)
 
+                current_position = self.sensor_driver._get_sensor_data()
+                if(current_position != None):
+                    self.current_position = current_position
+                
                 #Get the desired position of the sub. Typically this message is
                 #sent from the GUI or mission controller.
-                self.movement_controller_node.spinOnce(self.desired_position_subscriber)
+                #TODO:Put this in the thread with the movement mode
+                #self.movement_controller_node.spinOnce(self.desired_position_subscriber)
 
                 #print(current_position, self.desired_position)
 
@@ -290,17 +310,17 @@ class Movement_Controller:
                 #The error received is the roll, pitch, and depth error
                 error = self.pid_controller.simple_depth_move_no_yaw(self.current_position[0],
                                                              self.current_position[1],
-                                                             self.current_position[3],
+                                                             self.current_position[5],
                                                              self.desired_position[0],
                                                              self.desired_position[1],
-                                                             self.desired_position[3])
+                                                             self.desired_position[5])
                 #Package PID error protos
-                self.pid_errors_proto.roll_error = error[0]
-                self.pid_errors_proto.pitch_error = error[1]
-                self.pid_errors_proto.z_pos_error = error[3] #depth error
+                #self.pid_errors_proto.roll_error = error[0]
+                #self.pid_errors_proto.pitch_error = error[1]
+                #self.pid_errors_proto.z_pos_error = error[3] #depth error
 
-                serialzed_pid_errors_proto = self.pid_errors_proto.SerializeToString()
-                self.pid_errors_publisher.publish(serialzed_pid_errors_proto)
+                #serialzed_pid_errors_proto = self.pid_errors_proto.SerializeToString()
+                #self.pid_errors_publisher.publish(serialzed_pid_errors_proto)
                 #----------------------------------------------------------------------
 
                 #----ADVANCE MOVE (ALL 6 DEGREES OF FREEDOMW)--------------------------
@@ -323,6 +343,7 @@ class Movement_Controller:
                 self.pid_values_update_thread_freeze = True
                 self.movement_controller_node.spinOnce(self.thruster_test_subscriber)
 
+            #Use Net timer to sink up timing
             time.sleep(self.time_interval)
 
 if __name__ == "__main__":
