@@ -2,6 +2,7 @@
 import os
 import sys
 import pygame
+import pickle
 
 dynamics_path = os.path.join("..")
 sys.path.append(dynamics_path)
@@ -11,14 +12,16 @@ from Shafi.Calibrated_Control import Calibrate, set_thruster_value
 from NodeClass import Node
 
 class rcNode(Node):
-    def __init__(self)
+    '''
+    def __init__(self):
         super(rcNode,self).__init__()
-
+    '''
     def run(self, message, port):
-        (self._publishers[port]).publish(message)
+        letter = pickle.dumps(message)
+        (self._publishers[port]).serial_publish(letter)
 
 def main():
-    remote_control = rcNode('udp://192.168.1.14', "remote control", 'udp')
+    remote_control = rcNode('127.0.0.1', "remote control", 'udp')
     isRegular = False #Calibrate will run first
     remote_control.add_publisher(5558, 'udp', 0.001)
     clock = pygame.time.Clock()

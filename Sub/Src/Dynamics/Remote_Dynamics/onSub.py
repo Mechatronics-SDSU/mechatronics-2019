@@ -1,3 +1,25 @@
+import sys
+import pickle
+
+sys.path.append("..")
+from NodeClass import Node
+
+class sub_node(Node):
+
+    def run(self, port):
+        while True:
+            arr = self._subscribers[port].serial_subscribe()
+
+def main():
+    print_node = sub_node('127.0.0.101', "remote control", 'udp')
+    print_node.add_subscriber(5558, 'udp', 0.001)
+    print_node.run(5558)
+
+if __name__ == '__main__':
+    main()
+
+
+'''
 #!/usr/bin/env python3
 import thruster
 import nodes
@@ -32,3 +54,4 @@ class ThrusterConfigNode(nodes.nodeBase, threading.Thread):
             self._thruster_6.setThrust(DATA[0][5])
             self._thruster_7.setThrust(DATA[0][6])
             self._thruster_8.setThrust(DATA[0][7])
+'''

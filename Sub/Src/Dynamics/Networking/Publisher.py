@@ -1,6 +1,7 @@
 import socket
 import threading
 import time as CLOCK
+import pickle
 
 class Publisher:
     def __init__(self, HOST, PORT, TOPIC, PUBRATE=None):
@@ -50,16 +51,26 @@ class Publisher:
     #@overloadedMethod
     def publish(self, message=None):
         if message is None:
-            self._SOCK.sendto( self._message.encode(), (self._HOST, self._PORT) )
+            self._SOCK.sendto(self._message.encode(), (self._HOST, self._PORT) )
 
         else:
-            self._SOCK.sendto( message.encode(), (self._HOST, self._PORT) )
+            self._SOCK.sendto(message.encode(), (self._HOST, self._PORT) )
+
+        self._timeAtLastPublish = CLOCK.time()
+
+    def serial_publish(self, message = None):
+        if message is None:
+            self._SOCK.sendto(self._message, (self._HOST, self._PORT))
+
+        else:
+            self._SOCK.sendto(message, (self._HOST, self._PORT))
 
         self._timeAtLastPublish = CLOCK.time()
 
 
 
-    '''# Functionality Should there Be a While loop and no Main Thread
+'''
+# Functionality Should there Be a While loop and no Main Thread
     def pause(self):
         self.paused = True
         self.paused_condition.acquire()
@@ -68,7 +79,7 @@ class Publisher:
         self.paused = False
         self.paused_condition.notify()
         self.paused_condition.release()
-    '''
+'''
 
 #    def run(self):
 #        while(True):
