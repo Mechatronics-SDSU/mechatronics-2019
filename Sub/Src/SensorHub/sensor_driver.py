@@ -86,20 +86,18 @@ class Sensor_Driver:
         self.dvl_driver_thread.start()
         self.zero_pos_flag = True
 
-    def _zero_pos_callback(self, zero_pos_proto):
+    def zero_pos(self):
         '''
-        Callback function for the zero pos. subscriber to receive the zero position flag
-        from the GUI.
+        Zero the position of the sub in the x and y coordinates
 
         Parameters:
-            zero_pos_proto: A protocol buffer of type DESIRED_POS, which contains the flag to zero position
-
+            N/A
         Returns:
             N/A
         '''
-        self.zero_pos_proto.zero_pos = False
-        self.zero_pos_proto.ParseFromString(zero_pos_proto)
-        self.zero_pos_flag = self.zero_pos_proto.zero_pos
+        #This will be reset to false automatically by the dvl driver
+        self.dvl_driver_thread.reset_integration_flag = True
+
 
     def _get_sensor_data(self):
         '''

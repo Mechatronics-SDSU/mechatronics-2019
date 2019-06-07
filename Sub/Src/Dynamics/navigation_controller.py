@@ -170,7 +170,7 @@ class Navigation_Controller(threading.Thread):
         '''
 
         self.movement_mode = struct.unpack('b', movement_mode)[0]
-        if(self.movmement_mode == 0):
+        if(self.movement_mode == 0):
             self.pid_values_update_freeze = False
             self.update_pid_errors = True
         else:
@@ -211,26 +211,29 @@ class Navigation_Controller(threading.Thread):
             N/A
         '''
         while(self.update_command_thread_run):
-            #Package up the sensor data in protobuf to be published
-            self.nav_data_proto.roll = self.current_position[0]
-            self.nav_data_proto.pitch = self.current_position[1]
-            self.nav_data_proto.yaw = self.current_position[2]
-            self.nav_data_proto.x_translation = self.current_position[3]
-            self.nav_data_proto.y_translation = self.current_position[4]
-            self.nav_data_proto.depth = self.current_position[5]
+            try:
+                #Package up the sensor data in protobuf to be published
+                self.nav_data_proto.roll = self.current_position[0]
+                self.nav_data_proto.pitch = self.current_position[1]
+                self.nav_data_proto.yaw = self.current_position[2]
+                self.nav_data_proto.x_translation = self.current_position[3]
+                self.nav_data_proto.y_translation = self.current_position[4]
+                self.nav_data_proto.depth = self.current_position[5]
+            
+                serialized_nav_data = self.nav_data_proto.SerializeToString()
+                self.nav_data_publisher.publish(serialized_nav_data) #Send the current position
+      
+                if(self.update_pid_errors):
+                    #Package PID error protos
+                    self.pid_errors_proto.roll_error = self.pos_error[0]
+                    self.pid_errors_proto.pitch_error = self.pos_error[1]
+                    self.pid_errors_proto.z_pos_error = self.pos_error[5] #depth error
 
-            serialized_nav_data = self.nav_data_proto.SerializeToString()
-            self.nav_data_publisher.publish(serialized_nav_data) #Send the current position
-
-            if(self.update_pid_errors):
-                #Package PID error protos
-                self.pid_errors_proto.roll_error = self.pos_error[0]
-                self.pid_errors_proto.pitch_error = self.pos_error[1]
-                self.pid_errors_proto.z_pos_error = self.pos_error[5] #depth error
-
-                serialzed_pid_errors_proto = self.pid_errors_proto.SerializeToString()
-                self.pid_errors_publisher.publish(serialzed_pid_errors_proto)
-
+                    serialzed_pid_errors_proto = self.pid_errors_proto.SerializeToString()
+                    self.pid_errors_publisher.publish(serialzed_pid_errors_proto)
+            except Exception as e:
+                print("Could not correctly send data from navigation controller. Error:", e)
+            time.sleep(0.1)
     def __unpack_desired_position_callback(self, desired_position_proto):
         '''
         The callback function to unpack the desired position proto message received
@@ -249,6 +252,9 @@ class Navigation_Controller(threading.Thread):
         self.desired_position[3] = self.desired_position_proto.x_pos
         self.desired_position[4] = self.desired_position_proto.y_pos
         self.desired_position[5] = self.desired_position_proto.depth
+
+        if(self.desired_position_proto.zero_pos):
+            self.sensor_driver.zero_pos()
 
         print("\n\nNew Desire Position Recieved:")
         for index, dp in enumerate(self.desired_position):
@@ -281,8 +287,8 @@ class Navigation_Controller(threading.Thread):
         
         print("\nTesting Thrusters")
         for index, value in enumerate(thrusts):
-            print("Thruster %d: %d%" % (index, value),end='')
-
+            print("Thruster %d: %d%% " % (index, value),end='')
+        print("")
         self.pid_controller.simple_thrust(thrusts)
 
 
@@ -305,6 +311,12 @@ class Navigation_Controller(threading.Thread):
 
         while(self.run_thread):
 
+            #Get the current position form sensor driver
+            current_position = self.sensor_driver._get_sensor_data()
+
+            if(current_position != None):
+                self.current_position = current_position
+
             if(self.sub_killed == 1):
                 #Turn off all thrusters
                 self.pid_controller.simple_thrust([0, 0, 0, 0, 0, 0, 0, 0])
@@ -316,11 +328,6 @@ class Navigation_Controller(threading.Thread):
             #yaw are ignored.
             elif self.movement_mode == 0:
 
-                #Get the current position form sensor driver
-                current_position = self.sensor_driver._get_sensor_data()
-
-                if(current_position != None):
-                    self.current_position = current_position
 
                 #----SIMPLE DEPTH MOVE NO YAW--------------------------------------
                 #Perform the PID control step to move the sub to the desired depth

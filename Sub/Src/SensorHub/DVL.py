@@ -188,7 +188,7 @@ class DVL_THREAD(threading.Thread):
         while(True):
 
             if(self.reset_integration_flag):
-                print("Here")
+                
                 self.Norteck_DVL.reset_integration()
                 self.reset_integration_flag = False #Reset the flag
             #with threading.Lock():
