@@ -104,9 +104,9 @@ class Navigation_Controller(threading.Thread):
         self.sub_killed_subscriber = self.navigation_controller_node.create_subscriber("KS", self._update_sub_killed_state, configs["sub_port"])
 
 
-        #Get movement controller timing
-        #TODO: Implement a Net timer to produce more accurate timing!
-        self.time_interval = float(self.param_serv.get_param("Timing/movement_control"))
+        #Get navigation controller timing
+        self.nav_time_interval = float(self.param_serv.get_param("Timing/nav_controller"))
+        self.nav_timer = util_timer.Timer()
 
         #Initial movement mode to match GUI.
         #0 --> PID tuner
@@ -308,8 +308,15 @@ class Navigation_Controller(threading.Thread):
             N/A
         '''
         current_position = [0, 0, 0, 0, 0, 0]
+        self.nav_timer.restart_timer()
 
         while(self.run_thread):
+            
+            nav_time = self.nav_timer.net_timer()
+
+            if(nav_timer < self.nav_time_interval):
+                time.sleep(self.nav_time_interval - nav_time)
+                self.nav_timer.restart_timer()
 
             #Get the current position form sensor driver
             current_position = self.sensor_driver._get_sensor_data()
@@ -371,8 +378,6 @@ class Navigation_Controller(threading.Thread):
                 
                 self.navigation_controller_node.spinOnce(self.thruster_test_subscriber)
 
-            #Use Net timer to sink up timing
-            time.sleep(self.time_interval)
 
 if __name__ == "__main__":
     navigation_controller = navigation_controller()

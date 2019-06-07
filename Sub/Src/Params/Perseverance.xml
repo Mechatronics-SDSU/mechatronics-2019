@@ -9,7 +9,7 @@
         <AHRS>0.025</AHRS>
         <backplane_response>0.025</backplane_response>
         <backplane_handler>0.025</backplane_handler>
-        <movement_control>0.025</movement_control>
+        <nav_controller>0.025</nav_controller>
     </Timing>
     <Control>
         <max_thrust>80</max_thrust>
@@ -35,7 +35,7 @@
             <T8>0</T8>
         </Thruster_Strengths>
         <PID>
-            <dt>.05</dt>
+            <dt>.025</dt>
             <roll_pid>
                 <p>0.0</p>
                 <i>0.0</i>
