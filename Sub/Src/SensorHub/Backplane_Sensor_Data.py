@@ -134,7 +134,9 @@ class Backplane_Responses(threading.Thread):
             if(backplane_time < self.backplane_response_timer_interval):
                 time.sleep(self.backplane_response_timer_interval - backplane_time)
                 self.backplane_response_timer.restart_timer()
-
+            else:
+                self.backplane_response_timer.restart_timer()
+            
             backplane_data_packet = self._unpack()
 
             if backplane_data_packet != None:
@@ -332,7 +334,8 @@ class Backplane_Handler(threading.Thread):
                 if(backplane_handler_time < self.backplane_handler_timer_interval):
                     time.sleep(self.backplane_handler_timer_interval - backplane_handler_time)
                     self.backplane_handler_timer.restart_timer()
-
+                else:
+                    self.backplane_handler_timer.restart_timer()
                 #Make request for data
                 self.backplane_requests.request_pressure_transducer_data()
 

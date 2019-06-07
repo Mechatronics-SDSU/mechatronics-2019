@@ -82,6 +82,8 @@ class PID_Controller():
         if( calc_time_interval < self.d_t):
             time.sleep((self.d_t - calc_time_interval))
             self.PID_timer.restart_timer()
+        else:
+            self.PID_timer.restart_timer()
 
         self.integral = self.integral + (error * self.d_t)
         I = self.k_i * self.integral

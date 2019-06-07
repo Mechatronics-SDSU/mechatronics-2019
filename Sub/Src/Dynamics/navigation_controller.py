@@ -314,10 +314,11 @@ class Navigation_Controller(threading.Thread):
             
             nav_time = self.nav_timer.net_timer()
 
-            if(nav_timer < self.nav_time_interval):
+            if(nav_time < self.nav_time_interval):
                 time.sleep(self.nav_time_interval - nav_time)
                 self.nav_timer.restart_timer()
-
+            else:
+                self.nav_timer.restart_timer()
             #Get the current position form sensor driver
             current_position = self.sensor_driver._get_sensor_data()
 

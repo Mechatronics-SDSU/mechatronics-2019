@@ -6,7 +6,7 @@
         <DVL>/dev/ttyUSB1</DVL>
     </COM_Ports>
     <Timing>
-        <AHRS>0.025</AHRS>
+        <AHRS>0.05</AHRS>
         <backplane_response>0.025</backplane_response>
         <backplane_handler>0.025</backplane_handler>
         <nav_controller>0.025</nav_controller>
