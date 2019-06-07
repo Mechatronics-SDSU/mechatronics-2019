@@ -81,6 +81,8 @@ class Navigation_Controller(threading.Thread):
         #Publisher that published the PID errors for each degree of freedom
         self.pid_errors_proto = pid_errors_pb2.PID_ERRORS()
         self.pid_errors_publisher = self.navigation_controller_node.create_publisher("PE", configs["pub_port"])
+        self.update_pid_errors = False
+        self.pid_values_update_freeze = True #Boolean to be used if the movement controller should check for updated PID values.
 
         #Subscriber to listen for thrust messages from the thruster test widget
         self.thruster_test_subscriber = self.navigation_controller_node.create_subscriber("TT", self.__update_thruster_test_callback, configs["sub_port"])
@@ -93,9 +95,14 @@ class Navigation_Controller(threading.Thread):
         #Initialize the sensor driver, which will run all the threads to recieve 
         #sensor data.
         self.sensor_driver = Sensor_Driver()
-        
-        #Subscriber to command listener to listen if the sub is killed.
+
+        #Publisher to send the sensor data/current position/navigation data to the GUI and Mission Commander
+        self.nav_data_publisher = self.navigation_controller_node.create_publisher("NAV", configs["pub_port"])
+        self.nav_data_proto = navigation_data_pb2.NAV_DATA()
+
+        #Subscriber to commands from the GUI and Mission commanderto listen if the sub is killed.
         self.sub_killed_subscriber = self.navigation_controller_node.create_subscriber("KS", self._update_sub_killed_state, configs["sub_port"])
+
 
         #Get movement controller timing
         #TODO: Implement a Net timer to produce more accurate timing!
@@ -119,26 +126,25 @@ class Navigation_Controller(threading.Thread):
 
         #Initialize current position [roll, pitch, yaw, x_pos, y_pos, depth]
         self.current_position = [0, 0, 0, 0, 0, 0]
+        self.pos_error = [0, 0, 0, 0, 0, 0]
 
         #Initialize desired position [roll, pitch, yaw, x_pos, y_pos, depth]
         self.desired_position = [0, 0, 0, 0, 0, 0]
         self.desired_position_proto = desired_position_pb2.DESIRED_POS()
 
-        #Set up thread to update PID values. The GUI has the ability to change
-        #the proportional, integral, and derivative constants by setting them in
-        #the parameter server. These values should only be checked in the PID tunning
-        #modes.
-        #This update thread also updates the strength parameter for each thruster.
-        self.pid_values_update_thread = threading.Thread(target=self.__update_pid_values)
-        self.pid_values_update_thread.daemon = True
-        self.pid_values_update_thread_run = False
-        self.pid_values_update_thread_freeze = True #If frozen, the thread will do nothing to not waste resources
-
-        #Set up a thread to listen to a requests from GUI/mission_commander. This includes movement mode and desired_position
-        self.command_listener_thread = threading.Thread(target=self.command_listener)
+        #Set up a thread to listen to a requests from GUI/mission_commander. 
+        # This includes movement mode, desired_position, new PID values, and sub killed command.
+        self.command_listener_thread = threading.Thread(target=self._command_listener)
         self.command_listener_thread.daemon = True
         self.command_listener_thread_run = True
         self.command_listener_thread.start()
+
+        #A thread to update the GUI/mission commander on the current position of the sub
+        # and the current PID errors if the sub is in PID tunning mode
+        self.update_command_thread = threading.Thread(target=self._update_command)
+        self.update_command_thread.daemon = True
+        self.update_command_thread_run = True
+        self.update_command_thread.start()
 
         self.daemon = True
 
@@ -150,6 +156,7 @@ class Navigation_Controller(threading.Thread):
 
         self.sub_killed = struct.unpack('b', killed_state)[0]
         print("Sub Killed:", self.sub_killed)
+
     def __update_movement_mode_callback(self, movement_mode):
         '''
         The callback function to select which movement controller mode is being used.
@@ -163,11 +170,17 @@ class Navigation_Controller(threading.Thread):
         '''
 
         self.movement_mode = struct.unpack('b', movement_mode)[0]
+        if(self.movmement_mode == 0):
+            self.pid_values_update_freeze = False
+            self.update_pid_errors = True
+        else:
+            self.pid_values_update_freeze = True
+            self.update_pid_errors = False
 
-    def command_listener(self):
+    def _command_listener(self):
         '''
-        The thread to run to update requests from the gui for changes in the movement mode,
-        sub_killed, and desired position. Started by a thread.
+        The thread to run to update requests from the gui or mission commaner for changes in the movement mode,
+        sub_killed, and desired position. Also send the current sensor data to the GUI and mission commander.
 
         Parameters:
             N/A
@@ -176,12 +189,47 @@ class Navigation_Controller(threading.Thread):
             N/A
         '''
         while self.command_listener_thread_run:
-
+            #Recieve commands from the the GUI and/or Mission Commander
             self.navigation_controller_node.spinOnce(self.movement_mode_subscriber)
             self.navigation_controller_node.spinOnce(self.sub_killed_subscriber)
             self.navigation_controller_node.spinOnce(self.desired_position_subscriber)
+
+            #If pid values update is not frozen, then update the pid values from the parameter server.
+            if(self.pid_values_update_freeze == False):
+                self.pid_controller.set_up_PID_controllers()
+
             time.sleep(0.2)
  
+    def _update_command(self):
+        '''
+        This thread publishes the sensor data which gives the current naviagtion position to 
+        the GUI and Mission Commander. It also sends the current PID error if in PID tuning mode.
+
+        Parameters:
+            N/A
+        Returns:
+            N/A
+        '''
+        while(self.update_command_thread_run):
+            #Package up the sensor data in protobuf to be published
+            self.nav_data_proto.roll = self.current_position[0]
+            self.nav_data_proto.pitch = self.current_position[1]
+            self.nav_data_proto.yaw = self.current_position[2]
+            self.nav_data_proto.x_translation = self.current_position[3]
+            self.nav_data_proto.y_translation = self.current_position[4]
+            self.nav_data_proto.depth = self.current_position[5]
+
+            serialized_nav_data = self.nav_data_proto.SerializeToString()
+            self.nav_data_publisher.publish(serialized_nav_data) #Send the current position
+
+            if(self.update_pid_errors):
+                #Package PID error protos
+                self.pid_errors_proto.roll_error = self.pos_error[0]
+                self.pid_errors_proto.pitch_error = self.pos_error[1]
+                self.pid_errors_proto.z_pos_error = self.pos_error[5] #depth error
+
+                serialzed_pid_errors_proto = self.pid_errors_proto.SerializeToString()
+                self.pid_errors_publisher.publish(serialzed_pid_errors_proto)
 
     def __unpack_desired_position_callback(self, desired_position_proto):
         '''
@@ -207,22 +255,6 @@ class Navigation_Controller(threading.Thread):
             print("%s: %0.2f" % (MOVEMENT_AXIS[index], dp), end='')
         print("")
 
-    def __update_pid_values(self):
-        '''
-        Call the RPC server to check if new PID values have been updated.
-
-        Parameters:
-            N/A
-
-        Returns:
-            N/A
-        '''
-        while(self.pid_values_update_thread_run):
-            #Checks the parameters server to obtain possible new PID constants
-            #for every control degree of freedom.
-            if(self.pid_values_update_thread_freeze == False):
-                self.pid_controller.set_up_PID_controllers()
-            time.sleep(0.1)
 
     def __update_thruster_test_callback(self, thruster_proto):
         '''
@@ -284,13 +316,6 @@ class Navigation_Controller(threading.Thread):
             #yaw are ignored.
             elif self.movement_mode == 0:
 
-                #unfreeze the thread that updates the pid values.
-                self.pid_values_update_thread_freeze = False
-
-                if(self.pid_values_update_thread_run == False):
-                    self.pid_values_update_thread_run = True
-                    self.pid_values_update_thread.start()
-
                 #Get the current position form sensor driver
                 current_position = self.sensor_driver._get_sensor_data()
 
@@ -306,6 +331,10 @@ class Navigation_Controller(threading.Thread):
                                                              self.desired_position[0],
                                                              self.desired_position[1],
                                                              self.desired_position[5])
+                self.pos_error[0] = error[0]
+                self.pos_error[1] = error[1]
+                self.pos_error[5] = error[3]
+
                 #Package PID error protos
                 #self.pid_errors_proto.roll_error = error[0]
                 #self.pid_errors_proto.pitch_error = error[1]
@@ -332,7 +361,7 @@ class Navigation_Controller(threading.Thread):
                 #---------------------------------------------------------------------
             #THRUSTER test mode.
             elif self.movement_mode == 1:
-                self.pid_values_update_thread_freeze = True
+                
                 self.navigation_controller_node.spinOnce(self.thruster_test_subscriber)
 
             #Use Net timer to sink up timing
