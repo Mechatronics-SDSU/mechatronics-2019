@@ -37,7 +37,7 @@ class Main_Controller:
         #self.sensor_controller = Sensor_Driver()
 
         #Initialize the navigation controller thread
-        self.navigation_controller = navigation_Controller()
+        self.navigation_controller = Navigation_Controller()
 
         self.run_main_controller = True
 

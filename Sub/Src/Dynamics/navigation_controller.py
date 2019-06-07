@@ -205,6 +205,7 @@ class Navigation_Controller(threading.Thread):
         print("\n\nNew Desire Position Recieved:")
         for index, dp in enumerate(self.desired_position):
             print("%s: %0.2f" % (MOVEMENT_AXIS[index], dp), end='')
+        print("")
 
     def __update_pid_values(self):
         '''
