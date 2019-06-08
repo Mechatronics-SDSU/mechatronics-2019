@@ -25,7 +25,7 @@ class Webcam_Thread(QThread):
                 self.wait()
 
         def print_image_names(self):
-        '''
+                '''
         This opens the "train.txt" file and prints the paths of each jpeg image
         '''
 
@@ -49,7 +49,7 @@ class Webcam_Thread(QThread):
 
                         self.num = self.num+1
 
-                        self.sleep(5) #argument inside sleep function has to align with the rate at which the sub is taking pictures
+                        self.sleep(.1) #argument inside sleep function has to align with the rate at which the sub is taking pictures
 
 
 
