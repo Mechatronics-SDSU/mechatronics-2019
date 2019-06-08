@@ -76,11 +76,11 @@ if __name__=='__main__':
                     time.sleep(0)
 
     # Volatile Memory Instances
-    ID={'127.0.0.101':5558}
+    IP={'127.0.0.101':5558}
     MEM={'Velocity_x':12.01,'Velocity_y':12.02,'Velocity_z':12.03,'Encrypted_dat':'bleh'}
 
     # Initialize Node
-    MyPrintNode = PrintNode(ID, MEM)
+    MyPrintNode = PrintNode(IP, MEM)
 
     # Start Thread
     MyPrintNode.start()
