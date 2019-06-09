@@ -1,6 +1,7 @@
 class reader(object):
 	def __init__(self, volatile_memory):
 		'''
+		accepts dictionary, returns value
 		'''
 		self.MEM=volatile_memory
 

@@ -1,8 +1,13 @@
+import os
+import sys
+comm_path = os.path.join("..")
+sys.path.append(comm_path)
+
 import time
 import threading
 
-from communicationUtils import network
-from communicationUtils import local
+from message_passing.communicationUtils import local as local
+from message_passing.communicationUtils import network as network
 from abc import ABC, abstractmethod
 
 
@@ -52,7 +57,7 @@ class node_base(ABC, threading.Thread):
 if __name__=='__main__':
     import time
 
-    class PrintNode(node_base):
+    class WriteNode(node_base):
         def __init__(self, IP, MEM):
             node_base.__init__(self, IP, MEM)
             self._memory = MEM
@@ -75,6 +80,27 @@ if __name__=='__main__':
                 else:
                     time.sleep(0)
 
+    class ReadNode(node_base):
+        def __init__(self, IP, MEM):
+            node_base.__init__(self, IP, MEM)
+            self._memory = MEM
+            self._ip_route = IP
+            self.baud=.128
+
+        def set_message(message):
+            self.MSG=message
+        def set_baudrate(baudrate):
+            self.baud=baudrate
+
+        def run(self):
+            start_time = time.time()
+            while True:
+                if ( (time.time() - start_time) >= self.baud ):
+                    self._send(msg=self.MSG, local_address='Encrypted_dat')
+                    print(self._recv('Encrypted_dat')) # Local True By Default
+                    start_time=time.time()
+                else:
+                    time.sleep(0)
     # Volatile Memory Instances
     IP={'127.0.0.101':5558}
     MEM={'Velocity_x':12.01,'Velocity_y':12.02,'Velocity_z':12.03,'Encrypted_dat':'bleh'}
@@ -84,3 +110,4 @@ if __name__=='__main__':
 
     # Start Thread
     MyPrintNode.start()
+    MyPrintNode.set_message('abc')

@@ -8,9 +8,9 @@ sys.path.append(dynamics_path)
 
 from Alexa.regularControl import Regular, dotProduct
 from Shafi.Calibrated_Control import Calibrate, set_thruster_value
-from NodeClass import Node
+from Nodes.node_base import node_base
 
-class rcNode(Node):
+class rcNode(node_base):
     '''
     def __init__(self, host, topic, type):
         self._host = host
@@ -21,9 +21,9 @@ class rcNode(Node):
         self._subscribers = {}
     '''
 
-    def run(self, message, port):
-        while True:
-            (self._publishers[port]).publish(message)
+    def run(self, msg, addr):
+        self._send(msg, addr)
+
 
 def main():
     remote_control = rcNode('udp://192.168.1.14', "remote control", 'udp')
