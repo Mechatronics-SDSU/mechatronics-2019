@@ -7,7 +7,7 @@ from PyQt5.QtGui import QColor
 
 class Mission_Planner(QWidget):
     '''
-        This class is PyQt widget for toggeling sub kill status.
+        This class is the PyQt widget editing mission order and params, and sending those through MechOS.
     
         Parameter:
         N/A
@@ -15,13 +15,14 @@ class Mission_Planner(QWidget):
         Returns:
         N/A
     '''
-    def __init__(self):
+    def __init__(self, file_path='Mission_Planner/mission_planner.html'):
         '''
             Initialize the layout for the widget by setting its color and instantiating
-            its components.
+            its components. Set up the QWebEngine and QWebChannel for dispalying JS and
+            passing a callback function.
             
             Parameter:
-            N/A
+                file_path: path to the html file
             
             Returns:
             N/A
@@ -33,24 +34,35 @@ class Mission_Planner(QWidget):
 
         #Create page and connect QWebChannel
         self.view = QWebEngineView(self)
-        self.url = QUrl.fromLocalFile(os.path.abspath('Mission_Planner/mission_planner.html'))
+        self.url = QUrl.fromLocalFile(os.path.abspath(file_path))
         channel = QWebChannel(self.view.page())
         self.view.page().setWebChannel(channel)
         channel.registerObject("Mission_Planner", self)
         self.view.load(self.url)
 
+        #Add to layout
         self.layout.addWidget(self.view)
         self.setLayout(self.layout)  
 
     @pyqtSlot(QJsonValue)
     def send_json(self, json):
+        '''
+            Callback function that can be called from the JS script, will pass
+            on a JSON value to MechOS
+            
+            Parameter:
+                json: a QJsonValue to be sent to MechOS
+            
+            Returns:
+            N/A
+        '''
         print(json.toString())
 
 
 if __name__ == "__main__":
     import sys
     app = QApplication([])
-    mission_planner_test_gui = Mission_Planner()
+    mission_planner_test_gui = Mission_Planner('mission_planner.html')
     optimal_size = mission_planner_test_gui.sizeHint()
     mission_planner_test_gui.setMaximumSize(optimal_size)
     mission_planner_test_gui.show()
