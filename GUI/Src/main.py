@@ -21,6 +21,7 @@ from pid_tuner_widget import PID_Tuner_Widget
 from thruster_test_widget import Thruster_Test
 from tabbed_display_widget import Tabbed_Display
 from kill_sub_widget import Kill_Button
+from Mission_Planner.mission_planner_widget import Mission_Planner
 import struct
 
 class Main_GUI(QWidget):
@@ -53,9 +54,10 @@ class Main_GUI(QWidget):
 
         #Place the navigation, IMU, orientation, and odometery display widget
         self.set_nav_odometery()
-        self.set_pid_visualizer()
+        #self.set_pid_visualizer()
         self.set_thruster_test_widget()
         self.set_kill_button()
+        self.set_mission_planner()
 
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
         #MechOS publisher to send movement mode selection
@@ -68,6 +70,21 @@ class Main_GUI(QWidget):
         self.update_timer = QTimer()
         self.update_timer.timeout.connect(self.update)
         self.update_timer.start(100)
+
+    def set_mission_planner(self):
+        '''
+        Parameters:
+            N/A
+
+        Returns:
+            N/A
+        '''
+        self.mission_planner = Mission_Planner()
+        optimal_size = self.mission_planner.sizeHint()
+        self.mission_planner.setMaximumSize(optimal_size)
+        #self.secondary_layout.addWidget(self.mission_planner, 1)
+        self.tab_widget.add_tab(self.mission_planner, "Mission Planner")
+
 
     def set_kill_button(self):
         '''
