@@ -27,6 +27,6 @@ class subscriber(object):
 		Subscribes to address provided
 		'''
 		self.UDP_socket.bind(address)
-		data, addr = sock.recvfrom(1024)
+		data, addr = self.UDP_socket.recvfrom(1024)
 		
 		return data
