@@ -76,8 +76,7 @@ if __name__=='__main__':
             start_time = time.time()
             while True:
                 if ( (time.time() - start_time) >= self.baud ):
-                    self._send(msg=self.MSG, local_address='Encrypted_dat')
-                    print(self._recv('Encrypted_dat')) # Local True By Default
+                    self._send(msg=self.MSG, local_address='Encrypted_dat'
                     start_time=time.time()
                 else:
                     time.sleep(0)
@@ -89,27 +88,25 @@ if __name__=='__main__':
             self._ip_route = IP
             self.baud=.128
 
-        def set_message(message):
-            self.MSG=message
-        def set_baudrate(baudrate):
-            self.baud=baudrate
-
         def run(self):
             start_time = time.time()
             while True:
                 if ( (time.time() - start_time) >= self.baud ):
-                    self._send(msg=self.MSG, local_address='Encrypted_dat')
                     print(self._recv('Encrypted_dat')) # Local True By Default
                     start_time=time.time()
                 else:
                     time.sleep(0)
+                               
     # Volatile Memory Instances
     IP={'127.0.0.101':5558}
-    MEM={'Velocity_x':12.01,'Velocity_y':12.02,'Velocity_z':12.03,'Encrypted_dat':'bleh'}
+    MEM={'Velocity_x':12.01,'Velocity_y':12.02,'Velocity_z':12.03,'Encrypted_dat':'None'}
 
     # Initialize Node
-    MyPrintNode = PrintNode(IP, MEM)
+    MyWriteNode = PrintNode(IP, MEM)
+    MyReadNode  = ReadNode(IP, MEM)
 
     # Start Thread
-    MyPrintNode.start()
-    MyPrintNode.set_message('abc')
+    MyWriteNode.start()                               
+    MyReadNode.start()
+
+    MyWriteNode.set_message('Testing Message...initialized')
