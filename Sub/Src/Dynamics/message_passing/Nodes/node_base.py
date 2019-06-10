@@ -44,6 +44,8 @@ class node_base(ABC, threading.Thread):
     def _recv(self, address, local=True):
         '''
             Gets your message from the addresses provided, either local or foreign
+            :param tuple address: recv from foreign address of type tuple (IP, PORT)
+            :param str address: recv from local address as a string to the dictionary 'x_velocity' etc.
         '''
         if not local:
             return self._subscriber.subscribe(address)
