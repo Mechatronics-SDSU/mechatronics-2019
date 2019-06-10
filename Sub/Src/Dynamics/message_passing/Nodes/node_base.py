@@ -102,7 +102,7 @@ if __name__=='__main__':
     MEM={'Velocity_x':12.01,'Velocity_y':12.02,'Velocity_z':12.03,'Encrypted_dat':'None'}
 
     # Initialize Node
-    MyWriteNode = PrintNode(IP, MEM)
+    MyWriteNode = WriteNode(IP, MEM)
     MyReadNode  = ReadNode(IP, MEM)
 
     # Start Thread
