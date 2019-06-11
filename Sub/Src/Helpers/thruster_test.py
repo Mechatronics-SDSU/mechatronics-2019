@@ -12,6 +12,7 @@ import os
 PROTO_PATH = os.path.join("..", "..", "..", "Proto")
 sys.path.append(os.path.join(PROTO_PATH, "Src"))
 sys.path.append(PROTO_PATH)
+import thrusters_pb2
 
 PARAM_PATH = os.path.join("..", "Params")
 sys.path.append(PARAM_PATH)
@@ -36,22 +37,23 @@ if __name__ == "__main__":
     
     configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
     #MechOS publisher to send thrust test messages to thruster controller
-    self.thruster_test_node = mechos.Node("THRUSTER_TEST", configs["ip"])
-    self.publisher = self.thruster_test_node.create_publisher("TT", configs["pub_port"])
+    #thruster_test_node = mechos.Node("THRUSTER_TEST", configs["ip"])
+    #publisher = thruster_test_node.create_publisher("TT", configs["pub_port"])
 
     #Initialize the thruster test proto to package thrust requests
-    self.thruster_test_proto = thrusters_pb2.Thrusters()
-    self.thruster_test_proto.thruster_1 = args.thrust[0]
+    thruster_test_proto = thrusters_pb2.Thrusters()
+    thruster_test_proto.thruster_1 = args.thrust[0]
 
-    self.thruster_test_proto.thruster_2 = args.thrust[1]
-    self.thruster_test_proto.thruster_3 = args.thrust[2]
-    self.thruster_test_proto.thruster_4 = args.thrust[3]
-    self.thruster_test_proto.thruster_5 = args.thrust[4]
-    self.thruster_test_proto.thruster_6 = args.thrust[5]
-    self.thruster_test_proto.thruster_7 = args.thrust[6]
-    self.thruster_test_proto.thruster_8 = args.thrust[7]
+    thruster_test_proto.thruster_2 = args.thrust[1]
+    thruster_test_proto.thruster_3 = args.thrust[2]
+    thruster_test_proto.thruster_4 = args.thrust[3]
+    thruster_test_proto.thruster_5 = args.thrust[4]
+    thruster_test_proto.thruster_6 = args.thrust[5]
+    thruster_test_proto.thruster_7 = args.thrust[6]
+    thruster_test_proto.thruster_8 = args.thrust[7]
 
-    serialized_thruster_data = self.thruster_test_proto.SerializeToString()
-    #publish data to mechos network
-    self.publisher.publish(serialized_thruster_data)
+    print(thruster_test_proto)
+    #serialized_thruster_data = thruster_test_proto.SerializeToString()
+    ##publish data to mechos network
+    #publisher.publish(serialized_thruster_data)
     
