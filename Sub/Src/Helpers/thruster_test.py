@@ -37,8 +37,8 @@ if __name__ == "__main__":
     
     configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
     #MechOS publisher to send thrust test messages to thruster controller
-    #thruster_test_node = mechos.Node("THRUSTER_TEST", configs["ip"])
-    #publisher = thruster_test_node.create_publisher("TT", configs["pub_port"])
+    thruster_test_node = mechos.Node("THRUSTER_TEST", configs["ip"])
+    publisher = thruster_test_node.create_publisher("TT", configs["pub_port"])
 
     #Initialize the thruster test proto to package thrust requests
     thruster_test_proto = thrusters_pb2.Thrusters()
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     thruster_test_proto.thruster_8 = args.thrust[7]
 
     print(thruster_test_proto)
-    #serialized_thruster_data = thruster_test_proto.SerializeToString()
+    serialized_thruster_data = thruster_test_proto.SerializeToString()
     ##publish data to mechos network
-    #publisher.publish(serialized_thruster_data)
+    publisher.publish(serialized_thruster_data)
     
