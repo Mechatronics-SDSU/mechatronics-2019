@@ -25,14 +25,15 @@
             <max_z>0</max_z>
         </Limits>
         <Thruster_Strengths>
-            <T1>.25</T1>
+            <T1>0</T1>
             <T2>0</T2>
-            <T3>.25</T3>
+            <T3>0</T3>
             <T4>0</T4>
             <T5>0</T5>
             <T6>0</T6>
             <T7>0</T7>
             <T8>0</T8>
+            <active_depth>0.5</active_depth>
         </Thruster_Strengths>
         <PID>
             <dt>.025</dt>
@@ -65,6 +66,8 @@
                 <p>15.789</p>
                 <i>0.0</i>
                 <d>0.0</d>
+                <bias>0<bias>
+                <active_bias_depth>1</active_bias_depth>
             </z_pid>
         </PID>
     </Control>

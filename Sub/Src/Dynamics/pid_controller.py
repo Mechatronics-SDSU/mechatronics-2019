@@ -49,7 +49,7 @@ class PID_Controller():
         self.PID_timer = util_timer.Timer()
 
 
-    def set_gains(self, k_p, k_i, k_d, d_t=None):
+    def set_gains(self, k_p, k_i, k_d, d_t=None, bias):
         '''
         Reset the gain parameters.
 
@@ -65,6 +65,7 @@ class PID_Controller():
         self.k_i = k_i
         self.k_d = k_d
         self.d_t = d_t
+       
     def control_step(self, error):
         '''
         Perfrom a control step to correct for error in control system.
@@ -75,7 +76,7 @@ class PID_Controller():
         Returns:
             PID: An PID output control value to correct for error in system
         '''
-        P = self.k_p * error #proportional term
+        P = (self.k_p * error) #proportional term
 
         #Ensure semi time difference in between each control step
         calc_time_interval = self.PID_timer.net_timer()

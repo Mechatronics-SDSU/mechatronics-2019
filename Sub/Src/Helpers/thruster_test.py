@@ -9,27 +9,49 @@ Description: Send a short pulse to a single thruster for testing.
 import sys
 import os
 
-THRUSTER_LIB_PATH = os.path.join("..", "Dynamics")
-sys.path.append(THRUSTER_LIB_PATH)
-from thruster import Thruster
+PROTO_PATH = os.path.join("..", "..", "..", "Proto")
+sys.path.append(os.path.join(PROTO_PATH, "Src"))
+sys.path.append(PROTO_PATH)
 
-import serial
+PARAM_PATH = os.path.join("..", "Params")
+sys.path.append(PARAM_PATH)
+MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
+from mechos_network_configs import MechOS_Network_Configs
+
+import numpy as np
+from MechOS import mechos
+
 import argparse
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--thruster_id", type=int,
-                    help="Input the thruster number desired to be tested", required=True)
-    parser.add_argument("--thrust", type=int,
+    parser.add_argument("--thrust", type=int, nargs=8,
             help="Input the thrust percentage you want to test at. Range [-100, 100]",
             required=True)
 
     args = parser.parse_args()
+    print(args.thrust)
+        
+    
+    configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
+    #MechOS publisher to send thrust test messages to thruster controller
+    self.thruster_test_node = mechos.Node("THRUSTER_TEST", configs["ip"])
+    self.publisher = self.thruster_test_node.create_publisher("TT", configs["pub_port"])
 
-    maestro_serial_obj = serial.Serial('COM29', 9600)
+    #Initialize the thruster test proto to package thrust requests
+    self.thruster_test_proto = thrusters_pb2.Thrusters()
+    self.thruster_test_proto.thruster_1 = args.thrust[0]
 
-    #Limit the test thrust to 50% thrust capacity
-    test_thruster = Thruster(maestro_serial_obj, args.thruster_id, None, None, 50)
-    test_thruster.set_thrust(args.thrust)
+    self.thruster_test_proto.thruster_2 = args.thrust[1]
+    self.thruster_test_proto.thruster_3 = args.thrust[2]
+    self.thruster_test_proto.thruster_4 = args.thrust[3]
+    self.thruster_test_proto.thruster_5 = args.thrust[4]
+    self.thruster_test_proto.thruster_6 = args.thrust[5]
+    self.thruster_test_proto.thruster_7 = args.thrust[6]
+    self.thruster_test_proto.thruster_8 = args.thrust[7]
+
+    serialized_thruster_data = self.thruster_test_proto.SerializeToString()
+    #publish data to mechos network
+    self.publisher.publish(serialized_thruster_data)
+    
