@@ -314,3 +314,41 @@ class Movement_PID:
         self.controlled_thrust(roll_control, pitch_control, 0, 0, 0, z_control, curr_z_pos)
 
         return error
+
+    def simple_depth_move_with_yaw(self, curr_roll, curr_pitch, curr_yaw, curr_z_pos,
+                          desired_roll, desired_pitch, desired_yaw, desired_z_pos):
+        '''
+        Without carrying about x axis position, y axis position, or yaw, use the PID controllers
+        to go down to a give depth (desired_z_pos) with a give orientation.
+
+        Parameters:
+            curr_roll: Current roll data
+            curr_pitch Current pitch data
+            curr_z_pos: Current z position
+            desired_roll: Desired roll position
+            desired_pitch: Desired pitch position
+            desired_z_pos: Desired z (depth) position
+
+        Returns:
+            error: The roll, pitch and depth error
+        '''
+        #Calculate error for each degree of freedom
+        error = [0, 0, 0, 0, 0, 0]
+        error[0] = desired_roll - curr_roll
+        roll_control = self.roll_pid_controller.control_step(error[0])
+
+        error[1] = desired_pitch - curr_pitch
+        pitch_control = self.pitch_pid_controller.control_step(error[1])
+
+
+        #depth error
+        #print("Current depth position:", curr_z_pos, "Desired_depth_position:", desired_z_pos)
+        error[2] = desired_z_pos - curr_z_pos
+        z_control = self.z_pid_controller.control_step(error[2])
+
+        #Write controls to thrusters
+        #Set x, y, and yaw controls to zero since we don't care about the subs
+        #heading or planar orientation for a simple depth move
+        self.controlled_thrust(roll_control, pitch_control, 0, 0, 0, z_control, curr_z_pos)
+
+
