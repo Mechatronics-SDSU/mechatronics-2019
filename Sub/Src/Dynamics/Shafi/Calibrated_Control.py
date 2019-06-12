@@ -34,6 +34,9 @@ def Calibrate(event):
         elif event.axis == 5:
             #same reason as the left trigger
             return set_thruster_value(np.array([0, 0, 0, 0, 0, ((event.value + 1)/2)])) #right trigger
+        else:
+            return set_thruster_value(np.array([0,0,0,0,0,0]))
+
     elif event.type == pygame.JOYBUTTONDOWN:
         if event.button == 4:
             return set_thruster_value(np.array([0, 1, 0, 0, 0, 0])) #left bumper
@@ -41,11 +44,10 @@ def Calibrate(event):
             return set_thruster_value(np.array([0, 0, 0, 0, 1, 0])) #right bumper
         elif event.button == 1:
             return "SWAP"
+        else:
+            return set_thruster_value(np.array([0,0,0,0,0,0]))
     elif event.type == pygame.JOYBUTTONUP:
-        if event.button == 4 or event.button == 5:
-            return set_thruster_value(np.array([0, 0, 0, 0, 0, 0])) #reset the matrix once the button is released
-    else:
-        return set_thruster_value(np.array([0, 0, 0, 0, 0, 0]))
+        return set_thruster_value(np.array([0,0,0,0,0,0]))
 
 def main():
     clock = pygame.time.Clock()
@@ -55,7 +57,7 @@ def main():
     joystick.init()
     while True:
         for event in pygame.event.get():
-            Calibrate(event)
+            print(Calibrate(event))
             clock.tick(15)
 
 if __name__ == '__main__':

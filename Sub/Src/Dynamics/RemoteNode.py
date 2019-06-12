@@ -2,6 +2,7 @@ from Shafi.Calibrated_Control import Calibrate
 from Alexa.regularControl import Regular
 from message_passing.Nodes.node_base import node_base
 import pygame
+import numpy as np
 
 
 class RemoteNode(node_base):
@@ -11,7 +12,7 @@ class RemoteNode(node_base):
         pygame.joystick.init()
 
         self.joystick = pygame.joystick.Joystick(0)
-        joystick.init()
+        self.joystick.init()
 
         # Starting in 'Calibrated Mode'
         self.isRegular=False
@@ -25,6 +26,6 @@ class RemoteNode(node_base):
                     self.isRegular = False
                 else:
                     if self.isRegular is False:
-                        self._send((Calibrate(event)), 'Thrusters')
+                        self._send((Calibrate(event).A), 'Thrusters')
                     else:
-                        self._send((Regular(event)), 'Thrusters')
+                        self._send((Regular(event).A), 'Thrusters')

@@ -1,11 +1,12 @@
 from Driver.device import maestro
+import numpy as np
 
 class thruster:
     def __init__(self, number=None):
         self._number = number;
         self._servoController=maestro()
 
-    def setThrust(thrust):
+    def setThrust(self, thrust):
         '''
         Set a Number between -100, and 100
             :-100 is up

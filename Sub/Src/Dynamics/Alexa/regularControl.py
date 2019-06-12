@@ -16,8 +16,8 @@ def main():
     controller.init()
     while True:
         for event in pygame.event.get():
-            Regular(event)
-            clock.tick(15)
+            print(Regular(event)[0])
+            #clock.tick(15)
 
 def Regular(XBOX_INPUT):
     '''
