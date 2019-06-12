@@ -2,9 +2,9 @@
 Copyright 2019, David Pierce Walker-Howell, All rights reserved
 
 Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
-Last Modified 01/30/2019
+Last Modified 06/11/2019
 
-Description: Send a short pulse to a single thruster for testing.
+Description: Send thruster values to all 8 thrusters.
 '''
 import sys
 import os
@@ -33,8 +33,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     print(args.thrust)
-        
-    
+
+
     configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
     #MechOS publisher to send thrust test messages to thruster controller
     thruster_test_node = mechos.Node("THRUSTER_TEST", configs["ip"])
@@ -56,4 +56,3 @@ if __name__ == "__main__":
     serialized_thruster_data = thruster_test_proto.SerializeToString()
     ##publish data to mechos network
     publisher.publish(serialized_thruster_data)
-    
