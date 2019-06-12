@@ -6,8 +6,8 @@ sys.path.append(comm_path)
 import time
 import threading
 
-from message_passing.communicationUtils import local as local
-from message_passing.communicationUtils import network as network
+from communicationUtils import local as local
+from communicationUtils import network as network
 from abc import ABC, abstractmethod
 
 
@@ -35,7 +35,8 @@ class node_base(ABC, threading.Thread):
         '''
 
         if foreign_address:
-            self._publisher.publish(foreign_address, msg)
+            type = foreign_address[0:3] #check if udp or tcp
+            self._publisher.publish(foreign_address, msg, type)
 
         self._writer.write(local_address, msg)
 
@@ -48,7 +49,8 @@ class node_base(ABC, threading.Thread):
             :param str address: recv from local address as a string to the dictionary 'x_velocity' etc.
         '''
         if not local:
-            return self._subscriber.subscribe(address)
+            type = foreign_address[0:3] #check if udp or tcp
+            return self._subscriber.subscribe(address, type)
         else:
             return self._reader.read(address)
 
@@ -67,16 +69,16 @@ if __name__=='__main__':
             self.MSG='uninitialized'
             self.baud=.128
 
-        def set_message(message):
+        def set_message(self, message):
             self.MSG=message
-        def set_baudrate(baudrate):
+        def set_baudrate(self, baudrate):
             self.baud=baudrate
 
         def run(self):
             start_time = time.time()
             while True:
                 if ( (time.time() - start_time) >= self.baud ):
-                    self._send(msg=self.MSG, local_address='Encrypted_dat'
+                    self._send(msg=self.MSG, local_address='Encrypted_dat')
                     start_time=time.time()
                 else:
                     time.sleep(0)
@@ -96,9 +98,9 @@ if __name__=='__main__':
                     start_time=time.time()
                 else:
                     time.sleep(0)
-                               
+
     # Volatile Memory Instances
-    IP={'127.0.0.101':5558}
+    IP={'tcp://127.0.0.101':5558}
     MEM={'Velocity_x':12.01,'Velocity_y':12.02,'Velocity_z':12.03,'Encrypted_dat':'None'}
 
     # Initialize Node
@@ -106,7 +108,7 @@ if __name__=='__main__':
     MyReadNode  = ReadNode(IP, MEM)
 
     # Start Thread
-    MyWriteNode.start()                               
+    MyWriteNode.start()
     MyReadNode.start()
 
     MyWriteNode.set_message('Testing Message...initialized')
