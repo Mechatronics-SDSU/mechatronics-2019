@@ -2,7 +2,7 @@
 Copyright 2019, David Pierce Walker-Howell, All rights reserved
 
 Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
-Last Modified 02/25/2019
+Last Modified: 06/12/2019
 Description: This module contains a PID based movement controller that is used
             to control the six degrees of freedom control of Perseverance.
 '''
@@ -75,7 +75,7 @@ class Movement_PID:
     def set_up_PID_controllers(self, initialization=False):
         '''
         Setup the PID controllers with the initial values set in the subs
-        parameter xml server file. Also update the strength parameter for 
+        parameter xml server file. Also update the strength parameter for
         each thrusters.
 
         Parameters:
@@ -98,7 +98,7 @@ class Movement_PID:
         yaw_p = float(self.param_serv.get_param("Control/PID/yaw_pid/p"))
         yaw_i = float(self.param_serv.get_param("Control/PID/yaw_pid/i"))
         yaw_d = float(self.param_serv.get_param("Control/PID/yaw_pid/d"))
-        
+
         x_p = float(self.param_serv.get_param("Control/PID/x_pid/p"))
         x_i = float(self.param_serv.get_param("Control/PID/x_pid/i"))
         x_d = float(self.param_serv.get_param("Control/PID/x_pid/d"))
@@ -125,7 +125,7 @@ class Movement_PID:
             self.x_pid_controller = PID_Controller(x_p, x_i, x_d, d_t)
             self.y_pid_controller = PID_Controller(y_p, y_i, y_d, d_t)
             self.z_pid_controller = PID_Controller(z_p, z_i, z_d, d_t)
-        
+
         else:
             self.roll_pid_controller.set_gains(roll_p, roll_i, roll_d, d_t)
             self.pitch_pid_controller.set_gains(pitch_p, pitch_i, pitch_d, d_t)
@@ -138,9 +138,9 @@ class Movement_PID:
         #Thruster Strengths (these are used to give more strengths to weeker thrusters in the case that the sub is imbalanced)
         #Each index corresponds to the thruster id.
         self.thruster_strengths = [0, 0, 0, 0, 0, 0, 0, 0]
-        
+
         for i in range(8):
-            param_path = "Control/Thruster_Strengths/T%d" % (i+1) 
+            param_path = "Control/Thruster_Strengths/T%d" % (i+1)
             self.thruster_strengths[i] = float(self.param_serv.get_param(param_path))
             """
             #The maximum thrust needs to be offset to account for added thruster strength.
@@ -206,47 +206,42 @@ class Movement_PID:
             #a higher strength. This is used to help balance out weigth distribution issues with the sub.
             if(curr_z_pos >= self.thruster_offset_active_depth):
                 thrust = thrust + self.thruster_strengths[thruster_id]
-                
+
             if(curr_z_pos >= self.z_active_bias_depth):
- 
+
                 thrust = thrust + (self.z_bias * thruster.orientation[2]) #Make sure only thrusters controlling z have this parameter
-            
+
             self.thrusters[thruster_id].set_thrust(thrust)
-            
 
 
-    def advance_move(self, curr_roll, curr_pitch, curr_yaw, curr_x_pos, curr_y_pos,
-                    curr_z_pos, desired_roll, desired_pitch, desired_yaw,
-                    desired_x_pos, desired_y_pos, desired_z_pos):
+
+    def advance_move(self, current_position, desired_position):
         '''
         Given the current position and desired positions of the AUV, obtain the pid
         control outputs for all 6 degrees of freedom.
 
         Parameters:
-            curr_roll: Current roll data
-            curr_pitch Current pitch data
-            curr_yaw: Current yaw data
-            curr_x_pos: Current x position
-            curr_y_pos: Current y position
-            curr_z_pos: Current z position
-            desired_roll: Desired roll position
-            desired_pitch: Desired pitch position
-            desired_yaw: Desired yaw position
-            desired_x_pos: Desired x position
-            desired_y_pos: Desired y position
-            desired_z_pos: Desired z position
+            current_position: A list of the most up-to-date current position.
+                            List format: [roll, pitch, yaw, x_pos, y_pos, depth]
+            desired_position: A list containing the desired positions of each
+                                axis. Same list format as the current_position
+                                parameter.
 
         Returns:
-            N/A
+            error: A list of of the errors that where evaluted for each axis.
+                    List Format: [roll_error, pitch_error, yaw_error, x_pos_error, y_pos_error, depth_error]
         '''
 
         #calculate the error of each degree of freedom
         error = [0, 0, 0, 0, 0, 0]
 
-        error[0] = desired_roll - curr_roll #roll error
-        error[1] = desired_pitch - curr_pitch #pitch error
+        error[0] = desired_position[0] - current_position[0] #roll error
+        error[1] = desired_position[1] - current_position[1] #pitch error
 
         #Calculate yaw error. The logic includes calculating error for choosing shortest angle to travel
+        desired_yaw = desired_position[2]
+        curr_yaw = current_position[2]
+
         if(desired_yaw >= curr_yaw):
             yaw_error = desired_yaw - curr_yaw
             if(yaw_error > 180):    #This will choose the shortest angle to take to desred position.
@@ -262,22 +257,24 @@ class Movement_PID:
                 error[2] = yaw_error
 
         #Calculate translation error
-        error[3] = desired_z_pos - curr_z_pos
-        error[4] = desired_x_pos - curr_x_pos
-        error[5] = desired_y_pos - curr_y_pos
+        error[3] = desired_position[3] - current_position[3] #x_pos
+        error[4] = desired_position[4] - current_position[4] #y_pos
+        error[5] = desired_position[5] - current_position[5] #z_pos (depth)
 
+        #Get the thrusts from the PID controllers to move towards desired pos.
         roll_control = self.roll_pid_controller.control_step(error[0])
         pitch_control = self.pitch_pid_controller.control_step(error[1])
         yaw_control = self.yaw_pid_controller.control_step(error[2])
-        z_control = self.z_pid_controller.control_step(error[3])
-        x_control = self.x_pid_controller.control_step(error[4])
+        x_control = self.x_pid_controller.control_step(error[3])
+        y_control = self.y_pid_controller.control_step(error[4])
         z_control = self.z_pid_controller.control_step(error[5])
 
-        #Write the contrls to thrusters
+        #Write the controls to thrusters
         self.controlled_thrust(roll_control, pitch_control, yaw_control, x_control, y_control, z_control)
         return error
 
-
+    #This is a helper function to be used initially for tuning the roll, pitch
+    #and depth PID values. Once tuned, please use advance_move instead.
     def simple_depth_move_no_yaw(self, curr_roll, curr_pitch,curr_z_pos,
                           desired_roll, desired_pitch, desired_z_pos):
         '''
@@ -314,41 +311,3 @@ class Movement_PID:
         self.controlled_thrust(roll_control, pitch_control, 0, 0, 0, z_control, curr_z_pos)
 
         return error
-
-    def simple_depth_move_with_yaw(self, curr_roll, curr_pitch, curr_yaw, curr_z_pos,
-                          desired_roll, desired_pitch, desired_yaw, desired_z_pos):
-        '''
-        Without carrying about x axis position, y axis position, or yaw, use the PID controllers
-        to go down to a give depth (desired_z_pos) with a give orientation.
-
-        Parameters:
-            curr_roll: Current roll data
-            curr_pitch Current pitch data
-            curr_z_pos: Current z position
-            desired_roll: Desired roll position
-            desired_pitch: Desired pitch position
-            desired_z_pos: Desired z (depth) position
-
-        Returns:
-            error: The roll, pitch and depth error
-        '''
-        #Calculate error for each degree of freedom
-        error = [0, 0, 0, 0, 0, 0]
-        error[0] = desired_roll - curr_roll
-        roll_control = self.roll_pid_controller.control_step(error[0])
-
-        error[1] = desired_pitch - curr_pitch
-        pitch_control = self.pitch_pid_controller.control_step(error[1])
-
-
-        #depth error
-        #print("Current depth position:", curr_z_pos, "Desired_depth_position:", desired_z_pos)
-        error[2] = desired_z_pos - curr_z_pos
-        z_control = self.z_pid_controller.control_step(error[2])
-
-        #Write controls to thrusters
-        #Set x, y, and yaw controls to zero since we don't care about the subs
-        #heading or planar orientation for a simple depth move
-        self.controlled_thrust(roll_control, pitch_control, 0, 0, 0, z_control, curr_z_pos)
-
-

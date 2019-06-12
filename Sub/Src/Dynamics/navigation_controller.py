@@ -2,12 +2,10 @@
 Copyright 2019, David Pierce Walker-Howell, All rights reserved
 
 Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
-Last Modified 02/25/2019
-Description: This module contains a highest level movement controller for Perseverance.
+Last Modified 06/12/2019
+Description: This module contains a highest level navigation controller for Perseverance.
                 It contains multiple modes of control for the sub including
-                thruster test mode, PID test mode, manual control mode PID,
-                autonomous mode PID, LQR test mode, manual control mode LQR, and
-                autonomous mode LQR.
+                thruster test mode, PID test mode, and Autonomous control mode. 
 '''
 import sys
 import os
@@ -51,7 +49,7 @@ class Navigation_Controller(threading.Thread):
     '''
     def __init__(self):
         '''
-        Initialize the navigation controller. This includes getting parameters from the 
+        Initialize the navigation controller. This includes getting parameters from the
         parameter server, initializing subscribers to listen for command messages, and
         initalizing the sensor driver.
 
@@ -62,7 +60,7 @@ class Navigation_Controller(threading.Thread):
             N/A
         '''
 
-        #Initialize the parent class of 
+        #Initialize the parent class of
         super(Navigation_Controller, self).__init__()
 
         #Get the mechos network parameters
@@ -92,7 +90,7 @@ class Navigation_Controller(threading.Thread):
         self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
         self.param_serv.use_parameter_database(configs["param_server_path"])
 
-        #Initialize the sensor driver, which will run all the threads to recieve 
+        #Initialize the sensor driver, which will run all the threads to recieve
         #sensor data.
         self.sensor_driver = Sensor_Driver()
 
@@ -126,13 +124,13 @@ class Navigation_Controller(threading.Thread):
 
         #Initialize current position [roll, pitch, yaw, x_pos, y_pos, depth]
         self.current_position = [0, 0, 0, 0, 0, 0]
-        self.pos_error = [0, 0, 0, 0, 0, 0]
+        self.pos_error = [0, 0, 0, 0, 0, 0] #errors for all axies
 
         #Initialize desired position [roll, pitch, yaw, x_pos, y_pos, depth]
         self.desired_position = [0, 0, 0, 0, 0, 0]
         self.desired_position_proto = desired_position_pb2.DESIRED_POS()
 
-        #Set up a thread to listen to a requests from GUI/mission_commander. 
+        #Set up a thread to listen to a requests from GUI/mission_commander.
         # This includes movement mode, desired_position, new PID values, and sub killed command.
         self.command_listener_thread = threading.Thread(target=self._command_listener)
         self.command_listener_thread.daemon = True
@@ -152,6 +150,14 @@ class Navigation_Controller(threading.Thread):
 
     def _update_sub_killed_state(self, killed_state):
         '''
+        The callback function to update the sub_killed state if the sub kill/unkill
+        button is pressed. Updates the self.sub_killed attribute
+
+        Parameters:
+            killed_state: Raw byte (representing a boolean) for if the sub should
+                            be killed or unkilled.
+        Returns:
+            N/A
         '''
 
         self.sub_killed = struct.unpack('b', killed_state)[0]
@@ -160,7 +166,8 @@ class Navigation_Controller(threading.Thread):
     def __update_movement_mode_callback(self, movement_mode):
         '''
         The callback function to select which movement controller mode is being used.
-        It does this by setting the movment_mode class attribute
+        It does this by setting the movment_mode class attribute. Updates the self.movement_mode
+        attribute.
 
         Parameters:
             movement_mode: Raw byte of the mode.
@@ -199,10 +206,10 @@ class Navigation_Controller(threading.Thread):
                 self.pid_controller.set_up_PID_controllers()
 
             time.sleep(0.2)
- 
+
     def _update_command(self):
         '''
-        This thread publishes the sensor data which gives the current naviagtion position to 
+        This thread publishes the sensor data which gives the current naviagtion position to
         the GUI and Mission Commander. It also sends the current PID error if in PID tuning mode.
 
         Parameters:
@@ -219,10 +226,10 @@ class Navigation_Controller(threading.Thread):
                 self.nav_data_proto.x_translation = self.current_position[3]
                 self.nav_data_proto.y_translation = self.current_position[4]
                 self.nav_data_proto.depth = self.current_position[5]
-            
+
                 serialized_nav_data = self.nav_data_proto.SerializeToString()
                 self.nav_data_publisher.publish(serialized_nav_data) #Send the current position
-      
+
                 if(self.update_pid_errors):
                     #Package PID error protos
                     self.pid_errors_proto.roll_error = self.pos_error[0]
@@ -284,7 +291,7 @@ class Navigation_Controller(threading.Thread):
         thrusts[5] = self.thruster_test_proto.thruster_6
         thrusts[6] = self.thruster_test_proto.thruster_7
         thrusts[7] = self.thruster_test_proto.thruster_8
-        
+
         print("\nTesting Thrusters")
         for index, value in enumerate(thrusts):
             print("Thruster %d: %d%% " % (index, value),end='')
@@ -297,9 +304,8 @@ class Navigation_Controller(threading.Thread):
         Runs the movement control in the control mode specified by the user. The
         different modes of control are as follows.
 
-            '0' --> Thruster test mode.
-            '1' --> Roll, Pitch, Depth PID tunning mode.
-            '2' --> PID tunning mode. Tunes all 6 degrees of freedom PID controls
+            '0' --> PID tunning mode.
+            '1' --> Thruster test mode.
 
         Parameters:
             N/A
@@ -311,7 +317,7 @@ class Navigation_Controller(threading.Thread):
         self.nav_timer.restart_timer()
 
         while(self.run_thread):
-            
+
             nav_time = self.nav_timer.net_timer()
 
             if(nav_time < self.nav_time_interval):
@@ -338,49 +344,30 @@ class Navigation_Controller(threading.Thread):
 
 
                 #----SIMPLE DEPTH MOVE NO YAW--------------------------------------
+                #NOTE: USED ONLY FOR PID TUNNING AND TESTING PURPOSES.
                 #Perform the PID control step to move the sub to the desired depth
                 #The error received is the roll, pitch, and depth error
-                error = self.pid_controller.simple_depth_move_no_yaw(self.current_position[0],
-                                                             self.current_position[1],
-                                                             self.current_position[5],
-                                                             self.desired_position[0],
-                                                             self.desired_position[1],
-                                                             self.desired_position[5])
-                self.pos_error[0] = error[0]
-                self.pos_error[1] = error[1]
-                self.pos_error[5] = error[3]
-
-                #Package PID error protos
-                #self.pid_errors_proto.roll_error = error[0]
-                #self.pid_errors_proto.pitch_error = error[1]
-                #self.pid_errors_proto.z_pos_error = error[3] #depth error
-
-                #serialzed_pid_errors_proto = self.pid_errors_proto.SerializeToString()
-                #self.pid_errors_publisher.publish(serialzed_pid_errors_proto)
+                # error = self.pid_controller.simple_depth_move_no_yaw(self.current_position[0],
+                #                                              self.current_position[1],
+                #                                              self.current_position[5],
+                #                                              self.desired_position[0],
+                #                                              self.desired_position[1],
+                #                                              self.desired_position[5])
+                # self.pos_error[0] = error[0]
+                # self.pos_error[1] = error[1]
+                # self.pos_error[5] = error[2]
                 #----------------------------------------------------------------------
 
                 #----ADVANCE MOVE (ALL 6 DEGREES OF FREEDOMW)--------------------------
-                #error = self.pid_controller.advance_move(self.current_position[0], 
-                #                                        self.current_position[1], 
-                #                                        self.current_position[2],
-                #                                        self.current_position[4],
-                #                                        self.current_position[5],
-                #                                        self.current_position[3])
+                self.pos_error = self.pid_controller.advance_move(self.current_position, self.desired_position)
 
-                #self.pid_errors_proto.roll_error = error[0]
-                #self.pid_errors_proto.pitch_error = error[1]
-                #self.pid_errors_proto.yaw_error = error[2]
-                #self.pid_errors_proto.x_pos_error = error[4]
-                #self.pid_errors_proto.y_pos_error = error[5]
-                #self.pid_errors_proto.z_pos_error = error[6]
-                #---------------------------------------------------------------------
             #THRUSTER test mode.
             elif self.movement_mode == 1:
-                
+
                 self.navigation_controller_node.spinOnce(self.thruster_test_subscriber)
 
 
 if __name__ == "__main__":
-    navigation_controller = navigation_controller()
 
+    navigation_controller = navigation_controller()
     navigation_controller.run()

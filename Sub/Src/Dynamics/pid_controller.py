@@ -2,7 +2,7 @@
 Copyright 2019, David Pierce Walker-Howell, All rights reserved
 
 Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
-Last Modified 02/05/2019
+Last Modified 06/11/2019
 Description: This module contains a PID controller class that is
             used for feedback control systems.
 '''
@@ -65,7 +65,7 @@ class PID_Controller():
         self.k_i = k_i
         self.k_d = k_d
         self.d_t = d_t
-       
+
     def control_step(self, error):
         '''
         Perfrom a control step to correct for error in control system.
