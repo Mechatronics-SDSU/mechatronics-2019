@@ -255,7 +255,7 @@ class Backplane_Responses(threading.Thread):
                     elif id_frame == 656:
                         message = {"BMS": 0}
                         print("**GOT BMS START MESSAGE**")
-                    elif id_framw == 648:   #voltage data
+                    elif id_frame == 648:   #voltage data
                         voltage = float(payload[0]) + (float(payload[1]) / 100)
                         message = {"Voltage": voltage}
 

@@ -49,7 +49,7 @@ class PID_Controller():
         self.PID_timer = util_timer.Timer()
 
 
-    def set_gains(self, k_p, k_i, k_d, d_t=None, bias):
+    def set_gains(self, k_p, k_i, k_d, d_t=None):
         '''
         Reset the gain parameters.
 

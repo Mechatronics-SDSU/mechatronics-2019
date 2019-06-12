@@ -70,7 +70,7 @@ class Movement_PID:
         self.thrusters[7] = Thruster(maestro_serial_obj, 8, [1, 0, 0], [0, -1, 0], max_thrust, False)
 
         #Initialize the PID controllers for control system
-        self.set_up_PID_controllers()
+        self.set_up_PID_controllers(True)
 
     def set_up_PID_controllers(self, initialization=False):
         '''
@@ -138,17 +138,20 @@ class Movement_PID:
         #Thruster Strengths (these are used to give more strengths to weeker thrusters in the case that the sub is imbalanced)
         #Each index corresponds to the thruster id.
         self.thruster_strengths = [0, 0, 0, 0, 0, 0, 0, 0]
-        for i in range(len(self.thruster_strengths)):
+        
+        for i in range(8):
             param_path = "Control/Thruster_Strengths/T%d" % (i+1) 
             self.thruster_strengths[i] = float(self.param_serv.get_param(param_path))
-
+            """
             #The maximum thrust needs to be offset to account for added thruster strength.
-            updated_max_thrust = self.thruster[i].max_thrust + self.thruster_strengths[i]
-
-            if(updated_max_thrust > 100)
+            updated_max_thrust = 0
+            updated_max_thrust = self.thrusters[i].max_thrust + self.thruster_strengths[i]
+            print(updated_max_thrust)
+            if(updated_max_thrust > 100):
                 updated_max_thrust = 100
+                #rint("Updated Thruster %d to have max thrust of %0.2f" % (i, updated_max_thrust))
             self.thrusters[i].max_thrust = updated_max_thrust
-        
+            """
         #Get the depth at which the thruster strength offsets will be used (in ft)
         self.thruster_offset_active_depth = float(self.param_serv.get_param("Control/Thruster_Strengths/active_depth"))
 
@@ -202,9 +205,10 @@ class Movement_PID:
             #Write the thrust to the given thruster. Some thrusters have an additional offset to given them
             #a higher strength. This is used to help balance out weigth distribution issues with the sub.
             if(curr_z_pos >= self.thruster_offset_active_depth):
-                thrust = thrust + self.thruster_strengths[i]
-            
+                thrust = thrust + self.thruster_strengths[thruster_id]
+                
             if(curr_z_pos >= self.z_active_bias_depth):
+ 
                 thrust = thrust + (self.z_bias * thruster.orientation[2]) #Make sure only thrusters controlling z have this parameter
             
             self.thrusters[thruster_id].set_thrust(thrust)
