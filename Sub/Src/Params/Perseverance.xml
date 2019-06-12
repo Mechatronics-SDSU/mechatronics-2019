@@ -72,7 +72,7 @@
                 <p>12.0</p>
                 <i>0.0</i>
                 <d>0.0</d>
-                <l_bound>-11</l_bound>
+                <l_bound>11</l_bound>
                 <u_bound>100</u_bound>
                 <bias>23</bias>
                 <active_bias_depth>2</active_bias_depth>
