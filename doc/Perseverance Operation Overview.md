@@ -2,7 +2,7 @@
 
 ## Quick Overview 
 
- ![](C:\Users\User\dev\mechatronics\mechatronics-2019\doc\High_Level_Architecture.jpg)
+ ![](High_Level_Architecture.jpg)
 
 The current operation of Perseverance requires running a couple of Python based processes on the on-board Nvidia Jetson TX2 and the Graphical User Interface (GUI) on your personal PC. The communication between these processes is performed with the MechOS library by way of TCP and UDP IPV4 communication. This library allows publishers and subscribers to share data over a single IP address. This ability allows the on-board computer and PC to connect and communicate easily.
 
@@ -62,6 +62,6 @@ Once everything is started up on the Sub, you should easily be able to start up 
 python3 main.py
 ```
 
-![](C:\Users\User\dev\mechatronics\mechatronics-2019\doc\GUI_Picture.PNG)
+![](GUI_Picture.PNG)
 
 You should get something that looks like this.
