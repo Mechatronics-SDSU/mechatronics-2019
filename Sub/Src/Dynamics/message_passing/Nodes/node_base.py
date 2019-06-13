@@ -12,13 +12,13 @@ from abc import ABC, abstractmethod
 
 
 class node_base(ABC, threading.Thread):
-    def __init__(self, volatile_memory, ip_route):
+    def __init__(self, volatile_memory, ip_route ):
         threading.Thread.__init__(self)
         ABC.__init__(self)
         print(__class__.__name__,'inherited')
 
-        self._publisher=network.publisher(ip_route)
-        self._subscriber=network.subscriber(ip_route)
+        self._publisher=network.publisher(ip_route, 'UDP')
+        self._subscriber=network.subscriber(ip_route, 'UDP')
 
         self._reader=local.reader(volatile_memory)
         self._writer=local.writer(volatile_memory)
