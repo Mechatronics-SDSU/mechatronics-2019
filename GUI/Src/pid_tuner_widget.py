@@ -73,7 +73,7 @@ class PID_Tuner_Widget(QWidget):
         self._PID_controller_select()
         self._PID_sliders()
         self.set_desired_position = Set_Desired_Position_GUI()
-        
+
 
         #Set up QTimer to update the PID errors
         self.pid_error_update_timer = QTimer()
@@ -312,11 +312,11 @@ class PID_Tuner_Widget(QWidget):
         self.k_i_max_value_line_edit.setText(k_i_disp)
         self.k_d_max_value_line_edit.setText(k_d_disp)
 
-        #Set the precision to the max precision of the 
+        #Set the precision to the max precision of the
         self.k_p_precision_combobox.setCurrentIndex(3)
         self.k_i_precision_combobox.setCurrentIndex(3)
         self.k_d_precision_combobox.setCurrentIndex(3)
-        
+
         self._update_PID_precision()
 
         self._update_gain_displays(k_p, k_i, k_d)

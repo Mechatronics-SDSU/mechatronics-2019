@@ -30,8 +30,8 @@ class PID_Controller():
             k_i: Integral gain
             k_d: Derivative gain
             d_t: Time interval between calculating to output control
-            l_bound: Lower bound for PID output
-            u_bound: Upper bound for PID output
+            l_bound: Lower bound for PID output (whats the lowest thrust to drive.)
+            u_bound: Upper bound for PID output (whats the maximum thrsust to drive.)
         Returns:
             N/A
         '''

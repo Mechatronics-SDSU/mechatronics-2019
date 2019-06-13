@@ -39,7 +39,7 @@
                 <p>0.1</p>
                 <i>0.0</i>
                 <d>0.0</d>
-                <l_bound>-100</l_bound>
+                <l_bound>100</l_bound>
                 <u_bound>100</u_bound>
             </roll_pid>
             <pitch_pid>
