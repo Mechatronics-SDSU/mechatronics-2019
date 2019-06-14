@@ -18,13 +18,13 @@ class node_base(ABC, threading.Thread):
         ABC.__init__(self)
         print(__class__.__name__,'inherited')
 
-        self._publisher=network.publisher(ip_route, 'UDP')
-        self._subscriber=network.subscriber(ip_route, 'UDP')
+        self._publisher=network.publisher(ip_route)
+        self._subscriber=network.subscriber(ip_route)
 
         self._reader=local.reader(volatile_memory)
         self._writer=local.writer(volatile_memory)
 
-    def _send(self, msg, local_address, foreign_address=None):
+    def _send(self,  msg, register, local=True, foreign=False):
         '''
             Sends your message to the address(s) provided, either foreign local, or both
 
@@ -35,23 +35,26 @@ class node_base(ABC, threading.Thread):
             :returns: 0 on sucess 1 on error, errors are logged to outputbuffer
         '''
 
-        if foreign_address is not None:
-            self._publisher.publish(msg, foreign_address)
 
-        self._writer.write(local_address, msg)
+        if foreign:
+            self._publisher.publish(msg, register)
+            if not local:
+                return 0
 
-        return 0;
 
-    def _recv(self, address, local=True):
+        return self._writer.write(msg, register)
+
+
+    def _recv(self, register, local=True):
         '''
             Gets your message from the addresses provided, either local or foreign
             :param tuple address: recv from foreign address of type tuple (IP, PORT)
             :param str address: recv from local address as a string to the dictionary 'x_velocity' etc.
         '''
         if not local:
-            return self._subscriber.subscribe(address)
+            return self._subscriber.subscribe(register)
         else:
-            return self._reader.read(address)
+            return self._reader.read(register)
 
     @abstractmethod
     def run(self):
@@ -77,7 +80,7 @@ if __name__=='__main__':
             start_time = time.time()
             while True:
                 if ( (time.time() - start_time) >= self.baud ):
-                    self._send(local_address='Encrypted_dat', msg = self.MSG)
+                    self._send(msg=self.MSG, register='Encrypted_dat')
                     start_time=time.time()
                 else:
                     time.sleep(0)
@@ -88,8 +91,7 @@ if __name__=='__main__':
             self._memory = MEM
             self._ip_route = IP
             '''
-            self.address = list(IP)[0]
-            print(self._ip_route)
+            PublisherNode:
             '''
             self.MSG = b'uninitialized'
             self.baud=.128
@@ -103,7 +105,7 @@ if __name__=='__main__':
             start_time = time.time()
             while True:
                 if((time.time() - start_time) >= self.baud):
-                    self._send(msg=self.MSG, local_address = 'Doesnt matter', foreign_address = ('127.0.0.101', 5558))
+                    self._send(msg=self.MSG, register='Encrypted_dat', local=False, foreign=True)
                     start_time = time.time()
                 else:
                     time.sleep(0)
@@ -129,7 +131,7 @@ if __name__=='__main__':
             node_base.__init__(self, MEM, IP)
             self._memory = MEM
             self._ip_route = IP
-            self.baud=.128
+            self.baud=.105
 
             '''
             self.address = list(IP)[0]
@@ -140,18 +142,41 @@ if __name__=='__main__':
             start_time = time.time()
             while True:
                 if ((time.time() - start_time) >= self.baud):
-                    print(self._recv(('127.0.0.101', 5558), local=False))
+                    print(self._recv('Encrypted_dat', local=False))
                     start_time = time.time()
                 else:
                     time.sleep(0)
 
     # Volatile Memory Instances
-    pub_socket=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sub_socket=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    ip_address = ('127.0.0.101', 5558)
-    sub_socket.bind((ip_address))
+    pub_socket1=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sub_socket1=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+    pub_socket2=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sub_socket2=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+    # Dictionary 
+
+    ip_address1 = ('127.0.0.101', 5558)
+    ip_address2 = ('127.0.0.101', 5559)
+
+    sub_socket1.bind((ip_address1))
+    sub_socket2.bind((ip_address2))
     #Dictionary with key: ip address, value is tuple with publisher/subscriber socket
-    IP={ip_address:(pub_socket, sub_socket)}
+
+    IP={'Encrypted_dat':
+                {
+                 'address':ip_address1,
+                 'sockets':(pub_socket1, sub_socket1),
+                 'type':'UDP'
+                },
+	'Doesnt matter':
+                {
+                 'address':ip_address2,
+                 'sockets':(pub_socket2, sub_socket2),
+                 'type':'UDP'
+                }
+        }
+
     MEM={'Velocity_x':12.01,'Velocity_y':12.02,'Velocity_z':12.03,'Encrypted_dat':'None'}
 
     # Initialize Node
@@ -168,5 +193,7 @@ if __name__=='__main__':
     MyReadNode.start()
     MySubscribeNode.start()
 
-    MyWriteNode.set_message('Testing Message...initialized')
-    MyPublishNode.set_message(b'This is also a testing message')
+    MyWriteNode.set_message('OUTPUT A')
+
+    MyPublishNode.set_message(b'OUTPUT B')
+
