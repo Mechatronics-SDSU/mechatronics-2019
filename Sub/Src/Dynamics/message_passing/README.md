@@ -6,4 +6,5 @@ node_base is located in **Nodes** and is a underlying class that all future node
 
  - [x] local Message passing via RAM
  - [x] Network Message Passing via UDP
- - [ ] Network Message Passing via TCP
+ - [x] Network Message Passing via TCP
+ - [x] Configuration Options Avaliable using Json
