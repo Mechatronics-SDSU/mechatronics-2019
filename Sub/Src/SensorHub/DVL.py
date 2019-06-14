@@ -32,6 +32,7 @@ class DVL_DATA_DRIVER:
 
         #Velocity Sync
         self.curr_vel = np.array([0,0,0], dtype=float)
+        self.curr_time = np.array([0, 0, 0], dtype=float)
         self.prev_vel = np.array([0,0,0], dtype=float)
         self.displacement = np.array([0,0,0], dtype=float)
 
@@ -89,6 +90,7 @@ class DVL_DATA_DRIVER:
 
                     self.DVLCom.read(112)
 
+                    #Get velocities in x,y, and z directions
                     velX = self.DVLCom.read(4)
                     velX = struct.unpack('<f', velX)
                     velY = self.DVLCom.read(4)
@@ -96,25 +98,37 @@ class DVL_DATA_DRIVER:
                     velZ = self.DVLCom.read(4)
                     velZ = struct.unpack('<f', velZ)
 
-                self.DVLCom.flush()
+                    self.DVLCom.read(48) #Read extra unwanted data
 
+                    #Read the time duration estimation values of the velocities.
+                    timeVelEstX = self.DVLCom.read(4)
+                    timeVelEstX = struct.unpack('<f', timeVelEstX)[0]
+                    timeVelEstY = self.DVLCom.read(4)
+                    timeVelEstY = struct.unpack('<f', timeVelEstY)[0]
+                    timeVelEstZ = self.DVLCom.read(4)
+                    timeVelEstZ = struct.unpack('<f', timeVelEstZ)[0]
+
+                self.DVLCom.flush()
+        #TODO: Clean this code up!
         # conversion to ft/s
         if inFeet==True:
-            return np.array([velZ[0], velX[0], velY[0]]) * 3.28084
-
+            velocities = np.array([velZ[0], velX[0], velY[0]]) * 3.28084
+            vel_times = np.array([timeVelEstZ, timeVelEstX, timeVelEstY]))
+            return(np.concatenate((velocities, vel_times), axis=None))
         # normal return as m/s
-        return np.array([velZ[0], velX[0], velY[0]])
-
+        return (np.array([velZ[0], velX[0], velY[0]]), , np.array([timeVelEstZ, timeVelEstX, timeVelEstY]))
+"""
+    DEPRECATE THIS FUNCTION. Position calcs moved to sensor_driver.py
     def __get_displacement(self):
         '''
             This function calculates the displacement of the sub in the X Y Z
-            directions. This function will also return the velocities in each direction
+            directions (since the ). This function will also return the velocities in each direction
             since the velocities are needed to calculate the displacement.
 
             RETURNS: A numpy array of [velZ, velX, velY, dispZ, dispX, dispY]
         '''
         self.prev_vel = self.curr_vel
-        self.curr_vel = self.__get_velocity()
+        self.curr_vel, self.curr_time = self.__get_velocity()
 
         #initial CALCULATION: Trapezoid Rule
         self.displacement += (.125)*(self.curr_vel + self.prev_vel)/2
@@ -140,9 +154,9 @@ class DVL_DATA_DRIVER:
         '''
 
         return np.concatenate((self.curr_vel, self.displacement), axis=None)
-
+"""
     def get_PACKET(self):
-        return self.__get_displacement()
+        return self.__get_velocity()
 
 class DVL_THREAD(threading.Thread):
     '''
@@ -188,7 +202,7 @@ class DVL_THREAD(threading.Thread):
         while(True):
 
             if(self.reset_integration_flag):
-                
+
                 self.Norteck_DVL.reset_integration()
                 self.reset_integration_flag = False #Reset the flag
             #with threading.Lock():

@@ -29,6 +29,7 @@ from MechOS import mechos
 import serial
 import threading
 import time
+import math
 
 class Sensor_Driver:
     '''
@@ -86,6 +87,9 @@ class Sensor_Driver:
         self.dvl_driver_thread.start()
         self.zero_pos_flag = True
 
+        self.current_x_pos = 0
+        self.current_y_pos = 0
+
     def zero_pos(self):
         '''
         Zero the position of the sub in the x and y coordinates
@@ -97,6 +101,8 @@ class Sensor_Driver:
         '''
         #This will be reset to false automatically by the dvl driver
         self.dvl_driver_thread.reset_integration_flag = True
+        self.current_x_pos = 0
+        self.current_y_pos = 0
 
 
     def _get_sensor_data(self):
@@ -107,20 +113,27 @@ class Sensor_Driver:
         Parameters:
             N/A
         Returns:
-            sensor_data: All the sensor navigation data from AHRS, DVL, and 
+            sensor_data: All the sensor navigation data from AHRS, DVL, and
                     Backplane.
                     form --> [roll, pitch, yaw, x_pos, y_pos, depth]
         '''
         sensor_data = [0, 0, 0, 0, 0, 0]
-        
+
         #Get the AHRS data
         sensor_data[0:2] = self.ahrs_driver_thread.ahrs_data
 
         #Get x and y position
         #TODO: Need to move the position estimator to here in the sensor driver
+        #DVL returns ([velZ, velX, velY], [velTimesZ, velTimesX, velTimesY])
         dvl_data = self.dvl_driver_thread.PACKET
-        sensor_data[3] = dvl_data[4]
-        sensor_data[4] = dvl_data[5]
+        yaw_rad = math.radians(sensor_data[2])
+
+        #Rotation matrix to relate sub's x, y coordinates to earth x(north) and y(east) components
+        x_translation = (math.cos(yaw_rad)*dvl_data[1]*dvl_data[4]) + (math.sin(yaw_rad)*dvl_data[2]*dvl_data[5])
+        y_translation = (-1* math.sin(yaw_rad)*dvl_data[1]*dvl_data[4]) + (math.cos(yaw_rad)*dvl_data[2]*dvl_data[5])
+
+        sensor_data[3] = self.current_x_pos + x_translation
+        sensor_data[4] = self.current_y_pos + y_translation
 
         #Get the depth from the Backplane
         sensor_data[5] = self.backplane_driver_thread.depth_data
