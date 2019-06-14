@@ -297,7 +297,7 @@ class Movement_PID:
         z_control = self.z_pid_controller.control_step(error[5])
 
         #Write the controls to thrusters
-        self.controlled_thrust(roll_control, pitch_control, yaw_control, x_control, y_control, z_control)
+        self.controlled_thrust(roll_control, pitch_control, yaw_control, x_control, y_control, z_control, desired_position[5])
         return error
 
     #This is a helper function to be used initially for tuning the roll, pitch

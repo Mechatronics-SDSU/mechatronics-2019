@@ -32,7 +32,6 @@ import pid_errors_pb2
 import navigation_data_pb2
 import thrusters_pb2
 
-from position_estimator import Position_Estimator
 from movement_pid import Movement_PID
 from MechOS import mechos
 import struct
