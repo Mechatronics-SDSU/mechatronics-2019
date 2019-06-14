@@ -139,7 +139,7 @@ class Sensor_Driver:
         sensor_data[5] = self.backplane_driver_thread.depth_data
 
         return(sensor_data)
-
+    """Deprecate
     def run(self):
         '''
         Main thread loop that packages the sensor data from the other sensors into
@@ -184,6 +184,7 @@ class Sensor_Driver:
                 print("Couldn't publish sensor data:", e)
 
             time.sleep(0.1)
+    """
 if __name__ == "__main__":
 
     sensor_driver = Sensor_Driver()
