@@ -31,7 +31,7 @@
             <T6>0</T6>
             <T7>0</T7>
             <T8>0</T8>
-            <active_depth>0.5</active_depth>
+            <active_depth>1</active_depth>
         </Thruster_Strengths>
         <PID>
             <dt>.025</dt>
@@ -39,7 +39,7 @@
                 <p>0.1</p>
                 <i>0.0</i>
                 <d>0.0</d>
-                <l_bound>100</l_bound>
+                <l_bound>-100</l_bound>
                 <u_bound>100</u_bound>
             </roll_pid>
             <pitch_pid>
@@ -50,7 +50,7 @@
                 <u_bound>100</u_bound>
             </pitch_pid>
             <yaw_pid>
-                <p>0.0</p>
+                <p>0.632</p>
                 <i>0.0</i>
                 <d>0.0</d>
             </yaw_pid>
@@ -72,7 +72,7 @@
                 <p>12.0</p>
                 <i>0.0</i>
                 <d>0.0</d>
-                <l_bound>11</l_bound>
+                <l_bound>-100</l_bound>
                 <u_bound>100</u_bound>
                 <bias>23</bias>
                 <active_bias_depth>2</active_bias_depth>

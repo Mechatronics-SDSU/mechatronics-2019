@@ -63,7 +63,6 @@ class Thruster():
         self.orientation = orientation
         self.location = location
         self.max_thrust = max_thrust
-
         self.invert_thruster = 1
         if(invert_thruster):
             self.invert_thruster = -1
@@ -95,7 +94,7 @@ class Thruster():
                 #Re-bound thrust from [-100, 100] to [0, 255] for writing PWM signal
                 thrust = int(np.interp(self.max_thrust, [-100, 100], [0, 254]))
 
-            elif thrust < (-self.max_thrust):
+            elif thrust < (-1*self.max_thrust):
 
                 self.previous_thurst = copy.copy(-self.max_thrust)
 

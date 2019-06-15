@@ -222,8 +222,8 @@ class Navigation_Controller(threading.Thread):
                 self.nav_data_proto.roll = self.current_position[0]
                 self.nav_data_proto.pitch = self.current_position[1]
                 self.nav_data_proto.yaw = self.current_position[2]
-                self.nav_data_proto.x_translation = self.current_position[3]
-                self.nav_data_proto.y_translation = self.current_position[4]
+                #self.nav_data_proto.x_translation = self.current_position[3]
+                #self.nav_data_proto.y_translation = self.current_position[4]
                 self.nav_data_proto.depth = self.current_position[5]
 
                 serialized_nav_data = self.nav_data_proto.SerializeToString()
@@ -231,9 +231,9 @@ class Navigation_Controller(threading.Thread):
 
                 if(self.update_pid_errors):
                     #Package PID error protos
-                    self.pid_errors_proto.roll_error = self.pos_error[0]
-                    self.pid_errors_proto.pitch_error = self.pos_error[1]
-                    self.pid_errors_proto.z_pos_error = self.pos_error[5] #depth error
+                    #self.pid_errors_proto.roll_error = self.pos_error[0]
+                    #self.pid_errors_proto.pitch_error = self.pos_error[1]
+                    #self.pid_errors_proto.z_pos_error = self.pos_error[5] #depth error
 
                     serialzed_pid_errors_proto = self.pid_errors_proto.SerializeToString()
                     self.pid_errors_publisher.publish(serialzed_pid_errors_proto)

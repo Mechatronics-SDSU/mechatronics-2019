@@ -277,7 +277,7 @@ class Movement_PID:
         #Calculate the error in the x and y position (relative to the sub) given the current position.
         #Using rotation matrix.
         error_abs_x = desired_position[3] - current_position[3]
-        error_abs_y = deisred_position[4] - current_position[4]
+        error_abs_y = desired_position[4] - current_position[4]
         yaw_rad = math.radians(curr_yaw) #convert yaw from degrees to radians
         error[3] = (math.cos(yaw_rad) * error_abs_x) + (math.sin(yaw_rad) * error_abs_y)
         error[4] = (-1 * math.sin(yaw_rad) * error_abs_x) + (math.cos(yaw_rad) * error_abs_y)

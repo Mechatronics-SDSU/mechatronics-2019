@@ -71,6 +71,9 @@ class DVL_DATA_DRIVER:
         velZ = [0]
         velX = [0]
         velY = [0]
+        timeVelEstZ = 0
+        timeVelEstX = 0
+        timeVelEstY = 0
         while(not SYNC_flag):
         #if(self.DVLCom.inWaiting() > 154):
             SYNC = hex(ord(self.DVLCom.read()))
@@ -113,11 +116,11 @@ class DVL_DATA_DRIVER:
         # conversion to ft/s
         if inFeet==True:
             velocities = np.array([velZ[0], velX[0], velY[0]]) * 3.28084
-            vel_times = np.array([timeVelEstZ, timeVelEstX, timeVelEstY]))
+            vel_times = np.array([timeVelEstZ, timeVelEstX, timeVelEstY])
             return(np.concatenate((velocities, vel_times), axis=None))
         # normal return as m/s
-        return (np.array([velZ[0], velX[0], velY[0]]), , np.array([timeVelEstZ, timeVelEstX, timeVelEstY]))
-"""
+        return (np.array([velZ[0], velX[0], velY[0]]), np.array([timeVelEstZ, timeVelEstX, timeVelEstY]))
+    """
     DEPRECATE THIS FUNCTION. Position calcs moved to sensor_driver.py
     def __get_displacement(self):
         '''
@@ -154,7 +157,7 @@ class DVL_DATA_DRIVER:
         '''
 
         return np.concatenate((self.curr_vel, self.displacement), axis=None)
-"""
+    """
     def get_PACKET(self):
         return self.__get_velocity()
 
