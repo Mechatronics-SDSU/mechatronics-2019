@@ -1,14 +1,14 @@
 import os
 import sys
-comm_path = os.path.join("..")
+comm_path = os.path.join("..", "..")
 sys.path.append(comm_path)
 
 import time
 import threading
 import socket
 
-from communicationUtils import local as local
-from communicationUtils import network as network
+from message_passing.communicationUtils import local as local
+from message_passing.communicationUtils import network as network
 from abc import ABC, abstractmethod
 
 
@@ -154,7 +154,7 @@ if __name__=='__main__':
     pub_socket2=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sub_socket2=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-    # Dictionary 
+    # Dictionary
 
     ip_address1 = ('127.0.0.101', 5558)
     ip_address2 = ('127.0.0.101', 5559)
@@ -196,4 +196,3 @@ if __name__=='__main__':
     MyWriteNode.set_message('OUTPUT A')
 
     MyPublishNode.set_message(b'OUTPUT B')
-
