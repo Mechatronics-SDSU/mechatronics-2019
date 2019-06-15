@@ -9,6 +9,10 @@ sys.path.append(PARAM_PATH)
 MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
 from mechos_network_configs import MechOS_Network_Configs
 from MechOS import mechos
+
+from regularControl import RcThread
+import numpy
+
 import struct
 
 
@@ -17,7 +21,6 @@ class Tabbed_Display(QWidget):
     def __init__(self):
         '''
         Initializes a Tabbed Display widget.
-
         Parameters:
             individual_tab: The individual_tab Qwidget
         '''
@@ -54,11 +57,9 @@ class Tabbed_Display(QWidget):
     def add_tab(self, widget, title):
         '''
         Creates a new tab and adds a Qwidget to it.
-
         Parameters:
             widget: The Qwidget to be displayed.
             title: (string) The title of the Tab
-
         Returns:
             N/A
         '''
@@ -85,29 +86,39 @@ class Tabbed_Display(QWidget):
     def _update_mode(self):
         '''
         Publishes the current tab index.
-
         Parameters:
             N/A
-
         Returns:
             N/A
         '''
         # Get current index
         mode = self.tabs.currentIndex()
-        print(type(mode))
+        print(mode)
+	
+	# If on remote control tab, start the remote control thread
+        self.start_rc_thread = RcThread()
+        if mode == 2:
+                self.start_rc_thread.start()
+                self.start_rc_thread.threadrunning = True
+        elif mode == 1 or mode == 0:
+                self.start_rc_thread.threadrunning = False
+		
         mode_serialized = struct.pack('b', mode)
+
         # Publish current index
         self.movement_mode_publisher.publish(mode_serialized)
-          
+        return mode
 
 if __name__ == "__main__":
     from pid_tuner_widget import PID_Tuner_Widget
     from thruster_test_widget import Thruster_Test
+    from remote_control_main import Remote_Control_Widget
     import sys
 
     app = QApplication([])
     tabbed_display = Tabbed_Display()
     tabbed_display.add_tab(PID_Tuner_Widget(), "PID Tuner")
     tabbed_display.add_tab(Thruster_Test(), "Thusters")
+    tabbed_display.add_tab(Remote_Control_Widget(), "Remote Control")
     tabbed_display.show()
     sys.exit(app.exec_())
