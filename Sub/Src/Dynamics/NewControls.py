@@ -16,10 +16,11 @@ class RemoteControlNode(node_base):
 
     def __init__(self, IP, MEM):
         '''
-        This class initializes the Xbox remote control and handles all input logic.
-        It inherits functionality from node_base. The idea is to accept input from the
-        Xbox control, map it into a thruster matrix, and then send that matrix over the
-        network via udp to the address specified by the user.
+        This class initializes the Xbox remote control and handles all input
+        logic. It inherits functionality from node_base. The idea is to accept
+        input from the Xbox control, map it into a thruster matrix, and then
+        send that matrix over the network via udp to the address specified by
+        the user.
 
         Parameters:
             IP:A dictionary containing the address and sockets to connect to for
@@ -45,26 +46,31 @@ class RemoteControlNode(node_base):
 
     def _dot_product(self, input_matrix):
         '''
-        Dots the Xbox input matrix with the control logic map we want for thrusters.
-        Left stick controls yaw and x (forward) movement. Triggers control submerge
-        and breach (depth). Right stick works as a multiplier to slowly kill thruster power
-        in order to pitch and roll
+        Dots the Xbox input matrix with the control logic map we want for
+        thrusters. Left stick controls yaw and x (forward) movement. Triggers
+        control submerge and breach (depth). Right stick works as a multiplier
+        to slowly kill thruster power in order to pitch and roll
         Parameters:
-            input_matrix:The matrix of Xbox input values we use to multiply by the logic map
-                         to write to the thrusters
+            input_matrix:The matrix of Xbox input values we use to multiply by
+                         the logic map to write to the thrusters
         Returns:
-            An output matrix which we send to the thruster node. Contains power values for thrusters
+            An output matrix which we send to the thruster node. Contains power
+            values for thrusters
         '''
 
         return np.dot(input_matrix, self._dot_product_matrix)
 
     def _control(self, input):
         '''
-        Takes the Xbox input from pygame's queue, and creates an input matrix with it
-        This input matrix gets dotted with the dot product to give us the correct values
+        Takes the Xbox input from pygame's queue, and creates an input matrix
+        with it. This input matrix gets dotted with the dot product to give us
         to write to the thrusters
         Parameters:
             input: The pygame event that we pass in to manipulate the thrusters
+        Returns:
+            byte_matrix: The bytes object representation of our dot product
+            result. Allows us to send over UDP as bytes using pickle, faster for
+            transfer
         '''
         if input.type == pygame.JOYAXISMOTION:
             if input.axis == 0:    #Left-stick, horizontal, controls yaw
@@ -101,9 +107,9 @@ class ThrusterNode(node_base):
 
     def __init__(self, IP, MEM):
         '''
-        This class initializes the sub's thrusters. Also inherits from node_base.
-        Accepts the input from the Xbox, and maps them to the correct thruster on
-        the sub
+        This class initializes the sub's thrusters. Also inherits from
+        node_base. Accepts the input from the Xbox, and maps them to the correct
+        thruster on the sub
         '''
         node_base.__init__(self, MEM, IP)
         self._memory=MEM
@@ -113,21 +119,22 @@ class ThrusterNode(node_base):
 
     def _set_thrust(self, array):
         '''
-        Take the accepted/received array, use the maestro to map to each individual
-        thruster. Only go from 0 to 204, so the PWMs never send more than 80 percent
-        power to the thrusters
+        Take the accepted/received array, use the maestro to map to each
+        individual thruster. Only go from 0 to 204, so the PWMs never send more
+        than 80 percent power to the thrusters
         Parameters:
-            array: The array that we receive from from subsriber end. Write each thruster using the maestro
+            array: The array that we receive from from subsriber end. Write each
+            thruster using the maestro
         Returns:
             N/A
         '''
         #print(int(np.interp(array[0], [-1,1], [25,231])))
         self._maestro.set_target(1, int(np.interp(array[0], [-1,1], [25,231])))
-        # self._maestro.set_target(2, int(np.interp(array[1], [-1,1], [25,231])))
+        self._maestro.set_target(2, int(np.interp(array[1], [-1,1], [25,231])))
         self._maestro.set_target(3, int(np.interp(array[2], [-1,1], [25,231])))
         self._maestro.set_target(4, int(np.interp(array[3], [-1,1], [25,231])))
         self._maestro.set_target(5, int(np.interp(array[4], [-1,1], [25,231])))
-        # self._maestro.set_target(6, int(np.interp(array[5], [-1,1], [25,231])))
+        self._maestro.set_target(6, int(np.interp(array[5], [-1,1], [25,231])))
         self._maestro.set_target(7, int(np.interp(array[6], [-1,1], [25,231])))
         self._maestro.set_target(8, int(np.interp(array[7], [-1,1], [25,231])))
 
