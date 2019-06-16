@@ -5,10 +5,6 @@ class publisher(object):
 		'''
 		Ip router is dictionary. key: ip address value: list of ports
 		'''
-		#self.UDP_socket=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
-		#self.TCP_socket=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
 		self.ip_router=ip_router
 
 	def publish(self, msg, register):

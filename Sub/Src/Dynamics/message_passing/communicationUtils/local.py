@@ -38,14 +38,29 @@ class reader(object):
 
 class writer(object):
 	'''
-	Initializes the writer. 
+	Initializes the writer. Accepts a dictionary, writes whatever values we need
+	to whatever key the user wants
 	'''
 	def __init__(self, volatile_memory):
 		'''
+		Initializes the writer
+		Parameters:
+			volatile_memory: The dictionary to "write" messages to and store in.
+		Returns:
+			N/A
 		'''
 		self.MEM=volatile_memory
 
 	def write(self, msg, register):
 		'''
+		Writes the message desired to the key desired within the dictionary.
+		Automatically creates the key if not found
+		Parameters:
+			msg:The message we want to "write". Essentially the value for the
+				desired key we set in the dictionary
+			register:The key to set the message to so the user can grab or
+					 "read" it later
+		Returns:
+			N/A
 		'''
 		self.MEM[register]=msg

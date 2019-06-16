@@ -13,7 +13,21 @@ from abc import ABC, abstractmethod
 
 
 class node_base(ABC, threading.Thread):
-    def __init__(self, volatile_memory, ip_route ):
+    '''
+    Abstract node_base class. The benefits of having this abstract allows for
+    numerous options for initializing and running nodes.
+    '''
+    def __init__(self, volatile_memory, ip_route):
+        '''
+        Initializes the node. Inherits from theading.Thread along with all of
+        Thread's functions, such as start, run, etc.
+        Params:
+            volatile_memory:The RAM dictionary. We use this for local input and
+                            output. Allows reader and writer to do their jobs
+            ip_route:The ip dictionary. Contains the address, publisher socket,
+                     subscriber socket, and type of connection as information.
+                     Allows publisher and subscriber to do their jobs
+        '''
         threading.Thread.__init__(self)
         ABC.__init__(self)
         print(__class__.__name__,'inherited')
@@ -26,30 +40,43 @@ class node_base(ABC, threading.Thread):
 
     def _send(self,  msg, register, local=True, foreign=False):
         '''
-            Sends your message to the address(s) provided, either foreign local, or both
-
-            :param byte msg: the message you are sending, could be a byte string
-            :param str local_address: a unique key to write to the local volatile_memory
-            :param tuple foreign_address: a tuple containing an ip_address and port, pair
-            :rtype: int
-            :returns: 0 on sucess 1 on error, errors are logged to outputbuffer
+        Sends your message to the address(s) provided, either foreign local or
+        both
+        Parameters:
+            msg:The bytes message that we use to write or publish, or both
+            register:The key that we want to write to if local is being used.
+                     Also gives access to all the socket and udp/tcp information
+                     if the network is being used (publishers)
+            local:boolean, states whether or not the data should be sent locally
+            foreign:boolean, states whether or not the data should be sent over
+                    the network
+        Returns:
+            N/A
         '''
-
 
         if foreign:
             self._publisher.publish(msg, register)
             if not local:
                 return 0
-
-
-        return self._writer.write(msg, register)
-
+        return self._writer.write(msg, register)    #I know this is a return
+                                                    #statement, but it doesn't
+                                                    #do shit. I'm still too
+                                                    #scared to delete the return
 
     def _recv(self, register, local=True):
         '''
-            Gets your message from the addresses provided, either local or foreign
-            :param tuple address: recv from foreign address of type tuple (IP, PORT)
-            :param str address: recv from local address as a string to the dictionary 'x_velocity' etc.
+            Gets your message from the addresses provided, either local or
+            foreign
+            Parameters:
+                register:The key to do local reads from. Use it to pull
+                         whatever data is stored there. If we are subsrcribing,
+                         gives us access to the IP address, sockets, etc to
+                         perform the subscribe operation
+                local:Boolean, states whether or not we receive data locally or
+                      over the network
+            Returns:
+                    The data received, whether read locally or subscribed to via
+                    the network
         '''
         if not local:
             return self._subscriber.subscribe(register)
@@ -58,11 +85,21 @@ class node_base(ABC, threading.Thread):
 
     @abstractmethod
     def run(self):
+        '''
+        This method is abstract. Allows the node to perform any function we wish
+        whether that is publishes, subscriptions, or even dumb print statements
+        '''
         pass
 
 if __name__=='__main__':
     import time
-
+    '''
+    Examples of how to instantiate nodes, and use them. You can initialize them
+    however you wish provided you use the correct parameters, you can add any
+    function you wish for them to have, and you can pass whatever you want in
+    run. However, creating the IP dictionary has a specified method to it, as
+    publishes and subscribes will not work if that protocol is not maintained.
+    '''
     class WriteNode(node_base):
         def __init__(self, IP, MEM):
             node_base.__init__(self, MEM, IP)
