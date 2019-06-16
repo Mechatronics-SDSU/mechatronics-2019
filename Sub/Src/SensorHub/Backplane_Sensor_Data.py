@@ -155,6 +155,7 @@ class Backplane_Responses(threading.Thread):
                      This will be in the form of a dictionary were the key is
                      an abbreviation for the type of data
         '''
+        message = None
         try:
             if self.backplane_serial.in_waiting > 0:
 
@@ -263,7 +264,7 @@ class Backplane_Responses(threading.Thread):
                     return message
 
         except Exception as e:
-            print("Can't receive data from backplane:", e)
+            print("[ERROR]: Can't receive data from backplane:", e)
 
 class Backplane_Handler(threading.Thread):
     '''
@@ -355,7 +356,7 @@ class Backplane_Handler(threading.Thread):
                                 self.depth_data = depth_data[0, 0]
 
             except Exception as e:
-                print("Cannot pop backplane data:", e)
+                print("[ERROR]: Cannot pop backplane data. Error:", e)
 
 
 

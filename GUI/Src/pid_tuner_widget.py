@@ -47,6 +47,9 @@ class PID_Tuner_Widget(QWidget):
 
         self.pid_gui_node = mechos.Node("PID_GUI", configs["ip"])
 
+        #Publisher to tell the navigation/movement controller when new PID values are saved.
+        self.pid_configs_update_publisher = self.pid_gui_node.create_publisher("PID", configs["pub_port"])
+
         #Subscriber to get PID ERRORS
         self.pid_errors_subscriber = self.pid_gui_node.create_subscriber("PE", self._update_error_plot, configs["sub_port"])
         self.pid_error_proto = pid_errors_pb2.PID_ERRORS()
@@ -325,7 +328,8 @@ class PID_Tuner_Widget(QWidget):
         '''
         This is the callback for the save pid values button. When it is pressed,
         it sets the PID gain values currently selected on the sliders/gain displays
-        and writes it to the parameter server.
+        and writes it to the parameter server. Then it tells the navigation controller 
+        to update these values.
 
         Parameters:
             N/A
@@ -345,6 +349,12 @@ class PID_Tuner_Widget(QWidget):
         self.param_serv.set_param('Control/PID/' + channel + '/p', k_p)
         self.param_serv.set_param('Control/PID/' + channel + '/i', k_i)
         self.param_serv.set_param('Control/PID/' + channel + '/d', k_d)
+
+        time.sleep(0.01) #Make sure that the parameters are properly sent.
+
+        #Tell the navigation controller/movement controller to update its PIDs
+        self.pid_configs_update_publisher.publish('1') #The value that is sent does not matter
+        print("[INFO]: Saving and Updating PID Configurations.")
 
     def _update_PID_precision(self):
         '''

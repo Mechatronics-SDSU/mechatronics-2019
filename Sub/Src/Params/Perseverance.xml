@@ -39,41 +39,43 @@
                 <p>0.1</p>
                 <i>0.0</i>
                 <d>0.0</d>
-                <l_bound>-100</l_bound>
-                <u_bound>100</u_bound>
+                <min_error>-100</min_error>
+                <max_error>100</max_error>
             </roll_pid>
             <pitch_pid>
                 <p>0.1</p>
                 <i>0.0</i>
                 <d>0.0</d>
-                <l_bound>-100</l_bound>
-                <u_bound>100</u_bound>
+                <min_error>-100</min_error>
+                <max_error>100</max_error>
             </pitch_pid>
             <yaw_pid>
                 <p>0.632</p>
                 <i>0.0</i>
                 <d>0.0</d>
+                <min_error>-100</min_error>
+                <max_error>100</max_error>
             </yaw_pid>
             <x_pid>
                 <p>0.0</p>
                 <i>0.0</i>
                 <d>0.0</d>
-                <l_bound>-100</l_bound>
-                <u_bound>100</u_bound>
+                <min_error>-100</min_error>
+                <max_error>100</max_error>
             </x_pid>
             <y_pid>
                 <p>0</p>
                 <i>0</i>
                 <d>0</d>
-                <l_bound>-100</l_bound>
-                <u_bound>100</u_bound>
+                <min_error>-100</min_error>
+                <max_error>100</max_error>
             </y_pid>
             <z_pid>
                 <p>12.0</p>
                 <i>0.0</i>
                 <d>0.0</d>
-                <l_bound>-100</l_bound>
-                <u_bound>100</u_bound>
+                <min_error>-100</min_error>
+                <max_error>100</max_error>
                 <bias>23</bias>
                 <active_bias_depth>2</active_bias_depth>
             </z_pid>

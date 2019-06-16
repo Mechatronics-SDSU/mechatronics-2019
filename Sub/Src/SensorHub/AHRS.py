@@ -281,7 +281,7 @@ class AHRS(threading.Thread):
 
                         self.ahrs_data = data
             except Exception as e:
-                print("Couldn't receive and store AHRS data correctly:", e)
+                print("[ERROR]: Couldn't receive and store AHRS data correctly. Error:", e)
 
 
 

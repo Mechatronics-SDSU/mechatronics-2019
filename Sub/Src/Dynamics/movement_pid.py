@@ -91,39 +91,42 @@ class Movement_PID:
         roll_p = float(self.param_serv.get_param("Control/PID/roll_pid/p"))
         roll_i = float(self.param_serv.get_param("Control/PID/roll_pid/i"))
         roll_d = float(self.param_serv.get_param("Control/PID/roll_pid/d"))
-        roll_l_bound = float(self.param_serv.get_param("Control/PID/roll_pid/l_bound"))
-        roll_u_bound = float(self.param_serv.get_param("Control/PID/roll_pid/u_bound"))
+        self.roll_min_error = float(self.param_serv.get_param("Control/PID/roll_pid/min_error"))
+        self.roll_max_error = float(self.param_serv.get_param("Control/PID/roll_pid/max_error"))
         self.max_roll = float(self.param_serv.get_param("Control/Limits/max_roll"))
 
         pitch_p = float(self.param_serv.get_param("Control/PID/pitch_pid/p"))
         pitch_i = float(self.param_serv.get_param("Control/PID/pitch_pid/i"))
         pitch_d = float(self.param_serv.get_param("Control/PID/pitch_pid/d"))
-        pitch_l_bound = float(self.param_serv.get_param("Control/PID/pitch_pid/l_bound"))
-        pitch_u_bound = float(self.param_serv.get_param("Control/PID/pitch_pid/u_bound"))
+        self.pitch_min_error = float(self.param_serv.get_param("Control/PID/pitch_pid/min_error"))
+        self.pitch_max_error = float(self.param_serv.get_param("Control/PID/pitch_pid/max_error"))
         self.max_pitch = float(self.param_serv.get_param("Control/Limits/max_pitch"))
 
         yaw_p = float(self.param_serv.get_param("Control/PID/yaw_pid/p"))
         yaw_i = float(self.param_serv.get_param("Control/PID/yaw_pid/i"))
         yaw_d = float(self.param_serv.get_param("Control/PID/yaw_pid/d"))
+        self.yaw_min_error = float(self.param_serv.get_param("Control/PID/yaw_pid/min_error"))
+        self.yaw_max_error = float(self.param_serv.get_param("Control/PID/yaw_pid/max_error"))
+
 
         x_p = float(self.param_serv.get_param("Control/PID/x_pid/p"))
         x_i = float(self.param_serv.get_param("Control/PID/x_pid/i"))
         x_d = float(self.param_serv.get_param("Control/PID/x_pid/d"))
-        x_l_bound = float(self.param_serv.get_param("Control/PID/x_pid/l_bound"))
-        x_u_bound = float(self.param_serv.get_param("Control/PID/x_pid/u_bound"))
+        self.x_min_error = float(self.param_serv.get_param("Control/PID/x_pid/min_error"))
+        self.x_max_error = float(self.param_serv.get_param("Control/PID/x_pid/max_error"))
 
         y_p = float(self.param_serv.get_param("Control/PID/y_pid/p"))
         y_i = float(self.param_serv.get_param("Control/PID/y_pid/i"))
         y_d = float(self.param_serv.get_param("Control/PID/y_pid/d"))
-        y_l_bound = float(self.param_serv.get_param("Control/PID/y_pid/l_bound"))
-        y_u_bound = float(self.param_serv.get_param("Control/PID/y_pid/u_bound"))
+        self.y_min_error = float(self.param_serv.get_param("Control/PID/y_pid/min_error"))
+        self.y_max_error = float(self.param_serv.get_param("Control/PID/y_pid/max_error"))
 
         #z = depth pid
         z_p = float(self.param_serv.get_param("Control/PID/z_pid/p"))
         z_i = float(self.param_serv.get_param("Control/PID/z_pid/i"))
         z_d = float(self.param_serv.get_param("Control/PID/z_pid/d"))
-        z_l_bound = float(self.param_serv.get_param("Control/PID/z_pid/l_bound"))
-        z_u_bound = float(self.param_serv.get_param("Control/PID/z_pid/u_bound"))
+        self.z_min_error = float(self.param_serv.get_param("Control/PID/z_pid/min_error"))
+        self.z_max_error = float(self.param_serv.get_param("Control/PID/z_pid/max_error"))
         self.min_z = float(self.param_serv.get_param("Control/Limits/min_z"))
         self.max_z = float(self.param_serv.get_param("Control/Limits/max_z"))
 
@@ -135,22 +138,24 @@ class Movement_PID:
 
         #If running the script with initialization true, create PID_Controller objects
         if(initialization):
-            self.roll_pid_controller = PID_Controller(roll_p, roll_i, roll_d, d_t, roll_l_bound, roll_u_bound)
-            self.pitch_pid_controller = PID_Controller(pitch_p, pitch_i, pitch_d, d_t, pitch_l_bound, pitch_u_bound)
+            print("[INFO]: Initializing PID Controllers.")
+            self.roll_pid_controller = PID_Controller(roll_p, roll_i, roll_d, d_t)
+            self.pitch_pid_controller = PID_Controller(pitch_p, pitch_i, pitch_d, d_t)
             self.yaw_pid_controller = PID_Controller(yaw_p, yaw_i, yaw_d, d_t)
-            self.x_pid_controller = PID_Controller(x_p, x_i, x_d, d_t, x_l_bound, x_u_bound)
-            self.y_pid_controller = PID_Controller(y_p, y_i, y_d, d_t, y_l_bound, y_u_bound)
-            self.z_pid_controller = PID_Controller(z_p, z_i, z_d, d_t, z_l_bound, z_u_bound)
+            self.x_pid_controller = PID_Controller(x_p, x_i, x_d, d_t)
+            self.y_pid_controller = PID_Controller(y_p, y_i, y_d, d_t)
+            self.z_pid_controller = PID_Controller(z_p, z_i, z_d, d_t)
 
         else:
-            self.roll_pid_controller.set_gains(roll_p, roll_i, roll_d, d_t, roll_l_bound, roll_u_bound)
-            self.pitch_pid_controller.set_gains(pitch_p, pitch_i, pitch_d, d_t, pitch_l_bound, pitch_u_bound)
+            print("[INFO]: Updating PID Controller Configurations.")
+            self.roll_pid_controller.set_gains(roll_p, roll_i, roll_d, d_t)
+            self.pitch_pid_controller.set_gains(pitch_p, pitch_i, pitch_d, d_t)
             self.yaw_pid_controller.set_gains(yaw_p, yaw_i, yaw_d, d_t)
-            self.x_pid_controller.set_gains(x_p, x_i, x_d, d_t, x_l_bound, x_u_bound)
-            self.y_pid_controller.set_gains(y_p, y_i, y_d, d_t, y_l_bound, y_u_bound)
-            self.z_pid_controller.set_gains(z_p, z_i, z_d, d_t, z_l_bound, z_u_bound)
+            self.x_pid_controller.set_gains(x_p, x_i, x_d, d_t)
+            self.y_pid_controller.set_gains(y_p, y_i, y_d, d_t)
+            self.z_pid_controller.set_gains(z_p, z_i, z_d, d_t)
 
-
+        #TODO: Physically balance the sub so that this can be deprecated.
         #Thruster Strengths (these are used to give more strengths to weeker thrusters in the case that the sub is imbalanced)
         #Each index corresponds to the thruster id.
         self.thruster_strengths = [0, 0, 0, 0, 0, 0, 0, 0]
@@ -221,6 +226,27 @@ class Movement_PID:
             self.thrusters[thruster_id].set_thrust(thrust)
 
 
+    def bound_error(self, unbounded_error, min_error, max_error):
+        '''
+        This function will check if the unbounded error is within the range
+        of the max and min error. If it is not, it will force it to be.
+
+        Parameter:
+            unbounded_error: The error that has not yet been checked if it 
+                            is within the error limits
+            min_error: The minimum value that you want your error to be.
+            max_error: The maximum value that you want your error to be.
+        Returns:
+            N/A
+        '''
+        if(unbounded_error < min_error):
+            unbounded_error = min_error
+            return(unbounded_error)
+        elif(unbounded_error > max_error):
+            unbounded_error = max_error
+            return(unbounded_error)
+        else:
+            return(unbounded_error)
 
     def advance_move(self, current_position, desired_position):
         '''
@@ -247,41 +273,39 @@ class Movement_PID:
             desired_position[0] = math.copysign(self.max_roll, desired_position[0])
             print("[WARNING]: Absolute of desired roll %0.2f is greater than the max limit %0.2f" % (desired_position[0], self.max_roll))
 
-        error[0] = desired_position[0] - current_position[0] #roll error
+        error[0] = self.bound_error(desired_position[0] - current_position[0], self.roll_min_error, self.roll_max_error) #roll error
 
         #Make sure pitch is within maximum limit
         if(abs(desired_position[1]) > self.max_pitch):
             desired_position[1] = math.copysign(self.max_pitch, desired_position[1])
             print("[WARNING]: Absolute of desired pitch %0.2f is greater than the max limit %0.2f" % (desired_position[0], self.max_pitch))
 
-        error[1] = desired_position[1] - current_position[1] #pitch error
+        error[1] = self.bound_error(desired_position[1] - current_position[1], self.pitch_min_error, self.pitch_max_error) #pitch error
 
         #Calculate yaw error. The logic includes calculating error for choosing shortest angle to travel
         desired_yaw = desired_position[2]
         curr_yaw = current_position[2]
 
-        if(desired_yaw >= curr_yaw):
-            yaw_error = desired_yaw - curr_yaw
-            if(yaw_error > 180):    #This will choose the shortest angle to take to desred position.
-                error[2] = yaw_error - 360
-            else:
-                error[2] = yaw_error
+        yaw_error = desired_yaw - curr_yaw
 
-        else:
-            yaw_error = curr_yaw - desired_yaw
-            if(abs(yaw_error) > 180):
-                error[2] = yaw_error + 360
+        if(abs(yaw_error) > 180):
+  
+            if(yaw_error < 0):
+                yaw_error = yaw_error + 360
             else:
-                error[2] = yaw_error
+                yaw_error = yaw_error - 360
+
+        error[2] = self.bound_error(yaw_error, self.yaw_min_error, self.yaw_max_error)
 
         #Calculate the error in the x and y position (relative to the sub) given the current position.
         #Using rotation matrix.
         error_abs_x = desired_position[3] - current_position[3]
         error_abs_y = desired_position[4] - current_position[4]
         yaw_rad = math.radians(curr_yaw) #convert yaw from degrees to radians
-        error[3] = (math.cos(yaw_rad) * error_abs_x) + (math.sin(yaw_rad) * error_abs_y)
-        error[4] = (-1 * math.sin(yaw_rad) * error_abs_x) + (math.cos(yaw_rad) * error_abs_y)
-
+        error_rel_x = (math.cos(yaw_rad) * error_abs_x) + (math.sin(yaw_rad) * error_abs_y)
+        error_rel_y = (-1 * math.sin(yaw_rad) * error_abs_x) + (math.cos(yaw_rad) * error_abs_y)
+        error[3] = self.bound_error(error_rel_x, self.x_min_error, self.x_max_error)
+        error[4] = self.bound_error(error_rel_y, self.y_min_error, self.y_max_error)
 
         if(desired_position[5] < self.min_z):
             print("[WARNING]: Desired depth %0.2f is less than the min limit %0.2f" % (desired_position[5], self.min_z))
@@ -291,7 +315,7 @@ class Movement_PID:
             print("[WARNING]: Desired depth %0.2f is greater than the max limit %0.2f" % (desired_position[5], self.max_z))
             desired_position[5] = self.max_z
 
-        error[5] = desired_position[5] - current_position[5] #z_pos (depth)
+        error[5] = self.bound_error(desired_position[5] - current_position[5], self.z_min_error, self.z_max_error) #z_pos (depth)
 
         #Get the thrusts from the PID controllers to move towards desired pos.
         roll_control = self.roll_pid_controller.control_step(error[0])

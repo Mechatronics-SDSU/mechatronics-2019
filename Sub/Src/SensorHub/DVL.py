@@ -204,14 +204,18 @@ class DVL_THREAD(threading.Thread):
         '''
         while(True):
 
-            if(self.reset_integration_flag):
+            try:
 
-                self.Norteck_DVL.reset_integration()
-                self.reset_integration_flag = False #Reset the flag
-            #with threading.Lock():
-            self.PACKET = self.Norteck_DVL.get_PACKET()
-            #print(self.PACKET) #uncomment to test
+                if(self.reset_integration_flag):
 
+                    self.Norteck_DVL.reset_integration()
+                    self.reset_integration_flag = False #Reset the flag
+                #with threading.Lock():
+                self.PACKET = self.Norteck_DVL.get_PACKET()
+                #print(self.PACKET) #uncomment to test
+
+            except Exception as e:
+                print("[ERROR]: Could not properly recieve DVL data. Error:", e)
             time.sleep(0.4)
 
 if __name__== '__main__':

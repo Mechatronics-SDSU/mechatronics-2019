@@ -2,7 +2,7 @@
 Copyright 2019, David Pierce Walker-Howell, All rights reserved
 
 Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
-Last Modified 06/12/2019
+Last Modified 06/16/2019
 Description: This module contains a highest level navigation controller for Perseverance.
                 It contains multiple modes of control for the sub including
                 thruster test mode, PID test mode, and Autonomous control mode. 
@@ -70,6 +70,9 @@ class Navigation_Controller(threading.Thread):
 
         #Subscriber to change movement mode
         self.movement_mode_subscriber = self.navigation_controller_node.create_subscriber("MM", self.__update_movement_mode_callback, configs["sub_port"])
+
+        #Update PID configurations button
+        self.pid_configs_subscriber = self.navigation_controller_node.create_subscriber("PID", self.__update_pid_configs_callback, configs["sub_port"])
 
         #Subscriber to get the desired position set by the user/mission controller.
         self.desired_position_subscriber = self.navigation_controller_node.create_subscriber("DP", self.__unpack_desired_position_callback, configs["sub_port"])
@@ -177,11 +180,28 @@ class Navigation_Controller(threading.Thread):
 
         self.movement_mode = struct.unpack('b', movement_mode)[0]
         if(self.movement_mode == 0):
+            print("[INFO]: Movement mode selected: PID Tuner Mode.")
             self.pid_values_update_freeze = False
-            self.update_pid_errors = True
+
+            #SET TRUE IF YOU WANT TO GRAPHICALLY OBSERVE THE PID ERRORS IN THE GUI.
+            self.update_pid_errors = False
         else:
+            print("[INFO]: Movement mode selected: Thruster Test Mode")
             self.pid_values_update_freeze = True
             self.update_pid_errors = False
+
+    def __update_pid_configs_callback(self, misc):
+        '''
+        The callback function to update the pid configuration if the save button
+        is pressed. Calls the update pid values function of movement_pid.py.
+
+        Parameters:
+            misc: This parameter is not passed anything of value, because if this function
+                    is called then it should just update the PID's.
+        Returns:
+            N/A
+        '''
+        self.pid_controller.set_up_PID_controllers()
 
     def _command_listener(self):
         '''
@@ -195,15 +215,17 @@ class Navigation_Controller(threading.Thread):
             N/A
         '''
         while self.command_listener_thread_run:
-            #Recieve commands from the the GUI and/or Mission Commander
-            self.navigation_controller_node.spinOnce(self.movement_mode_subscriber)
-            self.navigation_controller_node.spinOnce(self.sub_killed_subscriber)
-            self.navigation_controller_node.spinOnce(self.desired_position_subscriber)
+            try:
+                #Recieve commands from the the GUI and/or Mission Commander
+                self.navigation_controller_node.spinOnce(self.movement_mode_subscriber)
+                self.navigation_controller_node.spinOnce(self.sub_killed_subscriber)
+                self.navigation_controller_node.spinOnce(self.desired_position_subscriber)
 
-            #If pid values update is not frozen, then update the pid values from the parameter server.
-            if(self.pid_values_update_freeze == False):
-                self.pid_controller.set_up_PID_controllers()
-
+                #If pid values update is not frozen, then update the pid values from the parameter server.
+                if(self.pid_values_update_freeze == False):
+                    self.navigation_controller_node.spinOnce(self.pid_configs_subscriber)
+            except Exception as e:
+                print("[ERROR]: Could not properly recieved messages in command listener. Error:", e)
             time.sleep(0.2)
 
     def _update_command(self):
@@ -222,6 +244,7 @@ class Navigation_Controller(threading.Thread):
                 self.nav_data_proto.roll = self.current_position[0]
                 self.nav_data_proto.pitch = self.current_position[1]
                 self.nav_data_proto.yaw = self.current_position[2]
+                #TODO:Uncomment to get x and y positions.                
                 #self.nav_data_proto.x_translation = self.current_position[3]
                 #self.nav_data_proto.y_translation = self.current_position[4]
                 self.nav_data_proto.depth = self.current_position[5]
@@ -229,16 +252,20 @@ class Navigation_Controller(threading.Thread):
                 serialized_nav_data = self.nav_data_proto.SerializeToString()
                 self.nav_data_publisher.publish(serialized_nav_data) #Send the current position
 
+                #TODO: Uncomment if you would like to recieve the position errors.
                 if(self.update_pid_errors):
                     #Package PID error protos
                     #self.pid_errors_proto.roll_error = self.pos_error[0]
                     #self.pid_errors_proto.pitch_error = self.pos_error[1]
+                    #self.pid_errors_proto.yaw_error = self.pos_error[2]
+                    #self.pid_errors_proto.x_pos_error = self.pos_error[3]
+                    #self.pid_errors_proto.y_pos_error = self.pos_error[4]
                     #self.pid_errors_proto.z_pos_error = self.pos_error[5] #depth error
 
                     serialzed_pid_errors_proto = self.pid_errors_proto.SerializeToString()
                     self.pid_errors_publisher.publish(serialzed_pid_errors_proto)
             except Exception as e:
-                print("Could not correctly send data from navigation controller. Error:", e)
+                print("[ERROR]: Could not correctly send data from navigation controller. Error:", e)
             time.sleep(0.1)
     def __unpack_desired_position_callback(self, desired_position_proto):
         '''
