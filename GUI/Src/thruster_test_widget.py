@@ -186,7 +186,7 @@ class Thruster_Test(QWidget):
         else:
             self.thruster_test_proto.thruster_8 = 0
 
-        print(self.thruster_test_proto)
+        
 
         #package test thrust data into a protobuf
 

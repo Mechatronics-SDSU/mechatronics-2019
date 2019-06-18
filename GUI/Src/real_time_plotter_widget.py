@@ -52,7 +52,7 @@ class Real_Time_Plotter(QtWidgets.QWidget):
 
 		#Initialize the PlotWidget(the widget to be added into the Qt Gui)
 		self.plt = pg.PlotWidget(title=self.title)
-		print(dim)
+		
 		self.plt.resize(dim[0], dim[1])	#size: 600x250
 		self.plt.showGrid(x=True, y=True)
 		self.plt.setLabel('left', 'Data')
