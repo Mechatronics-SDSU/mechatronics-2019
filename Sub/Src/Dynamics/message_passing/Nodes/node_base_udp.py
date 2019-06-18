@@ -57,8 +57,8 @@ class node_base(ABC, threading.Thread):
         if foreign:
             self._publisher.publish(msg, register)
             if not local:
-                return 0
-        return self._writer.write(msg, register)    #I know this is a return
+                return
+        self._writer.write(msg, register)    #I know this is a return
                                                     #statement, but it doesn't
                                                     #do shit. I'm still too
                                                     #scared to delete the return

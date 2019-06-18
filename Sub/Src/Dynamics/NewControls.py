@@ -88,7 +88,7 @@ class RemoteControlNode(node_base):
             elif input.axis == 5:   #Right-trigger, controls breach
                 self._matrix = [0, 0, -((input.value + 1)/2)]
             else:
-                time.sleep(0)
+                self._matrix = [0,0,0]
 
         dot_matrix = self._dot_product(self._matrix)
         byte_matrix = struct.pack('ffffffff',
@@ -101,7 +101,6 @@ class RemoteControlNode(node_base):
                                             dot_matrix[6],
                                             dot_matrix[7])
 
-        print(byte_matrix)
         return byte_matrix
 
     def run(self):
@@ -113,8 +112,10 @@ class RemoteControlNode(node_base):
             N/A
         '''
         while True:
-            for event in pygame.event.get():
-                self._send(msg=(self._control(event)), register='RC', local=False, foreign=True)
+            if pygame.event.peek():
+                self._send(msg=(self._control(pygame.event.poll())), register='RC', local=False, foreign=True)
+            else:
+                time.sleep(0)
 
 class ThrusterNode(node_base):
 
@@ -125,9 +126,9 @@ class ThrusterNode(node_base):
         thruster on the sub
         '''
         node_base.__init__(self, MEM, IP)
-        self._memory=MEM
-        self._ip_route=IP
-        self._maestro=maestro()
+        self._memory = MEM
+        self._ip_route = IP
+        self._maestro = maestro()
         self._message = None
 
     def _set_thrust(self, array):
@@ -141,8 +142,7 @@ class ThrusterNode(node_base):
         Returns:
             N/A
         '''
-        #print(int(np.interp(array[0], [-1,1], [25,231])))
-        self._maestro.set_target(1, int(np.interp(array[0], [-1,1], [25,231])))
+        self._maestro.set_target(1, int(np.interp(array[0], [-1,1], [25, 231])))
         #self._maestro.set_target(2, int(np.interp(array[1], [-1,1], [25,231])))
         self._maestro.set_target(3, int(np.interp(array[2], [-1,1], [25,231])))
         self._maestro.set_target(4, int(np.interp(array[3], [-1,1], [25,231])))
@@ -151,7 +151,7 @@ class ThrusterNode(node_base):
         self._maestro.set_target(7, int(np.interp(array[6], [-1,1], [25,231])))
         self._maestro.set_target(8, int(np.interp(array[7], [-1,1], [25,231])))
 
-        #print('[{},{},{},{}] \r'.format(int(np.interp(array[0], [-1,1], [25,231])), int(np.interp(array[2], [-1,1], [25,231])), int(np.interp(array[4], [-1,1], [25,231])), int(np.interp(array[6], [-1,1], [25,231]))) , end='')
+#        print('[{},{},{},{}] \r'.format(int(np.interp(array[0], [-1,1], [25,231])), int(np.interp(array[2], [-1,1], [25,231])), int(np.interp(array[4], [-1,1], [25,231])), int(np.interp(array[6], [-1,1], [25,231]))) , end='')
 
     def run(self):
         '''
@@ -163,8 +163,8 @@ class ThrusterNode(node_base):
         '''
         while True:
             self._message = self._recv('RC', local = False)
+            print(self._message)
             real_matrix= struct.unpack('ffffffff', self._message)
-            #print(real_matrix)
             self._set_thrust(real_matrix)
 
 if __name__ == '__main__':
@@ -181,7 +181,7 @@ if __name__ == '__main__':
             'type': 'UDP'
             }
         }
-    MEM={'Something':'nothing'}
+    MEM={'Something':b'\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00'}
     remote_node = RemoteControlNode(IP, MEM)
     thrust_node = ThrusterNode(IP, MEM)
 
