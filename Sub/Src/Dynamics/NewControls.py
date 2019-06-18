@@ -4,9 +4,11 @@ Author: Mohammad Shafi <ma.shafi99@gmail.com>
 Description: Successfully maps Xbox inputs to thrusters, whether on the sub
 or on the servo testbench
 '''
+import struct
 import socket
 import pickle
 import pygame
+import time
 import numpy as np
 from message_passing.Nodes.node_base_udp import node_base
 import message_passing
@@ -74,19 +76,31 @@ class RemoteControlNode(node_base):
         '''
         if input.type == pygame.JOYAXISMOTION:
             if input.axis == 0:    #Left-stick, horizontal, controls yaw
-                if input.value < 0:
-                    self._matrix = [0, -input.value, 0]
-                else:
-                    self._matrix = [input.value, 0, 0]
+                if input.value > 0.1:
+                    if input.value < 0:
+                        self._matrix = [0, -input.value, 0]
+                    else:
+                        self._matrix = [input.value, 0, 0]
             elif input.axis == 1:    #Left-stick, vertical, controls forward,backward
                 self._matrix = [input.value,  input.value, 0]
             elif input.axis == 2:   #Left-trigger, controls submerge
                 self._matrix = [0, 0, ((input.value + 1)/2)]
             elif input.axis == 5:   #Right-trigger, controls breach
                 self._matrix = [0, 0, -((input.value + 1)/2)]
+            else:
+                time.sleep(0)
 
         dot_matrix = self._dot_product(self._matrix)
-        byte_matrix = pickle.dumps(dot_matrix)
+        byte_matrix = struct.pack('ffffffff',
+                                            dot_matrix[0],
+                                            dot_matrix[1],
+                                            dot_matrix[2],
+                                            dot_matrix[3],
+                                            dot_matrix[4],
+                                            dot_matrix[5],
+                                            dot_matrix[6],
+                                            dot_matrix[7])
+
         print(byte_matrix)
         return byte_matrix
 
@@ -98,7 +112,6 @@ class RemoteControlNode(node_base):
         Returns:
             N/A
         '''
-
         while True:
             for event in pygame.event.get():
                 self._send(msg=(self._control(event)), register='RC', local=False, foreign=True)
@@ -130,11 +143,11 @@ class ThrusterNode(node_base):
         '''
         #print(int(np.interp(array[0], [-1,1], [25,231])))
         self._maestro.set_target(1, int(np.interp(array[0], [-1,1], [25,231])))
-        self._maestro.set_target(2, int(np.interp(array[1], [-1,1], [25,231])))
+        #self._maestro.set_target(2, int(np.interp(array[1], [-1,1], [25,231])))
         self._maestro.set_target(3, int(np.interp(array[2], [-1,1], [25,231])))
         self._maestro.set_target(4, int(np.interp(array[3], [-1,1], [25,231])))
         self._maestro.set_target(5, int(np.interp(array[4], [-1,1], [25,231])))
-        self._maestro.set_target(6, int(np.interp(array[5], [-1,1], [25,231])))
+        #self._maestro.set_target(6, int(np.interp(array[5], [-1,1], [25,231])))
         self._maestro.set_target(7, int(np.interp(array[6], [-1,1], [25,231])))
         self._maestro.set_target(8, int(np.interp(array[7], [-1,1], [25,231])))
 
@@ -150,7 +163,7 @@ class ThrusterNode(node_base):
         '''
         while True:
             self._message = self._recv('RC', local = False)
-            real_matrix= pickle.loads(self._message)
+            real_matrix= struct.unpack('ffffffff', self._message)
             #print(real_matrix)
             self._set_thrust(real_matrix)
 

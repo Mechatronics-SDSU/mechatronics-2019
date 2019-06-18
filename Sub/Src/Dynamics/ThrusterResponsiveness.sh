@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from Shafi.Calibrated_Control import Calibrate
+
 from thruster import thruster
 from Driver.device import maestro
 import struct
@@ -25,6 +25,7 @@ class Thrusters:
 if __name__=='__main__':
 	import pygame
 	from Alexa.regularControl import Regular
+	from Shafi.Calibrated_Control import Calibrate
 
 	thrusterObject=Thrusters()
 	pygame.init()
@@ -33,4 +34,5 @@ if __name__=='__main__':
 	controller.init()
 	while True:
 		for event in pygame.event.get():
+			print(Calibrate(event).A)
 			thrusterObject.recv_thrust(Calibrate(event).A)

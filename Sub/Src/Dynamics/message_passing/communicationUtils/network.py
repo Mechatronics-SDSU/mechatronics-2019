@@ -48,6 +48,6 @@ class subscriber(object):
 			pub_sock = self.ip_router[register]['sockets'][0]
 			sub_sock = self.ip_router[register]['sockets'][1]
 
-			data, addr = sub_sock.recvfrom(4096)
+			data, addr = sub_sock.recvfrom(1024)
 
 			return data
