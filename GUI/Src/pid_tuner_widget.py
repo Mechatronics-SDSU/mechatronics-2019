@@ -328,7 +328,7 @@ class PID_Tuner_Widget(QWidget):
         '''
         This is the callback for the save pid values button. When it is pressed,
         it sets the PID gain values currently selected on the sliders/gain displays
-        and writes it to the parameter server. Then it tells the navigation controller 
+        and writes it to the parameter server. Then it tells the navigation controller
         to update these values.
 
         Parameters:
@@ -353,7 +353,8 @@ class PID_Tuner_Widget(QWidget):
         time.sleep(0.01) #Make sure that the parameters are properly sent.
 
         #Tell the navigation controller/movement controller to update its PIDs
-        self.pid_configs_update_publisher.publish('1') #The value that is sent does not matter
+
+        self.pid_configs_update_publisher.publish(bytes('1', 'utf-8')) #The value that is sent does not matter
         print("[INFO]: Saving and Updating PID Configurations.")
 
     def _update_PID_precision(self):
