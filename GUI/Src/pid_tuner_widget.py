@@ -47,6 +47,9 @@ class PID_Tuner_Widget(QWidget):
 
         self.pid_gui_node = mechos.Node("PID_GUI", configs["ip"])
 
+        #Publisher to tell the navigation/movement controller when new PID values are saved.
+        self.pid_configs_update_publisher = self.pid_gui_node.create_publisher("PID", configs["pub_port"])
+
         #Subscriber to get PID ERRORS
         self.pid_errors_subscriber = self.pid_gui_node.create_subscriber("PE", self._update_error_plot, configs["sub_port"])
         self.pid_error_proto = pid_errors_pb2.PID_ERRORS()
@@ -73,7 +76,7 @@ class PID_Tuner_Widget(QWidget):
         self._PID_controller_select()
         self._PID_sliders()
         self.set_desired_position = Set_Desired_Position_GUI()
-        
+
 
         #Set up QTimer to update the PID errors
         self.pid_error_update_timer = QTimer()
@@ -312,11 +315,11 @@ class PID_Tuner_Widget(QWidget):
         self.k_i_max_value_line_edit.setText(k_i_disp)
         self.k_d_max_value_line_edit.setText(k_d_disp)
 
-        #Set the precision to the max precision of the 
+        #Set the precision to the max precision of the
         self.k_p_precision_combobox.setCurrentIndex(3)
         self.k_i_precision_combobox.setCurrentIndex(3)
         self.k_d_precision_combobox.setCurrentIndex(3)
-        
+
         self._update_PID_precision()
 
         self._update_gain_displays(k_p, k_i, k_d)
@@ -325,7 +328,8 @@ class PID_Tuner_Widget(QWidget):
         '''
         This is the callback for the save pid values button. When it is pressed,
         it sets the PID gain values currently selected on the sliders/gain displays
-        and writes it to the parameter server.
+        and writes it to the parameter server. Then it tells the navigation controller
+        to update these values.
 
         Parameters:
             N/A
@@ -345,6 +349,13 @@ class PID_Tuner_Widget(QWidget):
         self.param_serv.set_param('Control/PID/' + channel + '/p', k_p)
         self.param_serv.set_param('Control/PID/' + channel + '/i', k_i)
         self.param_serv.set_param('Control/PID/' + channel + '/d', k_d)
+
+        time.sleep(0.01) #Make sure that the parameters are properly sent.
+
+        #Tell the navigation controller/movement controller to update its PIDs
+
+        self.pid_configs_update_publisher.publish(bytes('1', 'utf-8')) #The value that is sent does not matter
+        print("[INFO]: Saving and Updating PID Configurations.")
 
     def _update_PID_precision(self):
         '''

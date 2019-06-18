@@ -1,0 +1,8 @@
+File Referencing in Archive: Perseverance_1.xml
+Saved Date: 06/11/2019
+Description of Referenced File:
+    This file contains the parameters that where used when successfully testing
+    Perseverance at the SDSU Aquaplex on June 11, 2019. In the testing, thruster
+    offsets for thrusters 1 and 3 where calibrated. The bias of the PID controller when
+    at equilibrium was also calibrated. Note that only roll, pitch, and depth where tuned.
+    These axis where tuned successfully

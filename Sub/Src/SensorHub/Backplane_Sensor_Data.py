@@ -134,7 +134,9 @@ class Backplane_Responses(threading.Thread):
             if(backplane_time < self.backplane_response_timer_interval):
                 time.sleep(self.backplane_response_timer_interval - backplane_time)
                 self.backplane_response_timer.restart_timer()
-
+            else:
+                self.backplane_response_timer.restart_timer()
+            
             backplane_data_packet = self._unpack()
 
             if backplane_data_packet != None:
@@ -153,6 +155,7 @@ class Backplane_Responses(threading.Thread):
                      This will be in the form of a dictionary were the key is
                      an abbreviation for the type of data
         '''
+        message = None
         try:
             if self.backplane_serial.in_waiting > 0:
 
@@ -253,7 +256,7 @@ class Backplane_Responses(threading.Thread):
                     elif id_frame == 656:
                         message = {"BMS": 0}
                         print("**GOT BMS START MESSAGE**")
-                    elif id_framw == 648:   #voltage data
+                    elif id_frame == 648:   #voltage data
                         voltage = float(payload[0]) + (float(payload[1]) / 100)
                         message = {"Voltage": voltage}
 
@@ -261,7 +264,7 @@ class Backplane_Responses(threading.Thread):
                     return message
 
         except Exception as e:
-            print("Can't receive data from backplane:", e)
+            print("[ERROR]: Can't receive data from backplane:", e)
 
 class Backplane_Handler(threading.Thread):
     '''
@@ -332,7 +335,8 @@ class Backplane_Handler(threading.Thread):
                 if(backplane_handler_time < self.backplane_handler_timer_interval):
                     time.sleep(self.backplane_handler_timer_interval - backplane_handler_time)
                     self.backplane_handler_timer.restart_timer()
-
+                else:
+                    self.backplane_handler_timer.restart_timer()
                 #Make request for data
                 self.backplane_requests.request_pressure_transducer_data()
 
@@ -352,7 +356,7 @@ class Backplane_Handler(threading.Thread):
                                 self.depth_data = depth_data[0, 0]
 
             except Exception as e:
-                print("Cannot pop backplane data:", e)
+                print("[ERROR]: Cannot pop backplane data. Error:", e)
 
 
 

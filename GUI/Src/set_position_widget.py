@@ -108,7 +108,7 @@ class Set_Desired_Position_GUI(QWidget):
         self.zero_position_button = QPushButton("Zero Position")
         self.zero_position_button.setStyleSheet("background-color:#DBDB3A; color:#5A5A00")
         self.zero_position_button.clicked.connect(self.zero_position)
-        
+
 
         #Add text boxs and line edit displays to layout
         self.orientation_layout.addWidget(self.yaw_txt, 0, 0)
@@ -126,7 +126,7 @@ class Set_Desired_Position_GUI(QWidget):
         self.orientation_layout.addWidget(self.send_position_button, 2, 3)
         self.orientation_layout.addWidget(self.zero_position_button, 2, 1)
         self.linking_layout.addLayout(self.orientation_layout, 1)
-    
+
     def send_desired_position(self):
         '''
         Send the desired positions to the Sub.
@@ -145,8 +145,8 @@ class Set_Desired_Position_GUI(QWidget):
         self.dest_pos_proto.zero_pos = False
 
         serialized_pos_proto = self.dest_pos_proto.SerializeToString()
-        print("Sending Position\n", self.dest_pos_proto)
-        self.set_position_pub.publish(serialized_pos_proto) 
+        print("[INFO]: Sending Position\n", self.dest_pos_proto)
+        self.set_position_pub.publish(serialized_pos_proto)
 
     def zero_position(self):
         '''
@@ -173,7 +173,7 @@ class Set_Desired_Position_GUI(QWidget):
         self.dest_pos_proto.x_pos = 0.0
         self.dest_pos_proto.y_pos = 0.0
         self.set_position_pub.publish(serialized_pos_proto)
-        print("Zeroing Position\n", self.dest_pos_proto)
+        print("[INFO]: Zeroing Position\n", self.dest_pos_proto)
 
 if __name__ == "__main__":
     import sys

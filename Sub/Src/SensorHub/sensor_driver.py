@@ -29,6 +29,7 @@ from MechOS import mechos
 import serial
 import threading
 import time
+import math
 
 class Sensor_Driver:
     '''
@@ -46,18 +47,18 @@ class Sensor_Driver:
             N/A
         '''
         #proto buff packaging
-        self.nav_data_proto = navigation_data_pb2.NAV_DATA()
+        #self.nav_data_proto = navigation_data_pb2.NAV_DATA()
 
         #Get the mechos network parameters
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
         #Mechos nodes to send Sensor Data
         self.sensor_driver_node = mechos.Node("SENSOR_DRIVER", configs["ip"])
-        self.nav_data_publisher = self.sensor_driver_node.create_publisher("NAV", configs["pub_port"])
+        #self.nav_data_publisher = self.sensor_driver_node.create_publisher("NAV", configs["pub_port"])
 
         #MechOS node to receive zero position message (zero position message is sent in the DP topic)
-        self.zero_pos_sub = self.sensor_driver_node.create_subscriber("DP", self._zero_pos_callback, configs["sub_port"])
-        self.zero_pos_proto = desired_position_pb2.DESIRED_POS() #Protocol buffer for receiving the zero position flag
+        #self.zero_pos_sub = self.sensor_driver_node.create_subscriber("DP", self._zero_pos_callback, configs["sub_port"])
+        #self.zero_pos_proto = desired_position_pb2.DESIRED_POS() #Protocol buffer for receiving the zero position flag
 
         self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
         self.param_serv.use_parameter_database(configs["param_server_path"])
@@ -73,7 +74,7 @@ class Sensor_Driver:
         #Initialize ahrs handler
         self.ahrs_driver_thread = AHRS(ahrs_com_port)
 
-	#iNITIALIZE dvl DRIVER THREAD
+	    #Initialize DVL thread
         self.dvl_driver_thread = DVL_THREAD(dvl_com_port)
 
         #Threading lock to access shared thread data safely
@@ -86,22 +87,59 @@ class Sensor_Driver:
         self.dvl_driver_thread.start()
         self.zero_pos_flag = True
 
-    def _zero_pos_callback(self, zero_pos_proto):
+        self.current_x_pos = 0
+        self.current_y_pos = 0
+
+    def zero_pos(self):
         '''
-        Callback function for the zero pos. subscriber to receive the zero position flag
-        from the GUI.
+        Zero the position of the sub in the x and y coordinates
 
         Parameters:
-            zero_pos_proto: A protocol buffer of type DESIRED_POS, which contains the flag to zero position
-
+            N/A
         Returns:
             N/A
         '''
-        self.zero_pos_proto.zero_pos = False
-        self.zero_pos_proto.ParseFromString(zero_pos_proto)
-        self.zero_pos_flag = self.zero_pos_proto.zero_pos
+        #This will be reset to false automatically by the dvl driver
+        self.dvl_driver_thread.reset_integration_flag = True
+        self.current_x_pos = 0
+        self.current_y_pos = 0
 
 
+    def _get_sensor_data(self):
+        '''
+        This function is to be used to get the sensor data and return it. It can
+        be used if sensor_driver is being imported and NOT used as a thread.
+
+        Parameters:
+            N/A
+        Returns:
+            sensor_data: All the sensor navigation data from AHRS, DVL, and
+                    Backplane.
+                    form --> [roll, pitch, yaw, x_pos, y_pos, depth]
+        '''
+        sensor_data = [0, 0, 0, 0, 0, 0]
+
+        #Get the AHRS data
+        sensor_data[0:2] = self.ahrs_driver_thread.ahrs_data
+
+        #Get x and y position
+        #TODO: Need to move the position estimator to here in the sensor driver
+        #DVL returns ([velZ, velX, velY], [velTimesZ, velTimesX, velTimesY])
+        dvl_data = self.dvl_driver_thread.PACKET
+        yaw_rad = math.radians(sensor_data[2])
+
+        #Rotation matrix to relate sub's x, y coordinates to earth x(north) and y(east) components
+        x_translation = (math.cos(yaw_rad)*dvl_data[1]*dvl_data[4]) + (math.sin(yaw_rad)*dvl_data[2]*dvl_data[5])
+        y_translation = (-1* math.sin(yaw_rad)*dvl_data[1]*dvl_data[4]) + (math.cos(yaw_rad)*dvl_data[2]*dvl_data[5])
+
+        sensor_data[3] = self.current_x_pos + x_translation
+        sensor_data[4] = self.current_y_pos + y_translation
+
+        #Get the depth from the Backplane
+        sensor_data[5] = self.backplane_driver_thread.depth_data
+
+        return(sensor_data)
+    """Deprecate
     def run(self):
         '''
         Main thread loop that packages the sensor data from the other sensors into
@@ -146,6 +184,7 @@ class Sensor_Driver:
                 print("Couldn't publish sensor data:", e)
 
             time.sleep(0.1)
+    """
 if __name__ == "__main__":
 
     sensor_driver = Sensor_Driver()

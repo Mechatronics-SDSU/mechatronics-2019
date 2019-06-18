@@ -50,7 +50,7 @@ class Tabbed_Display(QWidget):
         self.tab_display_node = mechos.Node("GUI_TABS", configs["ip"])
         self.movement_mode_publisher = self.tab_display_node.create_publisher("MM", configs["pub_port"])
 
-        
+
     def add_tab(self, widget, title):
         '''
         Creates a new tab and adds a Qwidget to it.
@@ -94,11 +94,11 @@ class Tabbed_Display(QWidget):
         '''
         # Get current index
         mode = self.tabs.currentIndex()
-        print(type(mode))
+        
         mode_serialized = struct.pack('b', mode)
         # Publish current index
         self.movement_mode_publisher.publish(mode_serialized)
-          
+
 
 if __name__ == "__main__":
     from pid_tuner_widget import PID_Tuner_Widget

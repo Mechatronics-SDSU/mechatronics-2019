@@ -264,10 +264,12 @@ class AHRS(threading.Thread):
 
             try:
                 ahrs_time = self.ahrs_timer.net_timer()
-
+                
                 #Wait necessary amont of time berof receiving and publihsing data
                 if(ahrs_time < self.ahrs_timer_interval):
                     time.sleep(self.ahrs_timer_interval - ahrs_time)
+                    self.ahrs_timer.restart_timer()
+                else:
                     self.ahrs_timer.restart_timer()
 
                 data = self.receive_sensor_data()
@@ -279,7 +281,7 @@ class AHRS(threading.Thread):
 
                         self.ahrs_data = data
             except Exception as e:
-                print("Couldn't receive and store AHRS data correctly:", e)
+                print("[ERROR]: Couldn't receive and store AHRS data correctly. Error:", e)
 
 
 

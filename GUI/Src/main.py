@@ -35,7 +35,7 @@ class Main_GUI(QWidget):
             N/A
         '''
         QWidget.__init__(self)
-        print(MECHOS_CONFIG_FILE_PATH)
+
 
         #creates main GUI layout
         self.main_layout = QGridLayout(self)
@@ -183,7 +183,7 @@ class Main_GUI(QWidget):
 
 
 if __name__ == "__main__":
-    print("Hello")
+    print("[INFO]: Starting Perseverance Command and Control GUI Application.")
     main_app = QApplication([])
     main_app.setStyle('Fusion')
     main_widget = Main_GUI()

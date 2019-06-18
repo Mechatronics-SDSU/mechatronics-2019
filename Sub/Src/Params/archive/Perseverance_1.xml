@@ -17,10 +17,12 @@
             <default>1</default>
         </Movement_Mode>
         <Limits>
-            <max_roll>90</max_roll>
-            <max_pitch>90</max_pitch>
+            <min_roll>0</min_roll>
+            <max_roll>0</max_roll>
+            <min_pitch>0</min_pitch>
+            <max_pitch>0</max_pitch>
             <min_z>0</min_z>
-            <max_z>16</max_z>
+            <max_z>0</max_z>
         </Limits>
         <Thruster_Strengths>
             <T1>7</T1>
@@ -31,7 +33,7 @@
             <T6>0</T6>
             <T7>0</T7>
             <T8>0</T8>
-            <active_depth>1</active_depth>
+            <active_depth>0.5</active_depth>
         </Thruster_Strengths>
         <PID>
             <dt>.025</dt>
@@ -39,43 +41,31 @@
                 <p>0.1</p>
                 <i>0.0</i>
                 <d>0.0</d>
-                <min_error>-100</min_error>
-                <max_error>100</max_error>
             </roll_pid>
             <pitch_pid>
                 <p>0.1</p>
                 <i>0.0</i>
                 <d>0.0</d>
-                <min_error>-100</min_error>
-                <max_error>100</max_error>
             </pitch_pid>
             <yaw_pid>
-                <p>0.632</p>
+                <p>0.0</p>
                 <i>0.0</i>
                 <d>0.0</d>
-                <min_error>-100</min_error>
-                <max_error>100</max_error>
             </yaw_pid>
             <x_pid>
                 <p>0.0</p>
                 <i>0.0</i>
                 <d>0.0</d>
-                <min_error>-100</min_error>
-                <max_error>100</max_error>
             </x_pid>
             <y_pid>
                 <p>0</p>
                 <i>0</i>
                 <d>0</d>
-                <min_error>-100</min_error>
-                <max_error>100</max_error>
             </y_pid>
             <z_pid>
                 <p>12.0</p>
                 <i>0.0</i>
                 <d>0.0</d>
-                <min_error>-100</min_error>
-                <max_error>100</max_error>
                 <bias>23</bias>
                 <active_bias_depth>2</active_bias_depth>
             </z_pid>
