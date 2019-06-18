@@ -148,7 +148,7 @@ class Navigation_Controller(threading.Thread):
 
         self.daemon = True
 
-        print("Sub Initially Killed")
+        print("[INFO]: Sub Initially Killed")
 
     def _update_sub_killed_state(self, killed_state):
         '''
@@ -163,7 +163,7 @@ class Navigation_Controller(threading.Thread):
         '''
 
         self.sub_killed = struct.unpack('b', killed_state)[0]
-        print("Sub Killed:", self.sub_killed)
+        print("[INFO]: Sub Killed:", bool(self.sub_killed))
 
     def __update_movement_mode_callback(self, movement_mode):
         '''
