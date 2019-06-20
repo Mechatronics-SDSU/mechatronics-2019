@@ -126,7 +126,7 @@ class RemoteControlNode(node_base):
                 self._axes[3] = self._joystick.get_axis(3)
                 self._axes[4] = self._joystick.get_axis(4)
                 self._axes[5] = (-1*((self._joystick.get_axis(5) + 1)/2))
-                self._send(msg=(self._control(self._axes, pygame.event.poll())), register='Remote', local=True, foreign=False)
+                self._send(msg=(self._control(self._axes, pygame.event.poll())), register='RC', local=False, foreign=True)
             else:
                 time.sleep(0)
 
@@ -175,7 +175,7 @@ class ThrusterNode(node_base):
             N/A
         '''
         while True:
-            self._message = self._recv('Remote', local = True)
+            self._message = self._recv('RC', local = False)
             #print(self._message)
             real_matrix= struct.unpack('ffffffff', self._message)
             #print(real_matrix)
@@ -195,7 +195,7 @@ if __name__ == '__main__':
             'type': 'UDP'
             }
         }
-    MEM={'Remote':b'\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00'}
+    MEM={'RC':b'\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00'}
     remote_node = RemoteControlNode(IP, MEM)
     thrust_node = ThrusterNode(IP, MEM)
 
