@@ -38,14 +38,15 @@ class RemoteControlNode(node_base):
         pygame.joystick.init()
         self._joystick = pygame.joystick.Joystick(0)
         self._joystick.init()
-        self._num_axes = self._joystick.get_numaxes()
-        print(self._num_axes)
+        #self._num_axes = self._joystick.get_numaxes()
+        #print(self._num_axes)
+        self._axes = [0, 0, 0, 0, 0, 0]
         self._memory = MEM  #Standard getters/setters for network and local
         self._ip_route = IP
         self._matrix = [0, 0, 0]
 
-        self._dot_product_matrix = np.array([[0, 0, 0, 0, 0, 0, 0, 1],
-                                            [0, 0, 0, 1, 0, 0, 0, 0],
+        self._dot_product_matrix = np.array([[0, 1, 0, 0, 0, 1, 0, 0],
+                                            [0, 0, 0, 1, 0, 0, 0, 1],
                                             [1, 0, 1, 0, 1, 0, 1, 0]])
 
     def _dot_product(self, input_matrix):
@@ -64,7 +65,7 @@ class RemoteControlNode(node_base):
 
         return np.dot(input_matrix, self._dot_product_matrix)
 
-    def _control(self, input):
+    def _control(self, axis_array, input):
         '''
         Takes the Xbox input from pygame's queue, and creates an input matrix
         with it. This input matrix gets dotted with the dot product to give us
@@ -76,23 +77,25 @@ class RemoteControlNode(node_base):
             result. Allows us to send over UDP as bytes using pickle, faster for
             transfer
         '''
+        #print(axis_array)
         if input.type == pygame.JOYAXISMOTION:
-            if input.axis == 0:    #Left-stick, horizontal, controls yaw
-                if input.value > 0.1:
-                    if input.value < 0:
-                        self._matrix = [0, -input.value, 0]
-                    else:
-                        self._matrix = [input.value, 0, 0]
-            elif input.axis == 1:    #Left-stick, vertical, controls forward,backward
-                self._matrix = [input.value,  input.value, 0]
-            elif input.axis == 2:   #Left-trigger, controls submerge
-                self._matrix = [0, 0, ((input.value + 1)/2)]
-            elif input.axis == 5:   #Right-trigger, controls breach
-                self._matrix = [0, 0, -((input.value + 1)/2)]
-            else:
-                self._matrix = [0,0,0]
+            breach_var = 0
+            horizontal_var = 0
+            vertical_var = 0
+            if axis_array[2] > 0.1:
+                breach_var = axis_array[2]
+            elif axis_array[5] < -0.1:
+                breach_var = axis_array[5]
+            if axis_array[0] > 0.1 or axis_array[0] < -0.1:
+                horizontal_var = axis_array[0]
+            if axis_array[1] > 0.1 or axis_array[1] < -0.1:
+                vertical_var = axis_array[1]
+
+            self._matrix = [axis_array[0], axis_array[1], breach_var]
+            #print(self._matrix)
 
         dot_matrix = self._dot_product(self._matrix)
+        #print(dot_matrix)
         byte_matrix = struct.pack('ffffffff',
                                             dot_matrix[0],
                                             dot_matrix[1],
@@ -103,6 +106,7 @@ class RemoteControlNode(node_base):
                                             dot_matrix[6],
                                             dot_matrix[7])
 
+        print(byte_matrix)
         return byte_matrix
 
     def run(self):
@@ -114,17 +118,15 @@ class RemoteControlNode(node_base):
             N/A
         '''
         while True:
-            self._axes = []
-            for i in range (self._num_axes):
-                self._axes.append(self._joystick.get_axis(i))
-            print(self._axes[0])
-            print(self._axes[1])
-            print(self._axes[2])
-            print(self._axes[3])
-            print(self._axes[4])
-            print(self._axes[5])
+
             if pygame.event.peek():
-                self._send(msg=(self._control(pygame.event.poll())), register='RC', local=False, foreign=True)
+                self._axes[0] = self._joystick.get_axis(0)
+                self._axes[1] = self._joystick.get_axis(1)
+                self._axes[2] = ((self._joystick.get_axis(2) + 1)/2)
+                self._axes[3] = self._joystick.get_axis(3)
+                self._axes[4] = self._joystick.get_axis(4)
+                self._axes[5] = (-1*((self._joystick.get_axis(5) + 1)/2))
+                self._send(msg=(self._control(self._axes, pygame.event.poll())), register='Remote', local=True, foreign=False)
             else:
                 time.sleep(0)
 
@@ -154,11 +156,11 @@ class ThrusterNode(node_base):
             N/A
         '''
         self._maestro.set_target(1, int(np.interp(array[0], [-1,1], [25, 231])))
-        #self._maestro.set_target(2, int(np.interp(array[1], [-1,1], [25,231])))
+        self._maestro.set_target(2, int(np.interp(array[1], [-1,1], [25,231])))
         self._maestro.set_target(3, int(np.interp(array[2], [-1,1], [25,231])))
         self._maestro.set_target(4, int(np.interp(array[3], [-1,1], [25,231])))
         self._maestro.set_target(5, int(np.interp(array[4], [-1,1], [25,231])))
-        #self._maestro.set_target(6, int(np.interp(array[5], [-1,1], [25,231])))
+        self._maestro.set_target(6, int(np.interp(array[5], [-1,1], [25,231])))
         self._maestro.set_target(7, int(np.interp(array[6], [-1,1], [25,231])))
         self._maestro.set_target(8, int(np.interp(array[7], [-1,1], [25,231])))
 
@@ -173,9 +175,10 @@ class ThrusterNode(node_base):
             N/A
         '''
         while True:
-            self._message = self._recv('RC', local = False)
+            self._message = self._recv('Remote', local = True)
             #print(self._message)
             real_matrix= struct.unpack('ffffffff', self._message)
+            #print(real_matrix)
             self._set_thrust(real_matrix)
 
 if __name__ == '__main__':
@@ -192,7 +195,7 @@ if __name__ == '__main__':
             'type': 'UDP'
             }
         }
-    MEM={'Something':b'\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00'}
+    MEM={'Remote':b'\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00'}
     remote_node = RemoteControlNode(IP, MEM)
     thrust_node = ThrusterNode(IP, MEM)
 
