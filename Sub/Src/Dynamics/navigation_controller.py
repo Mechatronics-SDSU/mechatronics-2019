@@ -5,7 +5,7 @@ Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
 Last Modified 06/16/2019
 Description: This module contains a highest level navigation controller for Perseverance.
                 It contains multiple modes of control for the sub including
-                thruster test mode, PID test mode, and Autonomous control mode. 
+                thruster test mode, PID test mode, and Autonomous control mode.
 '''
 import sys
 import os
@@ -244,7 +244,7 @@ class Navigation_Controller(threading.Thread):
                 self.nav_data_proto.roll = self.current_position[0]
                 self.nav_data_proto.pitch = self.current_position[1]
                 self.nav_data_proto.yaw = self.current_position[2]
-                #TODO:Uncomment to get x and y positions.                
+                #TODO:Uncomment to get x and y positions.
                 #self.nav_data_proto.x_translation = self.current_position[3]
                 #self.nav_data_proto.y_translation = self.current_position[4]
                 self.nav_data_proto.depth = self.current_position[5]
