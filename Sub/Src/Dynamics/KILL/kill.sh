@@ -8,13 +8,13 @@ from Driver.device import maestro
 
 MAESTRO=maestro()
 
-MAESTRO.set_target(0,0)
-MAESTRO.set_target(1,0)
-MAESTRO.set_target(2,0)
-MAESTRO.set_target(3,0)
-MAESTRO.set_target(4,0)
-MAESTRO.set_target(5,0)
-MAESTRO.set_target(6,0)
-MAESTRO.set_target(7,0)
+MAESTRO.set_target(1,127)
+MAESTRO.set_target(2,127)
+MAESTRO.set_target(3,127)
+MAESTRO.set_target(4,127)
+MAESTRO.set_target(5,127)
+MAESTRO.set_target(6,127)
+MAESTRO.set_target(7,127)
+MAESTRO.set_target(8,127)
 
 print('SHOULD BE KILLED')
