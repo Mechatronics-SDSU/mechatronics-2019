@@ -1,2 +1,4 @@
 python3:
 protobuf: 3.6.1
+
+protoc: 3.5.1

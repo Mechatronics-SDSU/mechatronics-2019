@@ -1,0 +1,3 @@
+[submodule "mechOS"]
+	path = mechOS
+	url = https://github.com/FelipeJared/mechOS.git

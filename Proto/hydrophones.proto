@@ -1,7 +1,0 @@
-syntax = "proto3";
-
-//If you have a better name let me know I just know that they are two floats :D
-message Hydrophones {
-    float first  = 1;
-    float second = 2;
-}
