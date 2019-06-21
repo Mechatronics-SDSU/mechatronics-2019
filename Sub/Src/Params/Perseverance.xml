@@ -50,11 +50,11 @@
                 <max_error>100</max_error>
             </pitch_pid>
             <yaw_pid>
-                <p>0.632</p>
+                <p>0.02</p>
                 <i>0.0</i>
-                <d>0.0</d>
-                <min_error>-100</min_error>
-                <max_error>100</max_error>
+                <d>0.002</d>
+                <min_error>-10</min_error>
+                <max_error>10</max_error>
             </yaw_pid>
             <x_pid>
                 <p>0.0</p>

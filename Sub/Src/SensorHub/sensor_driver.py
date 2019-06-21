@@ -126,11 +126,14 @@ class Sensor_Driver:
         #TODO: Need to move the position estimator to here in the sensor driver
         #DVL returns ([velZ, velX, velY], [velTimesZ, velTimesX, velTimesY])
         dvl_data = self.dvl_driver_thread.PACKET
+
+        x_vel, y_vel, z_vel = dvl_data[0]
+        time_x_vel, time_y_vel, time_z_vel = dvl_data[1]
         yaw_rad = math.radians(sensor_data[2])
 
         #Rotation matrix to relate sub's x, y coordinates to earth x(north) and y(east) components
-        x_translation = (math.cos(yaw_rad)*dvl_data[1]*dvl_data[4]) + (math.sin(yaw_rad)*dvl_data[2]*dvl_data[5])
-        y_translation = (-1* math.sin(yaw_rad)*dvl_data[1]*dvl_data[4]) + (math.cos(yaw_rad)*dvl_data[2]*dvl_data[5])
+        x_translation = (math.cos(yaw_rad)*x_vel*time_x_vel) + (math.sin(yaw_rad)*y_vel*time_y_vel) * 3.28084
+        y_translation = (-1* math.sin(yaw_rad)*x_vel*time_x_vel) + (math.cos(yaw_rad)*y_vel*time_y_vel) * 3.28084
 
         sensor_data[3] = self.current_x_pos + x_translation
         sensor_data[4] = self.current_y_pos + y_translation
