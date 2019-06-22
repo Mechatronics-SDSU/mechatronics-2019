@@ -122,22 +122,25 @@ class Sensor_Driver:
         #Get the AHRS data
         sensor_data[0:2] = self.ahrs_driver_thread.ahrs_data
 
-        #Get x and y position
+        #Get x and y position:
         #TODO: Need to move the position estimator to here in the sensor driver
         #DVL returns ([velZ, velX, velY], [velTimesZ, velTimesX, velTimesY])
         dvl_data = self.dvl_driver_thread.PACKET
 
         x_vel, y_vel, z_vel = dvl_data[0]
-        time_x_vel, time_y_vel, time_z_vel = dvl_data[1]
+        #time_x_vel, time_y_vel, time_z_vel = dvl_data[1]
+        time_x_vel = 1 / float(8)
+        time_y_vel = 1 / float(8)
         yaw_rad = math.radians(sensor_data[2])
 
         #Rotation matrix to relate sub's x, y coordinates to earth x(north) and y(east) components
         x_translation = (math.cos(yaw_rad)*x_vel*time_x_vel) + (math.sin(yaw_rad)*y_vel*time_y_vel) * 3.28084
         y_translation = (-1* math.sin(yaw_rad)*x_vel*time_x_vel) + (math.cos(yaw_rad)*y_vel*time_y_vel) * 3.28084
-
-        sensor_data[3] = self.current_x_pos + x_translation
-        sensor_data[4] = self.current_y_pos + y_translation
-
+        #sensor_data[3] = self.current_x_pos + x_translation
+        #sensor_data[4] = self.current_y_pos + y_translation
+        sensor_data[3] = x_vel
+        sensor_data[4] = y_vel
+        print(x_vel, y_vel)
         #Get the depth from the Backplane
         sensor_data[5] = self.backplane_driver_thread.depth_data
 

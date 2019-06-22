@@ -224,7 +224,7 @@ class DVL_DATA_DRIVER:
                     self.DVLCom.flushInput()
 
         except Exception as msg:
-            print "Can't receive data from DVL:", msg
+            print("Can't receive data from DVL:", msg)
 
     #DEPRECATE THIS FUNCTION. Position calcs moved to sensor_driver.py
     """
@@ -299,7 +299,7 @@ class DVL_THREAD(threading.Thread):
 
                 if((dvl_data_packet != None) and (dvl_data_packet != [0])):
 
-                    if((dvl_data_packet[0])[0] < -32) or (dvl_data_packet[0])[1] < -32):
+                    if(((dvl_data_packet[0])[0] < -32) or (dvl_data_packet[0])[1] < -32):
                         print("[WARNING]: DVL velocity less than minimum of -32")
                         continue
                     self.PACKET = dvl_data_packet
