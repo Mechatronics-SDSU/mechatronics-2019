@@ -3,8 +3,8 @@
     the Creative Commons Licence LLC.
 
     Current Maintainers: Christian Gould, David Walker-Howell
-    Email: Christian.d.gould@gmail.com
-    Last Modified 1/29/2019
+    Email: Christian.d.gould@gmail.com, piercedhowell@gmail.com
+    Last Modified: 06/22/2019
 '''
 import sys
 import os
@@ -27,31 +27,40 @@ from mechos_network_configs import MechOS_Network_Configs
 from MechOS import mechos
 
 class DVL_DATA_DRIVER:
-    def __init__(self, comport):
-        self.DVLCom = serial.Serial(comport, 115200, timeout=1)
-
-        #Velocity Sync
-        self.curr_vel = np.array([0,0,0], dtype=float)
-        self.curr_time = np.array([0, 0, 0], dtype=float)
-        self.prev_vel = np.array([0,0,0], dtype=float)
-        self.displacement = np.array([0,0,0], dtype=float)
-
-    def reset_integration(self):
+    '''
+    Communicate with the Norteck DVL module and retieve the velocities of the of the
+    AUV. These velocities can be used to determine the position of the AUV via
+    integration.
+    '''
+    def __init__(self, com_port):
         '''
-        Set the current displacement to zero.
-
+        Initialize communication with the Norteck DVL.
         Parameters:
-            N/A
-
+            com_port: The serial communication port communicating with the DVL.
         Returns:
             N/A
         '''
-        for i in range(3):
-            self.displacement[i] = 0.0
+        self.dvl_serial = serial.Serial(com_port, 115200, timeout=1)
 
-    def __get_velocity(self, inFeet=True):
+        #Dvl data is where the velocities and time velocities estimations are
+        #stored
+        self.dvl_data = [0, 0, 0, 0, 0, 0]
+
+
+
+    def _unpack(self):
         '''
         The DVL has been setup to be cyclic, wherupon the Headerbye 'sync' is used to determine where the string restarts
+
+        Parameters:
+
+            variable is set true. If false, the velocities will be in meters per second.
+
+        Returns:
+            [vel_x, vel_y, vel_z, time_vel_est_x, time_vel_est_y, time_vel_est_z]: This function
+            returns the x, y, z velocities and the estimated times that these velocities were maintained.
+            The combination of these values can be used to help determine the position of the AUV. Note,
+            if DVL data is not able to be obtained, None will be returned.
 
         #important Variable Descriptions#
         -----------
@@ -67,156 +76,168 @@ class DVL_DATA_DRIVER:
         NOTE: the C struct module 'struct' in python will unwrap these bytes into a tuple
         Be sure to index this to get the data inside the touple to be consistent with Protobuf binaries
         '''
-        SYNC_flag = False
-        velZ = [0]
-        velX = [0]
-        velY = [0]
-        timeVelEstZ = 0
-        timeVelEstX = 0
-        timeVelEstY = 0
-        while(not SYNC_flag):
-        #if(self.DVLCom.inWaiting() > 154):
-            SYNC = hex(ord(self.DVLCom.read()))
-            if(SYNC == "0xa5"):
-                SYNC_flag = True
-                header = ord(self.DVLCom.read())
-                ID     = ord(self.DVLCom.read())
-                family = ord(self.DVLCom.read())
-                dataSize = self.DVLCom.read(2)
-                dataChecksum = self.DVLCom.read(2)
-                headerChecksum = self.DVLCom.read(2)
+        try:
+            if self.dvl_serial.inWaiting() != 0:
+                SYNC = hex(ord(self.dvl_serial.read()))
+                #print SYNC
+                if SYNC == "0xa5":
 
-                if(hex(ID) == "0x1b"):
-                    self.DVLCom.read(16)
-                    error = self.DVLCom.read(4)
-                    error = struct.unpack('<f', error)
+                    header = ord(self.dvl_serial.read())  # Use ord when dealing with 1 byte
+                    ID = ord(self.dvl_serial.read())  # How many bytes in ensemble
+                    family = ord(self.dvl_serial.read())  # How many bytes in ensemble
+                    dataSize = self.dvl_serial.read(2)  # Specify number of bytes if greater than 1
+                    dataChecksum = self.dvl_serial.read(2)  # How many bytes in ensemble
+                    headerChecksum = self.dvl_serial.read(2)  # How many bytes in ensemble
+                    if hex(ID) == "0x1b":  # If this is a Bottom Tracking Message
+                        version = ord(self.dvl_serial.read())
+                        offset_of_Data = ord(self.dvl_serial.read())
+                        serial_number = self.dvl_serial.read(4)
+                        year = ord(self.dvl_serial.read())
+                        month = ord(self.dvl_serial.read())
+                        day = ord(self.dvl_serial.read())
+                        hour = ord(self.dvl_serial.read())
+                        minute = ord(self.dvl_serial.read())
+                        seconds = ord(self.dvl_serial.read())
+                        microsec = self.dvl_serial.read(2)
+                        number_of_beams = self.dvl_serial.read(2)
+                        error = self.dvl_serial.read(4)
+                        status = self.dvl_serial.read(4)
+                        sound_speed = self.dvl_serial.read(4)
+                        temperature = self.dvl_serial.read(4)
+                        pressure = self.dvl_serial.read(4)
+                        vel_beam_0 = self.dvl_serial.read(4)
+                        vel_beam_1 = self.dvl_serial.read(4)
+                        vel_beam_2 = self.dvl_serial.read(4)
+                        vel_beam_3 = self.dvl_serial.read(4)
+                        dis_beam_0 = self.dvl_serial.read(4)
+                        dis_beam_0 = struct.unpack('<f', dis_beam_0)
+                        dis_beam_1 = self.dvl_serial.read(4)
+                        dis_beam_1 = struct.unpack('<f', dis_beam_1)
+                        dis_beam_2 = self.dvl_serial.read(4)
+                        dis_beam_2 = struct.unpack('<f', dis_beam_2)
+                        dis_beam_3 = self.dvl_serial.read(4)
+                        dis_beam_3 = struct.unpack('<f', dis_beam_3)
+                        self.distanceToFloor = ((dis_beam_0[0]) + (dis_beam_1[0]) + (dis_beam_2[0]) + (dis_beam_3[0])) / 4
+                        fombeam_0 = self.dvl_serial.read(4)
+                        fombeam_1 = self.dvl_serial.read(4)
+                        fombeam_2 = self.dvl_serial.read(4)
+                        fombeam_3 = self.dvl_serial.read(4)
+                        dt1beam_0 = self.dvl_serial.read(4)
+                        dt1beam_1 = self.dvl_serial.read(4)
+                        dt1beam_2 = self.dvl_serial.read(4)
+                        dt1beam_3 = self.dvl_serial.read(4)
+                        dt2beam_0 = self.dvl_serial.read(4)
+                        dt2beam_1 = self.dvl_serial.read(4)
+                        dt2beam_2 = self.dvl_serial.read(4)
+                        dt2beam_3 = self.dvl_serial.read(4)
+                        time_vel_est_beam_0 = self.dvl_serial.read(4)
+                        time_vel_est_beam_1 = self.dvl_serial.read(4)
+                        time_vel_est_beam_2 = self.dvl_serial.read(4)
+                        time_vel_est_beam_3 = self.dvl_serial.read(4)
+                        vel_y = self.dvl_serial.read(4)
+                        vel_y = struct.unpack('<f', vel_y)
+                        self.dvl_data[1] = vel_y[0]
+                        vel_x = self.dvl_serial.read(4)
+                        vel_x = struct.unpack('<f', vel_x)
+                        self.dvl_data[0] = vel_x[0]
+                        vel_z1 = self.dvl_serial.read(4)
+                        vel_z1 = struct.unpack('<f', vel_z1)
+                        self.dvl_data[2] = vel_z1[0]
+                        velZ2 = self.dvl_serial.read(4)
+                        fomX = self.dvl_serial.read(4)
+                        fomY = self.dvl_serial.read(4)
+                        fomZ1 = self.dvl_serial.read(4)
+                        fomZ2 = self.dvl_serial.read(4)
+                        dt1X = self.dvl_serial.read(4)
+                        dt1Y = self.dvl_serial.read(4)
+                        dt1Z1 = self.dvl_serial.read(4)
+                        dt1Z2 = self.dvl_serial.read(4)
+                        dt2X = self.dvl_serial.read(4)
+                        dt2Y = self.dvl_serial.read(4)
+                        dt2Z1 = self.dvl_serial.read(4)
+                        dt2Z2 = self.dvl_serial.read(4)
+                        time_vel_est_y = self.dvl_serial.read(4)
+                        time_vel_est_y = struct.unpack('<f', time_vel_est_y)  #
+                        self.dvl_data[4] = time_vel_est_y[0]
+                        time = self.dvl_serial.read(4)
+                        time_vel_est_x = struct.unpack('<f', time_vel_est_x)
+                        self.dvl_data[3] = time_vel_est_x[0]
+                        time_vel_est_z1 = self.dvl_serial.read(4)
+                        time_vel_est_z1 = struct.unpack('<f', time_vel_est_z1)
+                        self.dvl_data[5] = time_vel_est_z1[0]
+                        time_vel_est_z2 = self.dvl_serial.read(4)
+                        #ensemble = self.getDistanceTraveled()
 
-                    self.DVLCom.read(112)
+                    return self.dvl_data
 
-                    #Get velocities in x,y, and z directions
-                    velX = self.DVLCom.read(4)
-                    velX = struct.unpack('<f', velX)
-                    velY = self.DVLCom.read(4)
-                    velY = struct.unpack('<f', velY)
-                    velZ = self.DVLCom.read(4)
-                    velZ = struct.unpack('<f', velZ)
+                else:
+                    self.dvl_serial.flushInput()
 
-                    self.DVLCom.read(48) #Read extra unwanted data
-
-                    #Read the time duration estimation values of the velocities.
-                    timeVelEstX = self.DVLCom.read(4)
-                    timeVelEstX = struct.unpack('<f', timeVelEstX)[0]
-                    timeVelEstY = self.DVLCom.read(4)
-                    timeVelEstY = struct.unpack('<f', timeVelEstY)[0]
-                    timeVelEstZ = self.DVLCom.read(4)
-                    timeVelEstZ = struct.unpack('<f', timeVelEstZ)[0]
-
-                self.DVLCom.flush()
-        #TODO: Clean this code up!
-        # conversion to ft/s
-        if inFeet==True:
-            velocities = np.array([velZ[0], velX[0], velY[0]]) * 3.28084
-            vel_times = np.array([timeVelEstZ, timeVelEstX, timeVelEstY])
-            return(np.concatenate((velocities, vel_times), axis=None))
-        # normal return as m/s
-        return (np.array([velZ[0], velX[0], velY[0]]), np.array([timeVelEstZ, timeVelEstX, timeVelEstY]))
-    """
-    DEPRECATE THIS FUNCTION. Position calcs moved to sensor_driver.py
-    def __get_displacement(self):
-        '''
-            This function calculates the displacement of the sub in the X Y Z
-            directions (since the ). This function will also return the velocities in each direction
-            since the velocities are needed to calculate the displacement.
-
-            RETURNS: A numpy array of [velZ, velX, velY, dispZ, dispX, dispY]
-        '''
-        self.prev_vel = self.curr_vel
-        self.curr_vel, self.curr_time = self.__get_velocity()
-
-        #initial CALCULATION: Trapezoid Rule
-        self.displacement += (.125)*(self.curr_vel + self.prev_vel)/2
-
-        '''
-        The concept, is that we take the average of the two points, and multiply them by
-        their rate of change
-
-
-        (b - a)* (f(a) + f(b))/2
-
-        --(b - a) = 8hz or .125s(p)
-
-        '''
-
-        #TODO
-        #Continuous CALCULATION Simpsons Rule
-        '''
-
-        To make the most of our calculations, we will utilize simpsons rule
-        Following our use of Trapezoid Rule,
-
-        '''
-
-        return np.concatenate((self.curr_vel, self.displacement), axis=None)
-    """
-    def get_PACKET(self):
-        return self.__get_velocity()
+        except Exception as e:
+            print("[ERROR]: DVL.py --> Error attemping to receive DVL data via serial com. Error: ", e)
 
 class DVL_THREAD(threading.Thread):
     '''
-
-    Communicate with the Nortek DVL
-
-    ...
-
-    RETURN: nothing
-
-    PARAMETERS: NONE
-
+    Primary thread to communicate with the DVL and retrieve its data.
     '''
 
-    def __init__(self,comport):
+    def __init__(self,com_port):
+        '''
+        Initialize the thread to communicate with the DVL. Establish serial communication
+        with the dvl and initialize the queue for data.
+
+        Parameters:
+            com_port: The serial communication port connect to the dvl.
+        Returns:
+            N/A
+        '''
         super(DVL_THREAD, self).__init__()
 
         self.daemon = True
 
         #COMMUNICATON: SERIAL PORT
-        self.DVL_PORT = comport
+        self.DVL_PORT = com_port
 
         #DVL: OBJECT
-        self.Norteck_DVL = DVL_DATA_DRIVER(comport)
+        self.norteck_dvl = DVL_DATA_DRIVER(com_port)
 
         #MECHOS:NETWORK HOSTS
 
         #THREAD PARAMS
         self.threading_lock = threading.Lock()
 
-
-        #PACKET: VELOCITY(XYZ), DISPLACEMENT(XYZ)
-        self.PACKET = np.array([0,0,0,0,0,0])
-
-        #Set this flag to zero out the integration
-        self.reset_integration_flag = True
+        #The dvl data queue is where new dvl data is pushed onto. When this data
+        #is retrieved for navigation, it should be popped of. This queue should be
+        #used in the LIFO order.
+        self.dvl_data_queue = []
 
 
     def run(self):
         '''
-        Request data from the Norteck DVL and publish it to the Network
+        Continually Request data from the Norteck DVL and add it to the dvl data
+        queue if it is available.
+
+        Parameters:
+            N/A
+        Returns:
+            N/A
         '''
         while(True):
 
             try:
+                #Attempt to retrieve dvl data.
+                dvl_data_packet = self.norteck_dvl._unpack()
 
-                if(self.reset_integration_flag):
+                #NOTE: Possibly need to add more error checking
 
-                    self.Norteck_DVL.reset_integration()
-                    self.reset_integration_flag = False #Reset the flag
-                #with threading.Lock():
-                self.PACKET = self.Norteck_DVL.get_PACKET()
-                #print(self.PACKET) #uncomment to test
+                if((dvl_data_packet != None) and (dvl_data_packet != [0])):
+                    self.dvl_data_queue.append(dvl_data_packet)
 
             except Exception as e:
                 print("[ERROR]: Could not properly recieve DVL data. Error:", e)
-            time.sleep(0.4)
+
+            #Give time for thread loop. Helps save power consumption.
+            time.sleep(0.001)
 
 if __name__== '__main__':
     DVL = DVL_THREAD('/dev/ttyUSB1')

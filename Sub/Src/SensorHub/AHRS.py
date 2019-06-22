@@ -1,8 +1,8 @@
 '''
-Copyright 2018, David Pierce Walker-Howell, All rights reserved
+Copyright 2019, David Pierce Walker-Howell, All rights reserved
 
 Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
-Last Modified 11/16/2018
+Last Modified: 06/22/2019
 Description: This module is the driver program for the Sparton AHRS.
 '''
 import sys
@@ -192,8 +192,7 @@ class AHRS(threading.Thread):
     '''
     def __init__(self, com_port):
         '''
-        Initialize communcication path with the Sparton AHRS and MechOS node
-        publisher to transmit data throughout the AUV system.
+        Initialize communcication path with the Sparton AHRS.
 
         Parameters:
             com_port: The serial communication port communicating with the AHRS
@@ -264,7 +263,7 @@ class AHRS(threading.Thread):
 
             try:
                 ahrs_time = self.ahrs_timer.net_timer()
-                
+
                 #Wait necessary amont of time berof receiving and publihsing data
                 if(ahrs_time < self.ahrs_timer_interval):
                     time.sleep(self.ahrs_timer_interval - ahrs_time)

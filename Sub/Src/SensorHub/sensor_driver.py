@@ -99,8 +99,6 @@ class Sensor_Driver:
         Returns:
             N/A
         '''
-        #This will be reset to false automatically by the dvl driver
-        self.dvl_driver_thread.reset_integration_flag = True
         self.current_x_pos = 0
         self.current_y_pos = 0
 
@@ -124,67 +122,32 @@ class Sensor_Driver:
 
         #Get x and y position
         #TODO: Need to move the position estimator to here in the sensor driver
-        #DVL returns ([velZ, velX, velY], [velTimesZ, velTimesX, velTimesY])
-        dvl_data = self.dvl_driver_thread.PACKET
+        #DVL returns [x_vel, y_vel, z_vel, x_vel_time_est, y_vel_time_est, z_vel_time_est]
+        dvl_data = self.dvl_driver_thread.dvl_data_queue.pop(0)
+
+        #Extract data for better readability
+        x_vel, y_vel, z_vel, x_vel_time_est, y_vel_time_est, z_vel_time_est = dvl_data
+
         yaw_rad = math.radians(sensor_data[2])
 
         #Rotation matrix to relate sub's x, y coordinates to earth x(north) and y(east) components
-        x_translation = (math.cos(yaw_rad)*dvl_data[1]*dvl_data[4]) + (math.sin(yaw_rad)*dvl_data[2]*dvl_data[5])
-        y_translation = (-1* math.sin(yaw_rad)*dvl_data[1]*dvl_data[4]) + (math.cos(yaw_rad)*dvl_data[2]*dvl_data[5])
+        x_translation = ((math.cos(yaw_rad)*x_vel*x_vel_time_est) + \
+                        (math.sin(yaw_rad)*y_vel*y_vel_time_est)) * 3.28084
 
-        sensor_data[3] = self.current_x_pos + x_translation
-        sensor_data[4] = self.current_y_pos + y_translation
+        y_translation = ((-1* math.sin(yaw_rad)*x_vel*x_vel_time_est) + \
+                        (math.cos(yaw_rad)*y_vel*y_vel_time_est)) 3.28084 #conver to feet
+
+        self.current_x_pos += x_translation
+        self.current_y_pos += y_translation
+
+        sensor_data[3] = self.current_x_pos
+        sensor_data[4] = self.current_y_pos
 
         #Get the depth from the Backplane
         sensor_data[5] = self.backplane_driver_thread.depth_data
 
         return(sensor_data)
-    """Deprecate
-    def run(self):
-        '''
-        Main thread loop that packages the sensor data from the other sensors into
-        a protobuf and pushlishes it to the mechos network.
 
-        Parameters:
-            N/A
-
-        Returns:
-            N/A
-        '''
-        while(self.run_thread):
-
-            try:
-
-                #Put data from sensor threads into proto sturcture
-
-                #Check for zero position flag
-                self.sensor_driver_node.spinOnce(self.zero_pos_sub)
-                if(self.zero_pos_flag == True):
-                    self.dvl_driver_thread.reset_integration_flag = self.zero_pos_flag
-                    self.zero_pos_flag = False
-
-                ahrs_data_packet = self.ahrs_driver_thread.ahrs_data
-                self.nav_data_proto.roll = ahrs_data_packet[0]
-                self.nav_data_proto.pitch = ahrs_data_packet[1]
-                self.nav_data_proto.yaw = ahrs_data_packet[2]
-
-                self.nav_data_proto.depth = self.backplane_driver_thread.depth_data
-
-                dvl_data_packet = self.dvl_driver_thread.PACKET
-                self.nav_data_proto.x_translation = dvl_data_packet[4]
-                self.nav_data_proto.y_translation = dvl_data_packet[5]
-
-                print(self.nav_data_proto)
-                #Serialize data in proto to send
-                serialized_nav_data = self.nav_data_proto.SerializeToString()
-                #publish navigation data
-                self.nav_data_publisher.publish(serialized_nav_data)
-
-            except Exception as e:
-                print("Couldn't publish sensor data:", e)
-
-            time.sleep(0.1)
-    """
 if __name__ == "__main__":
 
     sensor_driver = Sensor_Driver()
