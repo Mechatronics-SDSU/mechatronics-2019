@@ -31,14 +31,14 @@ class ThrusterNode(node_base):
         Returns:
             N/A
         '''
-        self._maestro.set_target(1, int(np.interp(array[0], [-1,1], [52,204])))
-        self._maestro.set_target(2, int(np.interp(array[1], [-1,1], [52,204])))
-        self._maestro.set_target(3, int(np.interp(array[2], [-1,1], [52,204])))
-        self._maestro.set_target(4, int(np.interp(array[3], [-1,1], [52,204])))
-        self._maestro.set_target(5, int(np.interp(array[4], [-1,1], [52,204])))
-        self._maestro.set_target(6, int(np.interp(array[5], [-1,1], [52,204])))
-        self._maestro.set_target(7, int(np.interp(array[6], [-1,1], [52,204])))
-        self._maestro.set_target(8, int(np.interp(array[7], [-1,1], [52,204])))
+        self._maestro.set_target(1, int(np.interp(array[0], [-1,1], [50,203])))
+        self._maestro.set_target(2, int(np.interp(array[1], [-1,1], [82,171])))
+        self._maestro.set_target(3, int(np.interp(array[2], [-1,1], [50,203])))
+        self._maestro.set_target(4, int(np.interp(array[3], [-1,1], [82,171])))
+        self._maestro.set_target(5, int(np.interp(array[4], [-1,1], [50,203])))
+        self._maestro.set_target(6, int(np.interp(array[5], [-1,1], [82,171])))
+        self._maestro.set_target(7, int(np.interp(array[6], [-1,1], [50,203])))
+        self._maestro.set_target(8, int(np.interp(array[7], [-1,1], [82,171])))
 
 
     def run(self):

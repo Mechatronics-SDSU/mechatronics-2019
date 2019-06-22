@@ -37,9 +37,9 @@ class RemoteControlNode(node_base):
         self._ip_route = IP
         self._matrix = [0, 0, 0]
 
-        self._dot_product_matrix = np.array([[0, 1, 0, 0, 0, 1, 0, 0],
-                                            [0, 0, 0, 1, 0, 0, 0, 1],
-                                            [1, 0, 1, 0, 1, 0, 1, 0]])
+        self._dot_product_matrix = np.array([[0, -1, 0, 0, 0, -1, 0, 0],
+                                            [0, 0, 0, 1, 0, 0, 0, -1],
+                                            [1, 0, -1, 0, 1, 0, -1, 0]])
 
     def _dot_product(self, input_matrix):
         '''
