@@ -62,13 +62,13 @@ class Movement_PID:
 
         self.thrusters = [None, None, None, None, None, None, None, None]
         self.thrusters[0] = Thruster(maestro_serial_obj, 1, [0, 0, 1], [1, -1, 0], max_thrust, True)
-        self.thrusters[1] = Thruster(maestro_serial_obj, 2, [0, 1, 0], [1, 0, 0], max_thrust, False)
+        self.thrusters[1] = Thruster(maestro_serial_obj, 2, [0, 1, 0], [1, 0, 0], max_thrust, True)
         self.thrusters[2] = Thruster(maestro_serial_obj, 3, [0, 0, 1], [1, 1, 0], max_thrust, False)
         self.thrusters[3] = Thruster(maestro_serial_obj, 4, [1, 0, 0], [0, 1, 0], max_thrust, False)
         self.thrusters[4] = Thruster(maestro_serial_obj, 5, [0, 0, 1], [-1, 1, 0], max_thrust, True)
-        self.thrusters[5] = Thruster(maestro_serial_obj, 6, [0, 1, 0], [-1, 0, 0], max_thrust, False)
+        self.thrusters[5] = Thruster(maestro_serial_obj, 6, [0, 1, 0], [-1, 0, 0], max_thrust, True)
         self.thrusters[6] = Thruster(maestro_serial_obj, 7, [0, 0, 1], [-1, -1, 0], max_thrust, False)
-        self.thrusters[7] = Thruster(maestro_serial_obj, 8, [1, 0, 0], [0, -1, 0], max_thrust, False)
+        self.thrusters[7] = Thruster(maestro_serial_obj, 8, [1, 0, 0], [0, -1, 0], max_thrust, True)
 
         #Initialize the PID controllers for control system
         self.set_up_PID_controllers(True)
@@ -287,7 +287,6 @@ class Movement_PID:
         curr_yaw = current_position[2]
 
         yaw_error = desired_yaw - curr_yaw
-
         if(abs(yaw_error) > 180):
   
             if(yaw_error < 0):
@@ -296,7 +295,6 @@ class Movement_PID:
                 yaw_error = yaw_error - 360
 
         error[2] = self.bound_error(yaw_error, self.yaw_min_error, self.yaw_max_error)
-
         #Calculate the error in the x and y position (relative to the sub) given the current position.
         #Using rotation matrix.
         error_abs_x = desired_position[3] - current_position[3]
