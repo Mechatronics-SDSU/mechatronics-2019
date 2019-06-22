@@ -1,0 +1,7 @@
+File Referencing in Archive: Perseverance_2.xml
+Saved Date: 06/22/2019
+Description of Referenced File:
+    This file contains the parameters that where used when successfully testing
+    Perseverance at the SDSU Aquaplex on June 21, 2019. In this test, thruster
+    strength offsets were given to thruster 1 and 3. There bias were set to "3".
+    Retuned roll, pitch, yaw, depth. The sub balances well.
