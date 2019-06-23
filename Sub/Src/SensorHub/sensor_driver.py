@@ -123,22 +123,23 @@ class Sensor_Driver:
         #Get x and y position
         #TODO: Need to move the position estimator to here in the sensor driver
         #DVL returns [x_vel, y_vel, z_vel, x_vel_time_est, y_vel_time_est, z_vel_time_est]
-        dvl_data = self.dvl_driver_thread.dvl_data_queue.pop(0)
+        if(len(self.dvl_driver_thread.dvl_data_queue) > 0):
+            dvl_data = self.dvl_driver_thread.dvl_data_queue.pop(0)
 
-        #Extract data for better readability
-        x_vel, y_vel, z_vel, x_vel_time_est, y_vel_time_est, z_vel_time_est = dvl_data
+            #Extract data for better readability
+            x_vel, y_vel, z_vel, x_vel_time_est, y_vel_time_est, z_vel_time_est = dvl_data
 
-        yaw_rad = math.radians(sensor_data[2])
+            yaw_rad = math.radians(sensor_data[2])
 
-        #Rotation matrix to relate sub's x, y coordinates to earth x(north) and y(east) components
-        x_translation = ((math.cos(yaw_rad)*x_vel*x_vel_time_est) + \
-                        (math.sin(yaw_rad)*y_vel*y_vel_time_est)) * 3.28084
+            #Rotation matrix to relate sub's x, y coordinates to earth x(north) and y(east) components
+            x_translation = ((math.cos(yaw_rad)*x_vel*x_vel_time_est) + \
+                            (math.sin(yaw_rad)*y_vel*y_vel_time_est)) * 3.28084
 
-        y_translation = ((-1* math.sin(yaw_rad)*x_vel*x_vel_time_est) + \
-                        (math.cos(yaw_rad)*y_vel*y_vel_time_est)) 3.28084 #conver to feet
+            y_translation = ((-1* math.sin(yaw_rad)*x_vel*x_vel_time_est) + \
+                            (math.cos(yaw_rad)*y_vel*y_vel_time_est)) * 3.28084 #conver to feet
 
-        self.current_x_pos += x_translation
-        self.current_y_pos += y_translation
+            self.current_x_pos += x_translation
+            self.current_y_pos += y_translation
 
         sensor_data[3] = self.current_x_pos
         sensor_data[4] = self.current_y_pos

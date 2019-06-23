@@ -159,7 +159,7 @@ class DVL_DATA_DRIVER:
                         time_vel_est_y = self.dvl_serial.read(4)
                         time_vel_est_y = struct.unpack('<f', time_vel_est_y)  #
                         self.dvl_data[4] = time_vel_est_y[0]
-                        time = self.dvl_serial.read(4)
+                        time_vel_est_x = self.dvl_serial.read(4)
                         time_vel_est_x = struct.unpack('<f', time_vel_est_x)
                         self.dvl_data[3] = time_vel_est_x[0]
                         time_vel_est_z1 = self.dvl_serial.read(4)
