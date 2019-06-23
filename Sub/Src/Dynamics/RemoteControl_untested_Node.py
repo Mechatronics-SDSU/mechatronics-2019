@@ -33,6 +33,12 @@ class RemoteControlNode(node_base):
         #self._num_axes = self._joystick.get_numaxes()
         #print(self._num_axes)
         self._axes = [0, 0, 0, 0, 0, 0]
+        self.axis0 = 0
+        self.axis1 = 0
+        self.axis2 = 0
+        self.axis3 = 0
+        self.axis4 = 0
+        self.axis5 = 0
         self._memory = MEM  #Standard getters/setters for network and local
         self._ip_route = IP
         self._matrix = np.array([[1,0,0,0,0,0,0,0],
@@ -46,7 +52,7 @@ class RemoteControlNode(node_base):
 
     def _thruster_activation(self, axis):
 
-        thruster_array=np.array([[1,1,1,1]])
+        thruster_array=np.array([[1,-1,1,-1]])
 
         if np.any(axis[2]):
             return -1*thruster_array*axis[2]
@@ -56,9 +62,9 @@ class RemoteControlNode(node_base):
 
         #Will Still be Zero if Zero
 
-    def _joystick_right(axis):
-        x=round(axis[0],3)
-        y=round(axis[1],3)
+    def _joystick_right(self,axis):
+        x=round(axis[3],3)
+        y=round(axis[4],3)
 
         y0=.2*abs(y)
         x0=.2*abs(x)
@@ -104,7 +110,7 @@ class RemoteControlNode(node_base):
             else:
                 return np.array([[0,0,0,0]])
 
-    def _joystick_left(axis):
+    def _joystick_left(self, axis):
         x=round(axis[0], 3) #round to 10^-3 digits
         y=round(axis[1], 3) #round to 10^-3 digits
 
@@ -118,9 +124,9 @@ class RemoteControlNode(node_base):
         '''
         Remomte Commands to Control Flow of Events
         '''
-        odd_thrusters     = _thruster_activation(array_axis)
-        odd_thrusters_mod = _joystick_right(array_axis)
-        even_thrusters    = _joystick_left(array_axis)
+        odd_thrusters     = self._thruster_activation(array_axis)
+        odd_thrusters_mod = self._joystick_right(array_axis)
+        even_thrusters    = self._joystick_left(array_axis)
 
 
         if np.any(odd_thrusters_mod):
@@ -169,18 +175,20 @@ class RemoteControlNode(node_base):
                    self.axis0,self.axis1,self.axis2,self.axis3,self.axis4,self.axis5 = (0,0,0,0,0,0)
 
                 axis_array=[self.axis0, self.axis1, self.axis2, self.axis3, self.axis4, self.axis5]
-                dot_matrix = np.dot(self._matrix, self.Remote_Command(axis_array))
-                #print(dot_matrix)
-                byte_matrix = struct.pack('ffffffff',dot_matrix[0],
-                                                     dot_matrix[1],
-                                                     dot_matrix[2],
-                                                     dot_matrix[3],
-                                                     dot_matrix[4],
-                                                     dot_matrix[5],
-                                                     dot_matrix[6],
-                                                     dot_matrix[7])
+                dot_matrix = np.dot(self.Remote_Command(axis_array), self._matrix)
+                print(dot_matrix)
 
-                #self._send(msg=(byte_matrix), register='RC', local=False, foreign=True)
+                byte_matrix = struct.pack('ffffffff',dot_matrix[0][0],
+                                                     dot_matrix[0][1],
+                                                     dot_matrix[0][2],
+                                                     dot_matrix[0][3],
+                                                     dot_matrix[0][4],
+                                                     dot_matrix[0][5],
+                                                     dot_matrix[0][6],
+                                                     dot_matrix[0][7])
+
+
+                self._send(msg=(byte_matrix), register='RC', local=False, foreign=True)
                 print(byte_matrix)
             else:
                 time.sleep(0)
@@ -201,7 +209,3 @@ if __name__ == '__main__':
     MEM={'RC':b'\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00'}
     remote_node = RemoteControlNode(IP, MEM)
     remote_node.start()
-
-
-
-
