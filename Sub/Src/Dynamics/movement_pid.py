@@ -70,6 +70,10 @@ class Movement_PID:
         self.thrusters[6] = Thruster(maestro_serial_obj, 7, [0, 0, 1], [-1, -1, 0], max_thrust, False)
         self.thrusters[7] = Thruster(maestro_serial_obj, 8, [1, 0, 0], [0, -1, 0], max_thrust, True)
 
+        #Used to notify when to hold depth based on the remote control trigger for depth.
+        self.remote_desired_depth = 0
+        self.remote_depth_recorded = False
+
         #Initialize the PID controllers for control system
         self.set_up_PID_controllers(True)
 
@@ -232,7 +236,7 @@ class Movement_PID:
         of the max and min error. If it is not, it will force it to be.
 
         Parameter:
-            unbounded_error: The error that has not yet been checked if it 
+            unbounded_error: The error that has not yet been checked if it
                             is within the error limits
             min_error: The minimum value that you want your error to be.
             max_error: The maximum value that you want your error to be.
@@ -288,7 +292,7 @@ class Movement_PID:
 
         yaw_error = desired_yaw - curr_yaw
         if(abs(yaw_error) > 180):
-  
+
             if(yaw_error < 0):
                 yaw_error = yaw_error + 360
             else:
@@ -326,6 +330,57 @@ class Movement_PID:
         #Write the controls to thrusters
         self.controlled_thrust(roll_control, pitch_control, yaw_control, x_control, y_control, z_control, desired_position[5])
         return error
+
+    def remote_move(self, current_position, errors, hold_depth):
+        '''
+        Accepts spoofed error input for each degree of freedom from the xbox controller
+        to utilize the pid controllers for remote control movement.
+
+        Parameters:
+            current_position: A list of the most up-to-date current position.
+                            List format: [roll, pitch, yaw, x_pos, y_pos, depth]
+            errors: A list of the spoofed errors for [yaw, x_pos, y_pos, depth] to
+                    utilize the remote control to perform movement with the PID
+                    controller.
+            hold_depth: Hold the last
+
+        Returns:
+            N/A
+        '''
+        #always want roll and pitch to be level at 0 degrees
+        roll_error = self.bound_error(0.0 - current_position[0], self.roll_min_error, self.roll_max_error) #roll error
+        pitch_error = self.bound_error(0.0 - current_position[1], self.pitch_min_error, self.pitch_max_error) #pitch error
+
+
+        #Interpolate errors to the min and max errors set in the parameter server
+        yaw_error = int(np.interp(errors[0], [-1, 1], [self.yaw_min_error, self.yaw_max_error]))
+        x_error = int(np.interp(errors[1], [-1, 1], [self.x_min_error, self.x_max_error]))
+        y_error = int(np.interp(errors[2], [-1, 1], [self.y_min_error, self.y_max_error]))
+
+        #When the trigger is released for controlling depth, record the depth and hold.
+        if(errors[3] == 0.0):
+
+            if(self.remote_depth_recorded == False):
+                self.remote_desired_depth = current_position[5]
+                self.remote_depth_recorded = True
+
+            depth_error = self.bound_error(self.remote_desired_depth - current_position[5], \
+                              self.z_min_error, self.z_max_error) #z_pos (depth)
+
+        else:
+            self.remote_depth_recorded = False
+            self.remote_desired_depth = 0
+            depth_error = int(np.interp(errors[3], [-1, 1], [self.z_min_error, self.z_max_error]))
+
+        #Get the thrusts from the PID controllers to move towards desired pos.
+        roll_control = self.roll_pid_controller.control_step(roll_error)
+        pitch_control = self.pitch_pid_controller.control_step(pitch_error)
+        yaw_control = self.yaw_pid_controller.control_step(errors[0])
+        x_control = self.x_pid_controller.control_step(errors[1])
+        y_control = self.y_pid_controller.control_step(errors[2])
+        z_control = self.z_pid_controller.control_step(depth_error)
+
+        return
 
     #This is a helper function to be used initially for tuning the roll, pitch
     #and depth PID values. Once tuned, please use advance_move instead.

@@ -392,6 +392,12 @@ class Navigation_Controller(threading.Thread):
 
                 self.navigation_controller_node.spinOnce(self.thruster_test_subscriber)
 
+            #Remote navigation (using PID controllers)
+            elif self.movement_mode == 2:
+                #Recieve commands via socket from remote controller
+
+
+                self.pid_controller.remote_move(self.current_position, errors)
 
 if __name__ == "__main__":
 
