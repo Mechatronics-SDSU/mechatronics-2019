@@ -21,6 +21,7 @@ from pid_tuner_widget import PID_Tuner_Widget
 from thruster_test_widget import Thruster_Test
 from tabbed_display_widget import Tabbed_Display
 from kill_sub_widget import Kill_Button
+from param_editor_widget import Param_Editor
 import struct
 
 class Main_GUI(QWidget):
@@ -79,6 +80,17 @@ class Main_GUI(QWidget):
         '''
         self.kill_button = Kill_Button()
         self.main_layout.addWidget(self.kill_button, 1, 1)
+
+    def set_param_editor_button(self):
+        '''
+        Parameters:
+            N/A
+
+        Returns:
+            N/A
+        '''
+        self.param_editor = Param_Editor()
+        self.main_layout.addWidget(self.param_editor, 2, 1)
 
     def set_tabbed_display(self):
         '''
