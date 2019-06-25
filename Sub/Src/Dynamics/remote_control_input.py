@@ -103,7 +103,6 @@ class remote_control_node(node_base):
             #Set the axes for every event. This gives us simultaenous control
             #over multiple thrusters
             if pygame.event.peek():
-                pygame.event.poll()
                 self._axes[0] = self._joystick.get_axis(0)
                 self._axes[1] = self._joystick.get_axis(1)
 
@@ -114,6 +113,7 @@ class remote_control_node(node_base):
                 #map triggers differently, cuz default state is not 0
                 self._axes[5] = (-1*((self._joystick.get_axis(2) + 1)/2))
                 self._send(msg=(self._control(self._axes)), register = 'RC', local = False, foreign = True)
+                pygame.event.poll()
 
             else:
                 time.sleep(0)
