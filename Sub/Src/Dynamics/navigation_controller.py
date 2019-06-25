@@ -37,30 +37,40 @@ from MechOS import mechos
 import struct
 import threading
 
+from message_passing.Nodes.node_base_udp import node_base
+import socket
+
 MOVEMENT_AXIS = ["Roll", "Pitch", "Yaw", "X Pos.", "Y Pos.", "Depth"]
 
-class Navigation_Controller(threading.Thread):
+class Navigation_Controller(node_base):
     '''
     This main Navigation controller for the sub. It is made up of two main components.
     This first main is the sensor driver, which provides navigation data from the sensor.
     The second component is the movement controller components, which controls the movement
     pid control system. There is also a command_listener that listens for requests from the gui/mission commander.
     '''
-    def __init__(self):
+    def __init__(self, MEM, IP):
         '''
         Initialize the navigation controller. This includes getting parameters from the
         parameter server, initializing subscribers to listen for command messages, and
         initalizing the sensor driver.
 
         Parameters:
-            N/A
+            MEM: Local dictionary needed to send data over RAM
+            IP: Dictionary containing addresses, sockets, and everything needed
+                to send over the network
 
         Returns:
             N/A
         '''
 
+        #Node base initialized stuff, necessary for socket communication
+        node_base.__init__(self, MEM, IP)
+        self._memory = MEM
+        self._ip_route = IP
+
         #Initialize the parent class of
-        super(Navigation_Controller, self).__init__()
+        super(Navigation_Controller, self).__init__(MEM, IP)
 
         #Get the mechos network parameters
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
@@ -87,6 +97,8 @@ class Navigation_Controller(threading.Thread):
         #Subscriber to listen for thrust messages from the thruster test widget
         self.thruster_test_subscriber = self.navigation_controller_node.create_subscriber("TT", self.__update_thruster_test_callback, configs["sub_port"])
         self.thruster_test_proto = thrusters_pb2.Thrusters() #Thruster protobuf message
+
+        self._udp_received_message = None
 
         #Connect to parameters server
         self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
@@ -394,12 +406,26 @@ class Navigation_Controller(threading.Thread):
 
             #Remote navigation (using PID controllers)
             elif self.movement_mode == 2:
+
                 #Recieve commands via socket from remote controller
-
-
+                self._udp_received_message = self._recv('RC', local = False)
+                errors = struct.unpack('ffff', self._udp_received_message)
                 self.pid_controller.remote_move(self.current_position, errors)
 
 if __name__ == "__main__":
 
-    navigation_controller = navigation_controller()
-    navigation_controller.run()
+    rc_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    thrust_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    ip_address = ('192.168.1.14', 666)
+
+    IP={'RC':
+            {
+            'address': ip_address,
+            'sockets': (rc_socket, thrust_socket),
+            'type': 'UDP'
+            }
+        }
+    MEM={'RC':b'\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00'}
+
+    navigation_controller = Navigation_Controller(MEM, IP)
+    navigation_controller.start()
