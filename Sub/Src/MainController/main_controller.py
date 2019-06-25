@@ -18,17 +18,21 @@ import os
 NAV_CONT_PATH = os.path.join("..", "Dynamics")
 sys.path.append(NAV_CONT_PATH)
 from navigation_controller import Navigation_Controller
+from message_passing.Nodes.node_base_udp import node_base
 import time
+import socket
 
 class Main_Controller:
     '''
     '''
-    def __init__(self):
+    def __init__(self, MEM, IP):
         '''
         Intialize the main controller of the sub.
 
         Parameters:
-            N/A
+            MEM: local dictionary containing all data for local message transfer
+            IP: dictionary containing address, sockets, etc for network transfer
+
         Returns:
             N/A
         '''
@@ -36,8 +40,12 @@ class Main_Controller:
         #the threads to collect sensor data.
         #self.sensor_controller = Sensor_Driver()
 
+        node_base.__init__(self, MEM, IP)
+        self._memory = MEM
+        self._ip_route = IP
+
         #Initialize the navigation controller thread
-        self.navigation_controller = Navigation_Controller()
+        self.navigation_controller = Navigation_Controller(MEM, IP)
 
         self.run_main_controller = True
 
@@ -52,7 +60,7 @@ class Main_Controller:
         Parameters:
             sensor_data: A list of the sensor data.
                         [roll, pitch, yaw, x_pos, y_pos, depth]
-        
+
         Returns:
             N/A
         '''
@@ -66,15 +74,28 @@ class Main_Controller:
         print("X Pos.: %0.2f" % (sensor_data[3]))
         print("Y Pos.: %0.2f" % (sensor_data[4]))
         print("Depth: %0.2f" % (sensor_data[5]))
-        
+
     def run(self):
         '''
         Run the Main controller of the sub
         '''
         while(self.run_main_controller):
             continue
-        
-if __name__ == "__main__":
-    main_controller = Main_Controller()
-    main_controller.run()
 
+if __name__ == "__main__":
+
+    rc_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    thrust_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    ip_address = ('192.168.1.14', 666)
+
+    IP={'RC':
+            {
+            'address': ip_address,
+            'sockets': (rc_socket, thrust_socket),
+            'type': 'UDP'
+            }
+        }
+    MEM={'RC':b'\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00'}
+
+    main_controller = Main_Controller(MEM, IP)
+    main_controller.start()
