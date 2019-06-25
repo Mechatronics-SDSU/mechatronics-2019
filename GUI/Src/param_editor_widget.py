@@ -42,7 +42,7 @@ class Param_Editor(QWidget):
         self.setPalette(nav_gui_palette)
 
         #Set path of xml text file
-        self.filePath = "C:/Users/cfior/Desktop/GITS/mechatronics-2019/Sub/Src/Params/mechos_network_configs.txt"
+        self.filePath = "/home/claire/mechatronics-2019/Sub/Src/Params/mechos_network_configs.txt"
 
         #Create widgets main layout structure
         self.param_layout = QGridLayout(self)
@@ -74,13 +74,13 @@ class Param_Editor(QWidget):
         #IP
         #Set ip label
         self.ipLabel = QLabel()
-        self.ipLabel.setText("<font color='white' size=5>ip: </font>")
+        self.ipLabel.setText("<font color='white' size=4>ip: </font>")
         self.ip_layout.addWidget(self.ipLabel)
 
         #Set ip text box
         self.iptext = QLineEdit()
         self.iptext.setText(lines[0].split(":")[1])
-        self.iptext.resize(280,40)
+        self.iptext.resize(200,30)
         self.ip_layout.addWidget(self.iptext)
 
         #Set ip button
@@ -88,19 +88,19 @@ class Param_Editor(QWidget):
         self.ipbutton.setCheckable(True)
         self.ipbutton.toggle()
         self.ipbutton.clicked.connect(self.ipclickMethod)
-        self.ipbutton.resize(280,40)
+        self.ipbutton.resize(200,30)
         self.ip_layout.addWidget(self.ipbutton)
 
         #PUB_PORT
         #Set pub_port label
         self.pubportLabel = QLabel()
-        self.pubportLabel.setText("<font color='white' size=5>pub_port: </font>")
+        self.pubportLabel.setText("<font color='white' size=4>pub_port: </font>")
         self.pubport_layout.addWidget(self.pubportLabel)
 
         #Set pub_port text box
         self.pubporttext = QLineEdit()
         self.pubporttext.setText(lines[1].split(":")[1])
-        self.pubporttext.resize(280,40)
+        self.pubporttext.resize(200,30)
         self.pubport_layout.addWidget(self.pubporttext)
 
         #Set pub_port button
@@ -108,19 +108,19 @@ class Param_Editor(QWidget):
         self.pubportbutton.setCheckable(True)
         self.pubportbutton.toggle()
         self.pubportbutton.clicked.connect(self.pubportclickMethod)
-        self.pubportbutton.resize(280,40)
+        self.pubportbutton.resize(200,30)
         self.pubport_layout.addWidget(self.pubportbutton)
 
         #SUB_PORT
         #Set sub_port label
         self.subportLabel = QLabel()
-        self.subportLabel.setText("<font color='white' size=5>sub_port: </font>")
+        self.subportLabel.setText("<font color='white' size=4>sub_port: </font>")
         self.subport_layout.addWidget(self.subportLabel)
 
         #Set sub_port text box
         self.subporttext = QLineEdit()
         self.subporttext.setText(lines[2].split(":")[1])
-        self.subporttext.resize(280,40)
+        self.subporttext.resize(200,30)
         self.subport_layout.addWidget(self.subporttext)
 
         #Set sub_port button
@@ -128,19 +128,19 @@ class Param_Editor(QWidget):
         self.subportbutton.setCheckable(True)
         self.subportbutton.toggle()
         self.subportbutton.clicked.connect(self.subportclickMethod)
-        self.subportbutton.resize(280,40)
+        self.subportbutton.resize(200,30)
         self.subport_layout.addWidget(self.subportbutton)
 
         #PARAM_PORT
         #Set param_port label
         self.paramportLabel = QLabel()
-        self.paramportLabel.setText("<font color='white' size=5>param_port: </font>")
+        self.paramportLabel.setText("<font color='white' size=4>param_port: </font>")
         self.paramport_layout.addWidget(self.paramportLabel)
 
         #Set param_port text box
         self.paramporttext = QLineEdit()
         self.paramporttext.setText(lines[3].split(":")[1])
-        self.paramporttext.resize(280,40)
+        self.paramporttext.resize(200,30)
         self.paramport_layout.addWidget(self.paramporttext)
 
         #Set param_port button
@@ -148,19 +148,19 @@ class Param_Editor(QWidget):
         self.paramportbutton.setCheckable(True)
         self.paramportbutton.toggle()
         self.paramportbutton.clicked.connect(self.paramportclickMethod)
-        self.paramportbutton.resize(280,40)
+        self.paramportbutton.resize(200,30)
         self.paramport_layout.addWidget(self.paramportbutton)
 
         #XMLRPC
         #Set xmlrpc_server_path label
         self.xmlrpcLabel = QLabel()
-        self.xmlrpcLabel.setText("<font color='white' size=5>xmlrpc server path: </font>")
+        self.xmlrpcLabel.setText("<font color='white' size=4>xmlrpc server path: </font>")
         self.xmlrpc_layout.addWidget(self.xmlrpcLabel)
 
         #Set xmlrpc_server_path text box
         self.xmlrpctext = QLineEdit()
         self.xmlrpctext.setText(lines[4].split(":")[1])
-        self.xmlrpctext.resize(280,40)
+        self.xmlrpctext.resize(200,30)
         self.xmlrpc_layout.addWidget(self.xmlrpctext)
 
         #Set xmlrpc_server_path button
@@ -168,7 +168,7 @@ class Param_Editor(QWidget):
         self.xmlrpcbutton.setCheckable(True)
         self.xmlrpcbutton.toggle()
         self.xmlrpcbutton.clicked.connect(self.xmlrpcclickMethod)
-        self.xmlrpcbutton.resize(280,40)
+        self.xmlrpcbutton.resize(200,30)
         self.xmlrpc_layout.addWidget(self.xmlrpcbutton)
 
         #Add all layouts to main layout

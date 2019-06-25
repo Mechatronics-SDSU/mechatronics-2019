@@ -57,6 +57,7 @@ class Main_GUI(QWidget):
         self.set_pid_visualizer()
         self.set_thruster_test_widget()
         self.set_kill_button()
+        self.set_param_editor()
 
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
         #MechOS publisher to send movement mode selection
@@ -81,7 +82,7 @@ class Main_GUI(QWidget):
         self.kill_button = Kill_Button()
         self.main_layout.addWidget(self.kill_button, 1, 1)
 
-    def set_param_editor_button(self):
+    def set_param_editor(self):
         '''
         Parameters:
             N/A
@@ -90,7 +91,7 @@ class Main_GUI(QWidget):
             N/A
         '''
         self.param_editor = Param_Editor()
-        self.main_layout.addWidget(self.param_editor, 2, 1)
+        self.main_layout.addWidget(self.param_editor, 2, 0)
 
     def set_tabbed_display(self):
         '''
