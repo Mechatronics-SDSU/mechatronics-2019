@@ -331,7 +331,7 @@ class Movement_PID:
         self.controlled_thrust(roll_control, pitch_control, yaw_control, x_control, y_control, z_control, desired_position[5])
         return error
 
-    def remote_move(self, current_position, errors, hold_depth):
+    def remote_move(self, current_position, errors):
         '''
         Accepts spoofed error input for each degree of freedom from the xbox controller
         to utilize the pid controllers for remote control movement.
@@ -342,7 +342,6 @@ class Movement_PID:
             errors: A list of the spoofed errors for [yaw, x_pos, y_pos, depth] to
                     utilize the remote control to perform movement with the PID
                     controller.
-            hold_depth: Hold the last
 
         Returns:
             N/A
