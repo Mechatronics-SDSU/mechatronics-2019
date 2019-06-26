@@ -76,7 +76,7 @@ class DVL_DATA_DRIVER:
         NOTE: the C struct module 'struct' in python will unwrap these bytes into a tuple
         Be sure to index this to get the data inside the touple to be consistent with Protobuf binaries
         '''
-        
+
         try:
             prev_time = time.time()
             if self.dvl_serial.in_waiting:
@@ -138,7 +138,11 @@ class DVL_DATA_DRIVER:
                         time_vel_est_beam_2 = self.dvl_serial.read(4)
                         time_vel_est_beam_3 = self.dvl_serial.read(4)
                         """
-                        self.dvl_serial.read(112)
+                        #Previously, the code said read 112 bytes. But recounting twice I am getting 132
+                        #self.dvl_serial.read(112)
+
+                        #Read 132 bytes of the excess data that we do not desire.
+                        self.dvl_serial.read(132)
                         vel_y = self.dvl_serial.read(4)
                         vel_y = struct.unpack('<f', vel_y)
                         self.dvl_data[1] = vel_y[0]
@@ -148,6 +152,9 @@ class DVL_DATA_DRIVER:
                         vel_z1 = self.dvl_serial.read(4)
                         vel_z1 = struct.unpack('<f', vel_z1)
                         self.dvl_data[2] = vel_z1[0]
+
+                        #Read the rest of the intermediate bytes.
+                        self.dvl_serial.read(52)
                         """
                         velZ2 = self.dvl_serial.read(4)
                         fomX = self.dvl_serial.read(4)
@@ -174,7 +181,7 @@ class DVL_DATA_DRIVER:
                         time_vel_est_z2 = self.dvl_serial.read(4)
                         #ensemble = self.getDistanceTraveled()
                         """
-                        self.dvl_serial.read(68)
+
                         return self.dvl_data
                     else:
                         self.dvl_serial.reset_input_buffer()
@@ -231,16 +238,18 @@ class DVL_THREAD(threading.Thread):
         Returns:
             N/A
         '''
+        
         while(True):
 
             try:
                 #Attempt to retrieve dvl data.
                 dvl_data_packet = self.norteck_dvl._unpack()
                 #NOTE: Possibly need to add more error checking
-                
+
                 if((dvl_data_packet != None) and (dvl_data_packet != [0])):
+
                     self.dvl_data_queue.append(dvl_data_packet)
-                    
+
 
             except Exception as e:
                 print("[ERROR]: Could not properly recieve DVL data. Error:", e)

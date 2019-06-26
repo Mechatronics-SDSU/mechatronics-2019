@@ -90,6 +90,9 @@ class Sensor_Driver:
         self.current_x_pos = 0
         self.current_y_pos = 0
 
+        #Previous time at which the dvl was read, keeps consistent timining of the dvl
+        self.prev_dvl_read_time = 0
+
     def zero_pos(self):
         '''
         Zero the position of the sub in the x and y coordinates
@@ -128,17 +131,27 @@ class Sensor_Driver:
 
             #Extract data for better readability
             x_vel, y_vel, z_vel, x_vel_time_est, y_vel_time_est, z_vel_time_est = dvl_data
-            x_vel_time_est = 1 / float(5)
-            y_vel_time_est = 1 / float(5)
+
             yaw_rad = math.radians(sensor_data[2])
 
+            dvl_vel_timing = time.time() - self.prev_dvl_read_time
+
             #Rotation matrix to relate sub's x, y coordinates to earth x(north) and y(east) components
-            x_translation = ((math.cos(yaw_rad)*x_vel*x_vel_time_est) + \
-                            (math.sin(yaw_rad)*y_vel*y_vel_time_est)) #* 3.28084
+            #x_translation = ((math.cos(yaw_rad)*x_vel*x_vel_time_est) + \
+            #                (math.sin(yaw_rad)*y_vel*y_vel_time_est)) #* 3.28084
 
-            y_translation = ((-1* math.sin(yaw_rad)*x_vel*x_vel_time_est) + \
-                            (math.cos(yaw_rad)*y_vel*y_vel_time_est)) #* 3.28084 #conver to feet
+            #y_translation = ((-1* math.sin(yaw_rad)*x_vel*x_vel_time_est) + \
+            #                (math.cos(yaw_rad)*y_vel*y_vel_time_est)) #* 3.28084 #conver to feet
 
+            x_translation = ((math.cos(yaw_rad)*x_vel*dvl_vel_timing) + \
+                            (math.sin(yaw_rad)*y_vel*dvl_vel_timing)) #* 3.28084
+
+            y_translation = ((-1* math.sin(yaw_rad)*x_vel*dvl_vel_timing) + \
+                            (math.cos(yaw_rad)*y_vel*dvl_vel_timing)) #* 3.28084 #convert to feet
+
+            #Get the current times
+            self.prev_dvl_read_time = time.time()
+            
             self.current_x_pos += x_translation
             self.current_y_pos += y_translation
 
