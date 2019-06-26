@@ -12,7 +12,7 @@
         <nav_controller>0.025</nav_controller>
     </Timing>
     <Control>
-        <max_thrust>80</max_thrust>
+        <max_thrust>60</max_thrust>
         <Movement_Mode>
             <default>1</default>
         </Movement_Mode>
@@ -31,7 +31,7 @@
             <T6>0</T6>
             <T7>0</T7>
             <T8>0</T8>
-            <active_depth>1</active_depth>
+            <active_depth>0.5</active_depth>
         </Thruster_Strengths>
         <PID>
             <dt>.025</dt>
@@ -60,22 +60,22 @@
                 <p>0.0</p>
                 <i>0.0</i>
                 <d>0.0</d>
-                <min_error>-100</min_error>
-                <max_error>100</max_error>
+                <min_error>-10</min_error>
+                <max_error>10</max_error>
             </x_pid>
             <y_pid>
                 <p>0</p>
                 <i>0</i>
                 <d>0</d>
-                <min_error>-100</min_error>
-                <max_error>100</max_error>
+                <min_error>-10</min_error>
+                <max_error>10</max_error>
             </y_pid>
             <z_pid>
                 <p>12.0</p>
                 <i>0.0</i>
                 <d>0.0</d>
-                <min_error>-10</min_error>
-                <max_error>100</max_error>
+                <min_error>-1</min_error>
+                <max_error>4</max_error>
                 <bias>23</bias>
                 <active_bias_depth>2</active_bias_depth>
             </z_pid>

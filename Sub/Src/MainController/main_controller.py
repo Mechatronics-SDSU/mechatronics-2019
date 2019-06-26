@@ -22,7 +22,7 @@ from message_passing.Nodes.node_base_udp import node_base
 import time
 import socket
 
-class Main_Controller:
+class Main_Controller(node_base):
     '''
     '''
     def __init__(self, MEM, IP):
