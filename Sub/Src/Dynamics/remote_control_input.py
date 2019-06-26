@@ -79,7 +79,7 @@ class remote_control_node(node_base):
             depth = (-1*(axis_array[4] +1))/2
 
         #map_array = [axis_array[3], axis_array[0], -axis_array[1], depth]
-
+        #print(map_array)
         byte_axis_array = struct.pack('ffff',
                                             axis_array[3],
                                             axis_array[0],
@@ -114,7 +114,7 @@ class remote_control_node(node_base):
 
                 #map triggers differently, cuz default state is not 0
                 self._axes[4] = self._joystick.get_axis(5)
-                print(self._control(self._axes))
+                #(self._control(self._axes))
                 self._send(msg=(self._control(self._axes)), register = 'RC', local = False, foreign = True)
                 pygame.event.poll()
 
