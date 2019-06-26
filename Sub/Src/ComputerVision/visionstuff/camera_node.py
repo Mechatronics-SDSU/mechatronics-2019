@@ -10,7 +10,7 @@ class camera_node(node_base):
     def __init__(self, IP, MEM):
 
         node_base.__init__(self, MEM, IP)
-        self._cap = cv2.VideoCapture(0)
+        self._cap = cv2.VideoCapture(1)
 
     def run(self):
 
