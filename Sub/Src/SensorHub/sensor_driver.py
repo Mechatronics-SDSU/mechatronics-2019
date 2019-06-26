@@ -128,15 +128,16 @@ class Sensor_Driver:
 
             #Extract data for better readability
             x_vel, y_vel, z_vel, x_vel_time_est, y_vel_time_est, z_vel_time_est = dvl_data
-
+            x_vel_time_est = 1 / float(5)
+            y_vel_time_est = 1 / float(5)
             yaw_rad = math.radians(sensor_data[2])
 
             #Rotation matrix to relate sub's x, y coordinates to earth x(north) and y(east) components
             x_translation = ((math.cos(yaw_rad)*x_vel*x_vel_time_est) + \
-                            (math.sin(yaw_rad)*y_vel*y_vel_time_est)) * 3.28084
+                            (math.sin(yaw_rad)*y_vel*y_vel_time_est)) #* 3.28084
 
             y_translation = ((-1* math.sin(yaw_rad)*x_vel*x_vel_time_est) + \
-                            (math.cos(yaw_rad)*y_vel*y_vel_time_est)) * 3.28084 #conver to feet
+                            (math.cos(yaw_rad)*y_vel*y_vel_time_est)) #* 3.28084 #conver to feet
 
             self.current_x_pos += x_translation
             self.current_y_pos += y_translation

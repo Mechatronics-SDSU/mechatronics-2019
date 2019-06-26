@@ -76,8 +76,10 @@ class DVL_DATA_DRIVER:
         NOTE: the C struct module 'struct' in python will unwrap these bytes into a tuple
         Be sure to index this to get the data inside the touple to be consistent with Protobuf binaries
         '''
+        
         try:
-            if self.dvl_serial.inWaiting() != 0:
+            prev_time = time.time()
+            if self.dvl_serial.in_waiting:
                 SYNC = hex(ord(self.dvl_serial.read()))
                 #print SYNC
                 if SYNC == "0xa5":
@@ -89,6 +91,7 @@ class DVL_DATA_DRIVER:
                     dataChecksum = self.dvl_serial.read(2)  # How many bytes in ensemble
                     headerChecksum = self.dvl_serial.read(2)  # How many bytes in ensemble
                     if hex(ID) == "0x1b":  # If this is a Bottom Tracking Message
+                        """
                         version = ord(self.dvl_serial.read())
                         offset_of_Data = ord(self.dvl_serial.read())
                         serial_number = self.dvl_serial.read(4)
@@ -117,7 +120,7 @@ class DVL_DATA_DRIVER:
                         dis_beam_2 = struct.unpack('<f', dis_beam_2)
                         dis_beam_3 = self.dvl_serial.read(4)
                         dis_beam_3 = struct.unpack('<f', dis_beam_3)
-                        self.distanceToFloor = ((dis_beam_0[0]) + (dis_beam_1[0]) + (dis_beam_2[0]) + (dis_beam_3[0])) / 4
+                        #self.distanceToFloor = ((dis_beam_0[0]) + (dis_beam_1[0]) + (dis_beam_2[0]) + (dis_beam_3[0])) / 4
                         fombeam_0 = self.dvl_serial.read(4)
                         fombeam_1 = self.dvl_serial.read(4)
                         fombeam_2 = self.dvl_serial.read(4)
@@ -134,6 +137,8 @@ class DVL_DATA_DRIVER:
                         time_vel_est_beam_1 = self.dvl_serial.read(4)
                         time_vel_est_beam_2 = self.dvl_serial.read(4)
                         time_vel_est_beam_3 = self.dvl_serial.read(4)
+                        """
+                        self.dvl_serial.read(112)
                         vel_y = self.dvl_serial.read(4)
                         vel_y = struct.unpack('<f', vel_y)
                         self.dvl_data[1] = vel_y[0]
@@ -143,6 +148,7 @@ class DVL_DATA_DRIVER:
                         vel_z1 = self.dvl_serial.read(4)
                         vel_z1 = struct.unpack('<f', vel_z1)
                         self.dvl_data[2] = vel_z1[0]
+                        """
                         velZ2 = self.dvl_serial.read(4)
                         fomX = self.dvl_serial.read(4)
                         fomY = self.dvl_serial.read(4)
@@ -167,11 +173,14 @@ class DVL_DATA_DRIVER:
                         self.dvl_data[5] = time_vel_est_z1[0]
                         time_vel_est_z2 = self.dvl_serial.read(4)
                         #ensemble = self.getDistanceTraveled()
-
-                    return self.dvl_data
-
+                        """
+                        self.dvl_serial.read(68)
+                        return self.dvl_data
+                    else:
+                        self.dvl_serial.reset_input_buffer()
                 else:
-                    self.dvl_serial.flushInput()
+                   # self.dvl_serial.flushInput()
+                   self.dvl_serial.reset_input_buffer()
 
         except Exception as e:
             print("[ERROR]: DVL.py --> Error attemping to receive DVL data via serial com. Error: ", e)
@@ -227,18 +236,17 @@ class DVL_THREAD(threading.Thread):
             try:
                 #Attempt to retrieve dvl data.
                 dvl_data_packet = self.norteck_dvl._unpack()
-
                 #NOTE: Possibly need to add more error checking
-
+                
                 if((dvl_data_packet != None) and (dvl_data_packet != [0])):
                     self.dvl_data_queue.append(dvl_data_packet)
+                    
 
             except Exception as e:
                 print("[ERROR]: Could not properly recieve DVL data. Error:", e)
 
             #Give time for thread loop. Helps save power consumption.
             time.sleep(0.001)
-
 if __name__== '__main__':
     DVL = DVL_THREAD('/dev/ttyUSB1')
     DVL.run()
