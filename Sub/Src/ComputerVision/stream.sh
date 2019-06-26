@@ -1,2 +1,2 @@
 #!/bin/bash
-gst-launch-1.0 v4l2src ! ‘video/x-raw, width=480, height=620, framerate=30/1’ ! videoconvert ! jpegenc ! rtpjpegenc ! udpsink host=192.168.1 port=5200
+gst-launch-1.0 autovideosrc ! video/x-raw,width=1280,height=720 ! jpegenc ! rtpjpegpay ! udpsink host=192.168.1 port=5200
