@@ -405,7 +405,16 @@ class Navigation_Controller(node_base):
                 self.navigation_controller_node.spinOnce(self.thruster_test_subscriber)
 
             #Remote navigation (using PID controllers)
+<<<<<<< HEAD
             elif self.movement_mode == 1: #SWITCHED MOVMENT MODES FOR TESTING CONTROLLER, REVERT BACK
+=======
+            elif self.movement_mode == 2:
+
+                #Recieve commands via socket from remote controller
+                self._udp_received_message = self._recv('RC', local = False)
+                errors = struct.unpack('ffff', self._udp_received_message)
+                self.pid_controller.remote_move(self.current_position, errors)
+>>>>>>> d45e06a6fbbeeddc4d1ddd70c36c7154125472b1
 
                 #Recieve commands via socket from remote controller
                 self._udp_received_message = self._recv('RC', local = False)
