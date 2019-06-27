@@ -1,3 +1,4 @@
+
 '''
 Copyright 2019, David Pierce Walker-Howell, All rights reserved
 
@@ -411,12 +412,16 @@ class Navigation_Controller(node_base):
                 self._udp_received_message = self._recv('RC', local = False)
                 errors = struct.unpack('ffff', self._udp_received_message)
                 self.pid_controller.remote_move(self.current_position, errors)
+<<<<<<< HEAD
                 
+=======
+
+>>>>>>> 8e37dc93ca0c1ad5a1b462fe055d9cbd80640c35
 if __name__ == "__main__":
 
     rc_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     thrust_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    ip_address = ('192.168.1.14', 666)
+    ip_address = ('192.168.1.14', 6312)
     thrust_socket.bind((ip_address))
 
     IP={'RC':

@@ -353,9 +353,11 @@ class Movement_PID:
 
 
         #Interpolate errors to the min and max errors set in the parameter server
+
         yaw_error = np.interp(errors[0], [-1, 1], [self.yaw_min_error, self.yaw_max_error])
         x_error = np.interp(errors[1], [-1, 1], [self.x_min_error, self.x_max_error])
         y_error = np.interp(errors[2], [-1, 1], [self.y_min_error, self.y_max_error])
+
         #When the trigger is released for controlling depth, record the depth and hold.
         if(errors[3] == 0.0):
 
@@ -371,6 +373,7 @@ class Movement_PID:
             self.remote_desired_depth = 0
             depth_error = np.interp(errors[3], [-1, 1], [self.z_min_error, self.z_max_error])
 
+
         #Get the thrusts from the PID controllers to move towards desired pos.
         roll_control = self.roll_pid_controller.control_step(roll_error)
         pitch_control = self.pitch_pid_controller.control_step(pitch_error)
@@ -379,8 +382,8 @@ class Movement_PID:
         y_control = self.y_pid_controller.control_step(errors[2])
         z_control = self.z_pid_controller.control_step(depth_error)
         self.controlled_thrust(roll_control, pitch_control, yaw_control, x_control, y_control, z_control, current_position[5])
-        
-        print(z_control)
+
+        #print(z_control)
         return
 
     #This is a helper function to be used initially for tuning the roll, pitch

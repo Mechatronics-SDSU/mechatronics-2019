@@ -57,31 +57,32 @@ class remote_control_node(node_base):
             Array of desired values after modifications are made, packed as
             bytes
         '''
-
         depth = 0.0
 
         #Set deadzones, these triggers too sensitive. Strafe
-        if axis_array[0] > -0.3 or axis_array[0] < 0.3:
+        if axis_array[0] > -0.3 and axis_array[0] < 0.3:
             axis_array[0] = 0.0
 
         #FW/BWD
-        if axis_array[1] > -0.3 or axis_array[1] < 0.3:
+        if axis_array[1] > -0.3 and axis_array[1] < 0.3:
             axis_array[1] = 0.0
 
         #Yaw
-        if axis_array[3] > -0.3 or axis_array[3] < 0.3:
+        if axis_array[3] > -0.3 and axis_array[3] < 0.3:
             axis_array[3] = 0.0
 
         #Depth
-        if axis_array[2] > 0.3:
-            depth = axis_array[2]
-        elif axis_array[4] < -0.3:
-            depth = axis_array[4]
+
+        if axis_array[2] > 0:
+            depth = (axis_array[2] + 1)/2
+        elif axis_array[4] > 0:
+            depth = -1 * ((axis_array[4] + 1)/2)
+
 
         byte_axis_array = struct.pack('ffff',
                                             axis_array[3],
                                             axis_array[0],
-                                            axis_array[1],
+                                            -axis_array[1],
                                             depth)
 
         return byte_axis_array
@@ -107,11 +108,11 @@ class remote_control_node(node_base):
                 self._axes[1] = self._joystick.get_axis(1)
 
                 #map triggers differently, cuz default state is not 0
-                self._axes[2] = ((self._joystick.get_axis(2) + 1)/2)
+                self._axes[2] = self._joystick.get_axis(2)
                 self._axes[3] = self._joystick.get_axis(3)
 
                 #map triggers differently, cuz default state is not 0
-                self._axes[4] = (-1*((self._joystick.get_axis(5) + 1)/2))
+                self._axes[4] = self._joystick.get_axis(5)
                 self._send(msg=(self._control(self._axes)), register = 'RC', local = False, foreign = True)
                 pygame.event.poll()
 
