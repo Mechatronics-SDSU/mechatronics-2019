@@ -57,7 +57,6 @@ class remote_control_node(node_base):
             Array of desired values after modifications are made, packed as
             bytes
         '''
-
         depth = 0.0
 
         #Set deadzones, these triggers too sensitive. Strafe
@@ -73,13 +72,13 @@ class remote_control_node(node_base):
             axis_array[3] = 0.0
 
         #Depth
-        if axis_array[2] > 0.2:
-            depth = (axis_array[2] + 1)/2
-        elif axis_array[4] > 0.2:
-            depth = (-1*(axis_array[4] +1))/2
 
-        #map_array = [axis_array[3], axis_array[0], -axis_array[1], depth]
-        #print(map_array)
+        if axis_array[2] > 0:
+            depth = (axis_array[2] + 1)/2
+        elif axis_array[4] > 0:
+            depth = -1 * ((axis_array[4] + 1)/2)
+
+
         byte_axis_array = struct.pack('ffff',
                                             axis_array[3],
                                             axis_array[0],
@@ -114,7 +113,6 @@ class remote_control_node(node_base):
 
                 #map triggers differently, cuz default state is not 0
                 self._axes[4] = self._joystick.get_axis(5)
-                #(self._control(self._axes))
                 self._send(msg=(self._control(self._axes)), register = 'RC', local = False, foreign = True)
                 pygame.event.poll()
 
