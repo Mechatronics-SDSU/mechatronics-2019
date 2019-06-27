@@ -383,7 +383,7 @@ class Movement_PID:
         z_control = self.z_pid_controller.control_step(depth_error)
         self.controlled_thrust(roll_control, pitch_control, yaw_control, x_control, y_control, z_control, current_position[5])
 
-        print(z_control)
+        #print(z_control)
         return
 
     #This is a helper function to be used initially for tuning the roll, pitch
