@@ -11,7 +11,7 @@ from image_label_widget import Image_Label
 from webcam_thread import Webcam_Thread
 
 from PyQt5.QtWidgets import QWidget, QApplication, QHBoxLayout, QMainWindow
-from PyQt5.QtGui import QPainter, QBrush, QColor, QPalette
+from PyQt5.QtGui import QPainter, QBrush, QColor, QPalette, QPen
 from PyQt5.QtCore import QRect, QPoint, Qt
 
 class Image_Capture(QWidget):
@@ -22,7 +22,7 @@ class Image_Capture(QWidget):
 
         layout = QHBoxLayout()
 
-        self.setGeometry(30,30,1200,900)
+        self.setGeometry(30,30,2000,1500)
         
         #Make Window Transparent
         self.setWindowOpacity(0.3)
@@ -43,21 +43,24 @@ class Image_Capture(QWidget):
         self.web_thread.threadrunning = True
 
     def paintEvent(self, event):
-        qp = QPainter(self)
-        br = QBrush(QColor(1,1,0,0))  
-        qp.setBrush(br)   
-        qp.drawRect(QRect(self.begin, self.end))       
+
+        qp = QPainter(self) 
+
+        if self.image_lab.cb.currentIndex() == 0:
+            qp.setPen(QPen(Qt.blue, 10))
+        elif self.image_lab.cb.currentIndex() == 1:
+            qp.setPen(QPen(Qt.red, 10))
+        elif self.image_lab.cb.currentIndex() == 2:
+            qp.setPen(QPen(Qt.yellow, 10))
+        elif self.image_lab.cb.currentIndex() == 3: 
+            qp.setPen(QPen(Qt.green, 10))
+
+        qp.drawRect(QRect(self.begin, self.end))
 
     def mousePressEvent(self, event):
 
         self.begin = event.pos()
         self.end = event.pos()
-	
-        name = "img"+(str)(self.web_thread.num)+".txt"
-        yfile = open(name, "a")
-
-        #Print index of object being identified followed by space
-        yfile.write((str)(self.image_lab.cb.currentIndex())+" ")
 	
         #Save individual values of x and y for upper left coordinate to print later
         global point1x
@@ -75,8 +78,11 @@ class Image_Capture(QWidget):
         self.begin = event.pos()
         self.end = event.pos()
 
-        name = "img"+(str)(self.web_thread.num)+".txt"
+        name = "img"+(str)(self.web_thread.imageNumber)+".txt"
         yfile = open(name, "a")
+
+        #Print index of object being identified followed by space
+        yfile.write((str)(self.image_lab.cb.currentIndex())+" ")
  
         #Save individual values of x and y for lower right coordinate to print later
         self.point2x = self.end.x()
