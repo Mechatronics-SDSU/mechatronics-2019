@@ -159,6 +159,12 @@ class Navigation_Controller(node_base):
         self.update_command_thread_run = True
         self.update_command_thread.start()
 
+        self.remote_thread= threading.Thread(target=self._read_remote_control)
+        self.remote_commands = [0.0, 0.0, 0.0, 0.0, 0]
+        self.remote_thread.daemon = True
+        self.remote_control_listen = False
+        self.remote_thread.start()
+
         self.daemon = True
 
         print("[INFO]: Sub Initially Killed")
@@ -198,8 +204,17 @@ class Navigation_Controller(node_base):
 
             #SET TRUE IF YOU WANT TO GRAPHICALLY OBSERVE THE PID ERRORS IN THE GUI.
             self.update_pid_errors = False
-        else:
+            self.remote_hold_depth_state = False
+
+        elif(self.movement_mode == 1):
             print("[INFO]: Movement mode selected: Thruster Test Mode")
+            self.pid_values_update_freeze = True
+            self.update_pid_errors = False
+            self.remote_hold_depth_state = False
+
+        elif(self.movement_mode == 2):
+            print("[INFO]: Movement mode selected: Remote Control Mode")
+            self.remote_control_listen = True
             self.pid_values_update_freeze = True
             self.update_pid_errors = False
 
@@ -215,6 +230,19 @@ class Navigation_Controller(node_base):
             N/A
         '''
         self.pid_controller.set_up_PID_controllers()
+
+    def _read_remote_control(self):
+        '''
+        The thread to continuosly read data from the Xbox controller when in
+        remote control mode.
+        '''
+        #Recieve commands via socket from remote controller
+        while True:
+            if self.remote_control_listen:
+                self._udp_received_message = self._recv('RC', local = False)
+                self.remote_commands = struct.unpack('ffff?', self._udp_received_message)
+            else:
+                time.sleep(0.01)
 
     def _command_listener(self):
         '''
@@ -280,6 +308,7 @@ class Navigation_Controller(node_base):
             except Exception as e:
                 print("[ERROR]: Could not correctly send data from navigation controller. Error:", e)
             time.sleep(0.1)
+
     def __unpack_desired_position_callback(self, desired_position_proto):
         '''
         The callback function to unpack the desired position proto message received
@@ -408,10 +437,7 @@ class Navigation_Controller(node_base):
             #Remote navigation (using PID controllers)
             elif self.movement_mode == 2: #SWITCHED MOVMENT MODES FOR TESTING CONTROLLER, REVERT BACK
 
-                #Recieve commands via socket from remote controller
-                self._udp_received_message = self._recv('RC', local = False)
-                errors = struct.unpack('ffff', self._udp_received_message)
-                self.pid_controller.remote_move(self.current_position, errors)
+                self.pid_controller.remote_move(self.current_position, self.remote_commands)
 
 if __name__ == "__main__":
 
@@ -427,7 +453,7 @@ if __name__ == "__main__":
             'type': 'UDP'
             }
         }
-    MEM={'RC':b'\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00'}
+    MEM={'RC':b'irrelevant'}
 
     navigation_controller = Navigation_Controller(MEM, IP)
     navigation_controller.start()

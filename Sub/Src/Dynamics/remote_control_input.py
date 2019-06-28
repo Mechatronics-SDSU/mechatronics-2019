@@ -40,9 +40,10 @@ class remote_control_node(node_base):
         self._joystick = pygame.joystick.Joystick(0)
         self._joystick.init()
 
-        self._axes = [0.0, 0.0, 0.0, 0.0, 0.0]
+        self._axes = [0.0, 0.0, 0.0, 0.0, 0.0, 0]
         self._memory = MEM
         self._ip_route = IP
+        self.remote_depth_hold = False
 
     def _control(self, axis_array):
         '''
@@ -78,12 +79,12 @@ class remote_control_node(node_base):
         elif axis_array[4] > 0:
             depth = -1 * ((axis_array[4] + 1)/2)
 
-
-        byte_axis_array = struct.pack('ffff',
+        byte_axis_array = struct.pack('ffff?',
                                             axis_array[3],
                                             axis_array[0],
                                             -axis_array[1],
-                                            depth)
+                                            depth,
+                                            axis_array[5])
 
         return byte_axis_array
 
@@ -104,6 +105,9 @@ class remote_control_node(node_base):
             #Set the axes for every event. This gives us simultaenous control
             #over multiple thrusters
             if pygame.event.peek():
+
+                instance = pygame.event.poll()
+
                 self._axes[0] = self._joystick.get_axis(0)
                 self._axes[1] = self._joystick.get_axis(1)
 
@@ -113,10 +117,16 @@ class remote_control_node(node_base):
 
                 #map triggers differently, cuz default state is not 0
                 self._axes[4] = self._joystick.get_axis(5)
+
+                if instance.type == pygame.JOYBUTTONUP:
+                    if instance.button == 1:
+                        self.remote_depth_hold = not self.remote_depth_hold
+
+                self._axes[5] = self.remote_depth_hold
                 self._send(msg=(self._control(self._axes)), register = 'RC', local = False, foreign = True)
-                pygame.event.poll()
 
             else:
+                #print(self.remote_depth_hold)
                 time.sleep(0)
 
 if __name__ == '__main__':
@@ -132,6 +142,6 @@ if __name__ == '__main__':
             'type': 'UDP'
             }
         }
-    MEM={'RC':b'\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00'}
+    MEM={'RC':b'cleaners'}
     remote_node = remote_control_node(IP, MEM)
     remote_node.start()
