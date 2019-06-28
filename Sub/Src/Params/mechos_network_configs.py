@@ -47,8 +47,9 @@ class MechOS_Network_Configs:
         mechos_network_configs["pub_port"] = (file_obj.readlines(2)[0])[9:-1]
         mechos_network_configs["sub_port"] = (file_obj.readlines(3)[0])[9:-1]
         mechos_network_configs["param_port"] = (file_obj.readlines(4)[0])[11:-1]
-        mechos_network_configs["param_server_path"] = (file_obj.readlines(5)[0])[19:-1]
-        
+        mechos_network_configs["video_port"] = (file_obj.readlines(5)[0])[11:-1]
+        mechos_network_configs["param_server_path"] = (file_obj.readlines(6)[0])[19:-1]
+
 
         file_obj.close()
         return(mechos_network_configs)
