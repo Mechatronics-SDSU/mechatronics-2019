@@ -1,0 +1,7 @@
+File Referencing in Archive: Perseverance_3.xml
+Save Date: 06/25/2019
+Description of Referenced File:
+    This file contains the parameters used in the testing of June 25, 2019. We adjusted
+    the max and min errors for of the PID controllers to give smoother control. However,
+    at this testing DVL still did not work (fixed by next testing) and we had to much
+    latency receiving the remote control inputs.
