@@ -81,7 +81,7 @@ class remote_control_node(node_base):
 
         byte_axis_array = struct.pack('ffff?',
                                             axis_array[3],
-                                            -axis_array[1],
+                                            axis_array[1],
                                             axis_array[0],
                                             depth,
                                             axis_array[5])
