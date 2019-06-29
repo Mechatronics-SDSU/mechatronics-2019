@@ -50,24 +50,24 @@
                 <max_error>100</max_error>
             </pitch_pid>
             <yaw_pid>
-                <p>0.85</p>
-                <i>0.001</i>
-                <d>0.001</d>
+                <p>1.0</p>
+                <i>0.0</i>
+                <d>0.002</d>
                 <min_error>-10</min_error>
                 <max_error>10</max_error>
             </yaw_pid>
             <x_pid>
-                <p>3.084</p>
+                <p>0.0</p>
                 <i>0.0</i>
                 <d>0.0</d>
                 <min_error>-10</min_error>
                 <max_error>10</max_error>
             </x_pid>
             <y_pid>
-                <p>3.084</p>
-                <i>0.0</i>
-                <d>0.0</d>
-		<min_error>-10</min_error>
+                <p>0</p>
+                <i>0</i>
+                <d>0</d>
+                <min_error>-10</min_error>
                 <max_error>10</max_error>
             </y_pid>
             <z_pid>
@@ -80,14 +80,6 @@
                 <active_bias_depth>2</active_bias_depth>
             </z_pid>
         </PID>
-        <Remote>
-	    <yaw_min>-30</yaw_min>
-	    <yaw_max>30</yaw_max>
-	    <x_min>-50</x_min>
-	    <x_max>60</x_max>
-	    <y_min>-50</y_min>
-	    <y_max>60</y_max>
-        </Remote>
     </Control>
     <Sensors>
         <trans_2_bias>1.0</trans_2_bias>

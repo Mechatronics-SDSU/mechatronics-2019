@@ -12,7 +12,7 @@ from mechos_network_configs import MechOS_Network_Configs
 from MechOS import mechos
 
 from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QVBoxLayout, QComboBox, QCheckBox
-from PyQt5.QtWidgets import QHBoxLayout, QLabel
+from PyQt5.QtWidgets import QHBoxLayout, QLabel, QStackedWidget
 from PyQt5.QtCore import QTimer
 from PyQt5.QtGui import QColor
 from real_time_plotter_widget import Real_Time_Plotter
@@ -21,6 +21,7 @@ from pid_tuner_widget import PID_Tuner_Widget
 from thruster_test_widget import Thruster_Test
 from tabbed_display_widget import Tabbed_Display
 from kill_sub_widget import Kill_Button
+from controller_diagram import Controller_Diagram
 import struct
 
 class Main_GUI(QWidget):
@@ -55,6 +56,7 @@ class Main_GUI(QWidget):
         self.set_nav_odometery()
         self.set_pid_visualizer()
         self.set_thruster_test_widget()
+        self.set_remote_controller_widget()
         self.set_kill_button()
 
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
@@ -130,17 +132,13 @@ class Main_GUI(QWidget):
         self.thruster_test.setMaximumSize(optimal_size)
         self.tab_widget.add_tab(self.thruster_test, "Thruster Test")
 
-    def set_mode_selection_widget(self):
-        self.mode_selection_layout = QHBoxLayout()
-        self.mode_selection = QComboBox()
-        self.mode_selection.addItems(["0: Thruster Test Mode",
-                                     "1: PID Test/Tuning Mode"])
-        self.mode_selection.currentIndexChanged.connect(self._change_movement_mode)
-        self.mode_selection_label = QLabel("Movement Mode Selection:")
-        self.mode_selection_label.setStyleSheet("color: white")
-        self.mode_selection_layout.addWidget(self.mode_selection_label, 0)
-        self.mode_selection_layout.addWidget(self.mode_selection, 1)
-        self.secondary_layout.addLayout(self.mode_selection_layout, 2)
+    def set_remote_controller_widget(self):
+        self.controller_image = Controller_Diagram()
+        self.Stack = QStackedWidget(self)
+        self.Stack.addWidget(self.controller_image)
+        #optimal_size = self.controller_image.sizeHint()
+        #self.controller_image.setMaximumSize(optimal_size)
+        self.tab_widget.add_tab(self.controller_image, "Remote Control")
 
     def _udpate_sub_killed_state(self):
         '''
@@ -175,6 +173,12 @@ class Main_GUI(QWidget):
             self.thruster_test.setEnabled(False)
             self.pid_tuner.setEnabled(True)
             self.pid_tuner.pid_error_update_timer.start()
+        elif mode == 2:
+            self.thruster_test.setEnabled(False)
+            self.pid_tuner.setEnabled(False)
+            self.pid_tuner.pid_error_update_timer.stop()
+
+            #TODO: Location to start up thread to read controller inputs.
 
 
         mode_serialized = struct.pack('b', mode)

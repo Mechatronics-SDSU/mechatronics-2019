@@ -9,6 +9,7 @@ Description: This module contains a PID based movement controller that is used
 import sys
 import os
 
+import numpy as np
 HELPER_PATH = os.path.join("..", "Helpers")
 sys.path.append(HELPER_PATH)
 import util_timer
@@ -70,6 +71,16 @@ class Movement_PID:
         self.thrusters[6] = Thruster(maestro_serial_obj, 7, [0, 0, 1], [-1, -1, 0], max_thrust, False)
         self.thrusters[7] = Thruster(maestro_serial_obj, 8, [1, 0, 0], [0, -1, 0], max_thrust, True)
 
+        #Used to notify when to hold depth based on the remote control trigger for depth.
+        self.remote_desired_depth = 0
+        self.remote_depth_recorded = False
+        self.remote_yaw_min_thrust = float(self.param_serv.get_param("Control/Remote/yaw_min"))
+        self.remote_yaw_max_thrust = float(self.param_serv.get_param("Control/Remote/yaw_max"))
+        self.remote_x_min_thrust = float(self.param_serv.get_param("Control/Remote/x_min"))
+        self.remote_x_max_thrust = float(self.param_serv.get_param("Control/Remote/x_max"))
+        self.remote_y_min_thrust = float(self.param_serv.get_param("Control/Remote/y_min"))
+        self.remote_y_max_thrust = float(self.param_serv.get_param("Control/Remote/y_max"))
+       
         #Initialize the PID controllers for control system
         self.set_up_PID_controllers(True)
 
@@ -232,7 +243,7 @@ class Movement_PID:
         of the max and min error. If it is not, it will force it to be.
 
         Parameter:
-            unbounded_error: The error that has not yet been checked if it 
+            unbounded_error: The error that has not yet been checked if it
                             is within the error limits
             min_error: The minimum value that you want your error to be.
             max_error: The maximum value that you want your error to be.
@@ -288,7 +299,7 @@ class Movement_PID:
 
         yaw_error = desired_yaw - curr_yaw
         if(abs(yaw_error) > 180):
-  
+
             if(yaw_error < 0):
                 yaw_error = yaw_error + 360
             else:
@@ -322,10 +333,69 @@ class Movement_PID:
         x_control = self.x_pid_controller.control_step(error[3])
         y_control = self.y_pid_controller.control_step(error[4])
         z_control = self.z_pid_controller.control_step(error[5])
-
         #Write the controls to thrusters
-        self.controlled_thrust(roll_control, pitch_control, yaw_control, x_control, y_control, z_control, desired_position[5])
+        self.controlled_thrust(roll_control, pitch_control, yaw_control, x_control, y_control, z_control, current_position[5])
         return error
+
+    def remote_move(self, current_position, remote_commands):
+        '''
+        Accepts spoofed error input for each degree of freedom from the xbox controller
+        to utilize the pid controllers for remote control movement.
+
+        Parameters:
+            current_position: A list of the most up-to-date current position.
+                            List format: [roll, pitch, yaw, x_pos, y_pos, depth]
+            remote_commands: A list of the spoofed errors for [yaw, x_pos, y_pos, depth] to
+                    utilize the remote control to perform movement with the PID
+                    controller.
+
+        Returns:
+            N/A
+        '''
+        #always want roll and pitch to be level at 0 degrees
+        roll_error = self.bound_error(0.0 - current_position[0], self.roll_min_error, self.roll_max_error) #roll error
+        pitch_error = self.bound_error(0.0 - current_position[1], self.pitch_min_error, self.pitch_max_error) #pitch error
+
+
+        #Interpolate errors to the min and max errors set in the parameter server
+
+        yaw_control = np.interp(remote_commands[0], [-1, 1], [self.remote_yaw_min_thrust, self.remote_yaw_max_thrust])
+        x_control = np.interp(remote_commands[1], [-1, 1], [self.remote_x_min_thrust, self.remote_x_max_thrust])
+        y_control = np.interp(remote_commands[2], [-1, 1], [self.remote_y_min_thrust, self.remote_y_max_thrust])
+
+        #When the trigger is released for controlling depth, record the depth and hold.
+        if(remote_commands[4]):
+
+            if(self.remote_depth_recorded == False):
+                self.remote_desired_depth = current_position[5]
+                self.remote_depth_recorded = True
+
+            depth_error = self.bound_error(self.remote_desired_depth - current_position[5], \
+                              self.z_min_error, self.z_max_error) #z_pos (depth)
+
+        else:
+            self.remote_depth_recorded = False
+            self.remote_desired_depth = 0
+
+            #Since the min and max error is not the same in terms of absolute value,
+            #interpolation needs to be handled seperate for up and down movements.
+            if(remote_commands[3] <= 0.0):
+
+                depth_error = np.interp(remote_commands[3], [-1, 0], [self.z_min_error, 0])
+            else:
+                depth_error = np.interp(remote_commands[3], [0, 1], [0, self.z_max_error])
+
+
+        #Get the thrusts from the PID controllers to move towards desired pos.
+        roll_control = self.roll_pid_controller.control_step(roll_error)
+        pitch_control = self.pitch_pid_controller.control_step(pitch_error)
+        #yaw_control = self.yaw_pid_controller.control_step(remote_commands[0])
+        #x_control = self.x_pid_controller.control_step(remote_commands[1])
+        #y_control = self.y_pid_controller.control_step(remote_commands[2])
+        z_control = self.z_pid_controller.control_step(depth_error)
+        self.controlled_thrust(roll_control, pitch_control, yaw_control, x_control, y_control, z_control, current_position[5])
+
+        return
 
     #This is a helper function to be used initially for tuning the roll, pitch
     #and depth PID values. Once tuned, please use advance_move instead.
@@ -355,7 +425,6 @@ class Movement_PID:
         pitch_control = self.pitch_pid_controller.control_step(error[1])
 
         #depth error
-        #print("Current depth position:", curr_z_pos, "Desired_depth_position:", desired_z_pos)
         error[2] = desired_z_pos - curr_z_pos
         z_control = self.z_pid_controller.control_step(error[2])
 
