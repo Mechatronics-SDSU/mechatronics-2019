@@ -5,15 +5,17 @@ import sys
 import io
 import csv
 import matplotlib.pyplot as plt
+import time
 
+# Port Information
 HOST    = '127.0.0.101'
-ADDRESS = 5558
-
+ADDRESS = 6666 # Doom Eternal
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind((HOST, ADDRESS))
 
-MAX_UDP_PACKET_SIZE = 1024
-#cap = cv2.VideoCapture(0)
+# Data Size Per Packet
+MAX_UDP_PACKET_SIZE = 256
+
 
 ramBuffer = b''
 
@@ -21,42 +23,40 @@ while(True):
 
     # Socket Max receive
     packet = sock.recv(MAX_UDP_PACKET_SIZE)
-    if packet:
 
+    if packet:
         # Buffer object (concatenated byteString)
         ramBuffer += packet
 
         # Triple CRC bytestring and EOF byte
         if (ramBuffer.endswith(b'\xc0\xc0\xc0\xc0')):
 
-            #Capture Bytes
-            print('Recieved Bytes', ramBuffer)
-
             # Decapsulate Byte String (4 sets of 2 chars)
             ramBuffer = ramBuffer[:-4]
 
-            try:
+            # Image integrity Data Check (imperfect)
+            if ( ramBuffer.startswith(b'\xff\xd8') and ramBuffer.endswith(b'\xff\xd9') ):
+
+                #Capture Bytes
+#                print('Recieved Bytes', ramBuffer)
+#                input('press enter to continue...')
+
                 img_frame = cv2.imdecode(np.frombuffer(ramBuffer, dtype=np.uint8), 1)
-            except:
-                break
-            #ret, img_frame = cv2.imdecode('.jpg', ramBuffer)
 
-            # Our operations on the frame come here (if any)
+                # Our operations on the frame come here (if any)
+                '''
+                None: No operations Specified
+                '''
 
-            '''
-            None: No operations Specified
-            '''
+                # Display the resulting frame
+                cv2.imshow('FRAME', img_frame)
 
-            # Display the resulting frame
-
-            cv2.imshow( 'FRAME', img_frame)
-            cv2.waitKey(1)
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
 
             # Clear Buffer
             ramBuffer = b''
 
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-               break
     else:
         time.sleep(0)
 

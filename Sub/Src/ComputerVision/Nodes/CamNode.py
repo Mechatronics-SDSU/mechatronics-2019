@@ -7,13 +7,18 @@ import math
 import io
 import time
 
+# Port Information
 HOST    = '127.0.0.101'
-ADDRESS = 5558
-MAX_UDP_PACKET_SIZE = 1024
+ADDRESS = 6666 # Doom Eternal
+OURSOCKET=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
+# Data Size per Packet
+MAX_UDP_PACKET_SIZE = 256
+
+# Encapsulation information
 ENCAPSULATION_0xC0 = bytes.fromhex('c0c0')
 
-OURSOCKET=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+# videoCapture from Webcam
 cap = cv2.VideoCapture(0)
 
 while(True):
@@ -60,8 +65,11 @@ while(True):
 
         # EOF packet for encapsulation
         OURSOCKET.sendto( ENCAPSULATION_0xC0*2, (HOST, ADDRESS))
-        #TODO Check this sleep regularly for improvements or deletion
-        time.sleep(0.0) # Internal Man Config for packet loss
+
+        # Image Corruption decreases as sleep time increases (inversely proportional)
+        # this time.sleep is a manual fix balacing speed and the least
+        # amount of corruption on jpegs (not optimal)
+        time.sleep(0) # check as appropriate
 
     else:
         time.sleep(0)
