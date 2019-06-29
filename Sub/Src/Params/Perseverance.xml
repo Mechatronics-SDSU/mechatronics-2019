@@ -50,25 +50,25 @@
                 <max_error>100</max_error>
             </pitch_pid>
             <yaw_pid>
-                <p>1.0</p>
-                <i>0.0</i>
-                <d>0.002</d>
+                <p>0.85</p>
+                <i>0.001</i>
+                <d>0.001</d>
                 <min_error>-10</min_error>
                 <max_error>10</max_error>
             </yaw_pid>
             <x_pid>
-                <p>0.0</p>
+                <p>3.084</p>
                 <i>0.0</i>
                 <d>0.0</d>
-                <min_error>-100</min_error>
-                <max_error>100</max_error>
+                <min_error>-10</min_error>
+                <max_error>10</max_error>
             </x_pid>
             <y_pid>
-                <p>0</p>
-                <i>0</i>
-                <d>0</d>
-                <min_error>-100</min_error>
-                <max_error>100</max_error>
+                <p>3.084</p>
+                <i>0.0</i>
+                <d>0.0</d>
+		<min_error>-10</min_error>
+                <max_error>10</max_error>
             </y_pid>
             <z_pid>
                 <p>12.0</p>

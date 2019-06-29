@@ -144,10 +144,10 @@ class Sensor_Driver:
             #                (math.cos(yaw_rad)*y_vel*y_vel_time_est)) #* 3.28084 #conver to feet
 
             x_translation = ((math.cos(yaw_rad)*x_vel*dvl_vel_timing) + \
-                            (math.sin(yaw_rad)*y_vel*dvl_vel_timing)) #* 3.28084
+                            (math.sin(yaw_rad)*y_vel*dvl_vel_timing)) * 3.28084
 
             y_translation = ((-1* math.sin(yaw_rad)*x_vel*dvl_vel_timing) + \
-                            (math.cos(yaw_rad)*y_vel*dvl_vel_timing)) #* 3.28084 #convert to feet
+                            (math.cos(yaw_rad)*y_vel*dvl_vel_timing)) * 3.28084 #convert to feet
 
             #Get the current times
             self.prev_dvl_read_time = time.time()
