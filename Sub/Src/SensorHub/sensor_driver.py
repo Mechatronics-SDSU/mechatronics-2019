@@ -87,8 +87,8 @@ class Sensor_Driver:
         self.dvl_driver_thread.start()
         self.zero_pos_flag = True
 
-        self.current_x_pos = 0
-        self.current_y_pos = 0
+        self.current_north_pos = 0
+        self.current_east_pos = 0
 
         #Previous time at which the dvl was read, keeps consistent timining of the dvl
         self.prev_dvl_read_time = 0
@@ -102,8 +102,8 @@ class Sensor_Driver:
         Returns:
             N/A
         '''
-        self.current_x_pos = 0
-        self.current_y_pos = 0
+        self.current_north_pos = 0
+        self.current_east_pos = 0
 
 
     def _get_sensor_data(self):
@@ -151,12 +151,12 @@ class Sensor_Driver:
 
             #Get the current times
             self.prev_dvl_read_time = time.time()
-            
-            self.current_x_pos += x_translation
-            self.current_y_pos += y_translation
 
-        sensor_data[3] = self.current_x_pos
-        sensor_data[4] = self.current_y_pos
+            self.current_north_pos += x_translation
+            self.current_east_pos += y_translation
+
+        sensor_data[3] = self.current_north_pos
+        sensor_data[4] = self.current_east_pos
 
         #Get the depth from the Backplane
         sensor_data[5] = self.backplane_driver_thread.depth_data

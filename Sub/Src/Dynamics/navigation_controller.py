@@ -137,11 +137,11 @@ class Navigation_Controller(node_base):
         #Primary control system for the sub
         self.pid_controller = Movement_PID()
 
-        #Initialize current position [roll, pitch, yaw, x_pos, y_pos, depth]
+        #Initialize current position [roll, pitch, yaw, north_pos, east_pos, depth]
         self.current_position = [0, 0, 0, 0, 0, 0]
         self.pos_error = [0, 0, 0, 0, 0, 0] #errors for all axies
 
-        #Initialize desired position [roll, pitch, yaw, x_pos, y_pos, depth]
+        #Initialize desired position [roll, pitch, yaw, north_pos, east_pos, depth]
         self.desired_position = [0, 0, 0, 0, 0, 0]
         self.desired_position_proto = desired_position_pb2.DESIRED_POS()
 
@@ -286,8 +286,8 @@ class Navigation_Controller(node_base):
                 self.nav_data_proto.pitch = self.current_position[1]
                 self.nav_data_proto.yaw = self.current_position[2]
                 #TODO:Uncomment to get x and y positions.
-                self.nav_data_proto.x_translation = self.current_position[3]
-                self.nav_data_proto.y_translation = self.current_position[4]
+                self.nav_data_proto.north_pos = self.current_position[3]
+                self.nav_data_proto.east_pos = self.current_position[4]
                 self.nav_data_proto.depth = self.current_position[5]
 
                 serialized_nav_data = self.nav_data_proto.SerializeToString()
@@ -299,8 +299,8 @@ class Navigation_Controller(node_base):
                     #self.pid_errors_proto.roll_error = self.pos_error[0]
                     #self.pid_errors_proto.pitch_error = self.pos_error[1]
                     #self.pid_errors_proto.yaw_error = self.pos_error[2]
-                    #self.pid_errors_proto.x_pos_error = self.pos_error[3]
-                    #self.pid_errors_proto.y_pos_error = self.pos_error[4]
+                    #self.pid_errors_proto.north_pos_error = self.pos_error[3]
+                    #self.pid_errors_proto.east_pos_error = self.pos_error[4]
                     #self.pid_errors_proto.z_pos_error = self.pos_error[5] #depth error
 
                     serialzed_pid_errors_proto = self.pid_errors_proto.SerializeToString()
@@ -324,8 +324,8 @@ class Navigation_Controller(node_base):
         self.desired_position[0] = self.desired_position_proto.roll
         self.desired_position[1] = self.desired_position_proto.pitch
         self.desired_position[2] = self.desired_position_proto.yaw
-        self.desired_position[3] = self.desired_position_proto.x_pos
-        self.desired_position[4] = self.desired_position_proto.y_pos
+        self.desired_position[3] = self.desired_position_proto.north_pos
+        self.desired_position[4] = self.desired_position_proto.east_pos
         self.desired_position[5] = self.desired_position_proto.depth
 
         if(self.desired_position_proto.zero_pos):
@@ -406,7 +406,7 @@ class Navigation_Controller(node_base):
 
             #PID Depth, pitch, roll Tunning Mode
             #In PID depth, pitch, roll tunning mode, only roll pitch and depth are used in
-            #the control loop perfrom a simpe Depth PID move. x_pos, y_pos, and
+            #the control loop perfrom a simpe Depth PID move. north_pos, east_pos, and
             #yaw are ignored.
             elif self.movement_mode == 0:
 

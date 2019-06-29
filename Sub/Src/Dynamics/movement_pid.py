@@ -80,7 +80,7 @@ class Movement_PID:
         self.remote_x_max_thrust = float(self.param_serv.get_param("Control/Remote/x_max"))
         self.remote_y_min_thrust = float(self.param_serv.get_param("Control/Remote/y_min"))
         self.remote_y_max_thrust = float(self.param_serv.get_param("Control/Remote/y_max"))
-       
+
         #Initialize the PID controllers for control system
         self.set_up_PID_controllers(True)
 
@@ -306,15 +306,18 @@ class Movement_PID:
                 yaw_error = yaw_error - 360
 
         error[2] = self.bound_error(yaw_error, self.yaw_min_error, self.yaw_max_error)
-        #Calculate the error in the x and y position (relative to the sub) given the current position.
+        #Calculate the error in the x and y position (relative to the sub) given the current north/east position.
         #Using rotation matrix.
-        error_abs_x = desired_position[3] - current_position[3]
-        error_abs_y = desired_position[4] - current_position[4]
+        #North and East error
+        north_error = desired_position[3] - current_position[3]
+        east_error = desired_position[4] - current_position[4]
         yaw_rad = math.radians(curr_yaw) #convert yaw from degrees to radians
-        error_rel_x = (math.cos(yaw_rad) * error_abs_x) + (math.sin(yaw_rad) * error_abs_y)
-        error_rel_y = (-1 * math.sin(yaw_rad) * error_abs_x) + (math.cos(yaw_rad) * error_abs_y)
-        error[3] = self.bound_error(error_rel_x, self.x_min_error, self.x_max_error)
-        error[4] = self.bound_error(error_rel_y, self.y_min_error, self.y_max_error)
+        
+        x_error = (math.cos(yaw_rad) * north_error) + (math.sin(yaw_rad) * east_error)
+        y_error = (-1 * math.sin(yaw_rad) * north_error) + (math.cos(yaw_rad) * east_error)
+        error[3] = self.bound_error(x_error, self.x_min_error, self.x_max_error)
+        error[4] = self.bound_error(y_error, self.y_min_error, self.y_max_error)
+
         print("X Error:", error[3], "Y Error", error[4])
         if(desired_position[5] < self.min_z):
             print("[WARNING]: Desired depth %0.2f is less than the min limit %0.2f" % (desired_position[5], self.min_z))

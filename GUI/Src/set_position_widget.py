@@ -140,8 +140,8 @@ class Set_Desired_Position_GUI(QWidget):
         self.dest_pos_proto.pitch = float(self.pitch_box.text())
         self.dest_pos_proto.yaw = float(self.yaw_box.text())
         self.dest_pos_proto.depth = float(self.depth_box.text())
-        self.dest_pos_proto.x_pos = float(self.x_box.text())
-        self.dest_pos_proto.y_pos = float(self.y_box.text())
+        self.dest_pos_proto.north_pos = float(self.x_box.text())
+        self.dest_pos_proto.east_pos = float(self.y_box.text())
         self.dest_pos_proto.zero_pos = False
 
         serialized_pos_proto = self.dest_pos_proto.SerializeToString()
@@ -170,8 +170,8 @@ class Set_Desired_Position_GUI(QWidget):
 
         self.dest_pos_proto.roll = 0.0
         self.dest_pos_proto.pitch = 0.0
-        self.dest_pos_proto.x_pos = 0.0
-        self.dest_pos_proto.y_pos = 0.0
+        self.dest_pos_proto.north_pos = 0.0
+        self.dest_pos_proto.east_pos = 0.0
         self.set_position_pub.publish(serialized_pos_proto)
         print("[INFO]: Zeroing Position\n", self.dest_pos_proto)
 

@@ -128,11 +128,11 @@ class Navigation_GUI(QWidget):
 
         #Initialize text boxes and line edit displays
         self.x_earth_txt = QLabel()
-        self.x_earth_txt.setText("<font color='white'>X</font>")
+        self.x_earth_txt.setText("<font color='white'>North</font>")
         self.x_earth_box = QLineEdit()
 
         self.y_earth_txt = QLabel()
-        self.y_earth_txt.setText("<font color='white'>Y</font>")
+        self.y_earth_txt.setText("<font color='white'>East</font>")
         self.y_earth_box = QLineEdit()
 
         self.z_earth_txt = QLabel()
@@ -202,8 +202,8 @@ class Navigation_GUI(QWidget):
         pitch = self.nav_data_proto.pitch
         yaw = self.nav_data_proto.yaw
         depth = self.nav_data_proto.depth
-        x_pos = self.nav_data_proto.x_translation
-        y_pos = self.nav_data_proto.y_translation
+        x_pos = self.nav_data_proto.north_pos
+        y_pos = self.nav_data_proto.east_pos
 
         degree_sym = u"\u00b0"
         self.yaw_box.setText('{:6.2f}{}'.format(yaw, degree_sym))

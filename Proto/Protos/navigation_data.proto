@@ -10,7 +10,7 @@ message NAV_DATA {
     float depth = 4;
 
     //X and Y translation from the DVL
-    float x_translation = 5;
-    float y_translation = 6;
+    float north_pos = 5;
+    float east_pos = 6;
 
 }

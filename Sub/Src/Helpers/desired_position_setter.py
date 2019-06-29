@@ -49,7 +49,7 @@ class CMD_Position_Setter:
         '''
         print("")
         print("\t\tSet Desired Position.")
-        print("Please send Position in the order and form of 'roll pitch yaw depth x_pos y_pos'")
+        print("Please send Position in the order and form of 'roll pitch yaw depth north_pos east_pos'")
 
         while(True):
             position_str = input("Position (or press [E] to exit):")
@@ -68,8 +68,8 @@ class CMD_Position_Setter:
                 self.desired_position_proto.pitch = desired_position[1]
                 self.desired_position_proto.yaw   = desired_position[2]
                 self.desired_position_proto.depth = desired_position[3]
-                self.desired_position_proto.x_pos = desired_position[4]
-                self.desired_position_proto.y_pos = desired_position[5]
+                self.desired_position_proto.north_pos = desired_position[4]
+                self.desired_position_proto.east_pos = desired_position[5]
 
                 #Serialze and publish proto position data
                 serialized_position = self.desired_position_proto.SerializeToString()
