@@ -18,10 +18,10 @@ import struct
 class Kill_Button(QWidget):
     '''
         This class is PyQt widget for toggeling sub kill status.
-    
+
         Parameter:
         N/A
-        
+
         Returns:
         N/A
     '''
@@ -29,45 +29,46 @@ class Kill_Button(QWidget):
         '''
             Initialize the layout for the widget by setting its color and instantiating
             its components.
-            
+
             Parameter:
             N/A
-            
+
             Returns:
             N/A
         '''
         QWidget.__init__(self)
         self.title = "Kill Switch"
-        
+
         #Set background color of the widget
         nav_gui_palette = self.palette()
         nav_gui_palette.setColor(self.backgroundRole(), QColor(64, 64, 64))
         self.setPalette(nav_gui_palette)
-        
+
         #Create widgets main layout
         self.linking_layout = QGridLayout(self)
         self.setLayout(self.linking_layout)
         self.setWindowTitle(self.title)
-        
+
         #Set the value for kill status
-        self.KILL_STATUS = "operational"
+        self.KILL_STATUS = "killed"
 
         #Init the button
         self.pushButton = QPushButton('Kill Sub', self)
-        self.pushButton.setStyleSheet("background-color: green")
+        self.pushButton.setStyleSheet("background-color: red")
 
         #Connect the update function
         self.pushButton.clicked.connect(self._update_status)
+        
 
         #Create MechOS node
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
         self.sub_killed_node = mechos.Node("GUI_KILL_STATUS", configs["ip"])
         self.sub_killed_publisher = self.sub_killed_node.create_publisher("KS", configs["pub_port"])
-    
+
     def _update_status(self):
         '''
         Toggles kill switch.
-        
+
         Parameters:
             N/A
         Returns:
@@ -84,7 +85,7 @@ class Kill_Button(QWidget):
             self.sub_killed_publisher.publish(killed_state)
             self.pushButton.setStyleSheet("background-color: green")
             self.pushButton.setText("Kill Sub")
-            self.KILL_STATUS = "operational"       
+            self.KILL_STATUS = "operational"
 
 
 if __name__ == "__main__":
