@@ -304,7 +304,7 @@ class Movement_PID:
         error_rel_y = (-1 * math.sin(yaw_rad) * error_abs_x) + (math.cos(yaw_rad) * error_abs_y)
         error[3] = self.bound_error(error_rel_x, self.x_min_error, self.x_max_error)
         error[4] = self.bound_error(error_rel_y, self.y_min_error, self.y_max_error)
-
+        print("X Error:", error[3], "Y Error", error[4])
         if(desired_position[5] < self.min_z):
             print("[WARNING]: Desired depth %0.2f is less than the min limit %0.2f" % (desired_position[5], self.min_z))
             desired_position[5] = self.min_z
