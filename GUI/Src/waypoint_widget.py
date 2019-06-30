@@ -110,6 +110,8 @@ class Waypoint_GUI(QWidget):
         #Save the waypoint save file to the parameter server.
         self.param_serv.set_param("Missions/waypoint_collect_file", waypoint_save_file)
 
+        self._update_waypoint_enable()
+
 if __name__ == "__main__":
     main_app = QApplication([])
     main_app.setStyle('Fusion')
