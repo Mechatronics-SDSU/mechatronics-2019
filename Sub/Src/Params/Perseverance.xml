@@ -81,12 +81,12 @@
             </z_pid>
         </PID>
         <Remote>
-	    <yaw_min>-30</yaw_min>
-	    <yaw_max>30</yaw_max>
-	    <x_min>-50</x_min>
-	    <x_max>60</x_max>
-	    <y_min>-50</y_min>
-	    <y_max>60</y_max>
+          <yaw_min>-30</yaw_min>
+	        <yaw_max>30</yaw_max>
+	        <x_min>-50</x_min>
+	        <x_max>60</x_max>
+	        <y_min>-50</y_min>
+	        <y_max>60</y_max>
         </Remote>
     </Control>
     <Sensors>
@@ -95,4 +95,7 @@
         <trans_1_scaling>10.201854882705971</trans_1_scaling>
         <trans_2_scaling>1.0</trans_2_scaling>
     </Sensors>
+    <Missions>
+      <waypoint_collect_file>/home/piercedhowell/</waypoint_collect_file>
+    </Missions>
 </Perseverance>

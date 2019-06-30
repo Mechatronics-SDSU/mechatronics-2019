@@ -37,9 +37,9 @@ class Navigation_GUI(QWidget):
 
         #Set the background color of the widget
 
-        nav_gui_palette = self.palette()
-        nav_gui_palette.setColor(self.backgroundRole(), QColor(64, 64, 64))
-        self.setPalette(nav_gui_palette)
+        #nav_gui_palette = self.palette()
+        #nav_gui_palette.setColor(self.backgroundRole(), QColor(64, 64, 64))
+        #self.setPalette(nav_gui_palette)
 
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
@@ -72,26 +72,26 @@ class Navigation_GUI(QWidget):
         Returns:
             N/A
         '''
-        orientation_txt = QLabel("<font color='white'>IMU, Orientation, Depth</font>")
+        orientation_txt = QLabel("<font color='black'>IMU, Orientation, Depth</font>")
         orientation_txt.setAlignment(Qt.AlignCenter)
         self.linking_layout.addWidget(orientation_txt, 0)
         self.orientation_layout = QGridLayout()
 
         #Initialize text boxes and line edit displays
         self.yaw_txt = QLabel()
-        self.yaw_txt.setText("<font color='white'>YAW</font>")
+        self.yaw_txt.setText("<font color='black'>YAW</font>")
         self.yaw_box = QLineEdit()
 
         self.pitch_txt = QLabel()
-        self.pitch_txt.setText("<font color='white'>PITCH</font>")
+        self.pitch_txt.setText("<font color='black'>PITCH</font>")
         self.pitch_box = QLineEdit()
 
         self.roll_txt = QLabel()
-        self.roll_txt.setText("<font color='white'>ROLL</font>")
+        self.roll_txt.setText("<font color='black'>ROLL</font>")
         self.roll_box = QLineEdit()
 
         self.depth_txt = QLabel()
-        self.depth_txt.setText("<font color='white'>DEPTH</font>")
+        self.depth_txt.setText("<font color='black'>DEPTH</font>")
         self.depth_box = QLineEdit()
 
         #Add text boxs and line edit displays to layout
@@ -117,26 +117,26 @@ class Navigation_GUI(QWidget):
         Returns:
             N/A
         '''
-        odometery_txt = QLabel("<font color='white'>Odometery</font>")
+        odometery_txt = QLabel("<font color='black'>Odometery</font>")
         odometery_txt.setAlignment(Qt.AlignCenter)
         self.linking_layout.addWidget(odometery_txt, 2)
 
-        earth_pos_txt = QLabel("<font color='white'>Earth Position</font>")
+        earth_pos_txt = QLabel("<font color='black'>Earth Position</font>")
         self.linking_layout.addWidget(earth_pos_txt, 3)
 
         self.earth_pos_layout = QGridLayout()
 
         #Initialize text boxes and line edit displays
         self.x_earth_txt = QLabel()
-        self.x_earth_txt.setText("<font color='white'>North</font>")
+        self.x_earth_txt.setText("<font color='black'>North</font>")
         self.x_earth_box = QLineEdit()
 
         self.y_earth_txt = QLabel()
-        self.y_earth_txt.setText("<font color='white'>East</font>")
+        self.y_earth_txt.setText("<font color='black'>East</font>")
         self.y_earth_box = QLineEdit()
 
         self.z_earth_txt = QLabel()
-        self.z_earth_txt.setText("<font color='white'>Z</font>")
+        self.z_earth_txt.setText("<font color='black'>Z</font>")
         self.z_earth_box = QLineEdit()
 
         #Add text boxs and line edit displays to layout
@@ -160,21 +160,21 @@ class Navigation_GUI(QWidget):
         Returns:
             N/A
         '''
-        relative_pos_txt = QLabel("<font color='white'>Relative Position</font>")
+        relative_pos_txt = QLabel("<font color='black'>Relative Position</font>")
         self.linking_layout.addWidget(relative_pos_txt, 5)
 
         self.relative_pos_layout = QGridLayout()
 
         self.x_rel_txt = QLabel()
-        self.x_rel_txt.setText("<font color='white'>rX</font>")
+        self.x_rel_txt.setText("<font color='black'>rX</font>")
         self.x_rel_box = QLineEdit()
 
         self.y_rel_txt = QLabel()
-        self.y_rel_txt.setText("<font color='white'>rY</font>")
+        self.y_rel_txt.setText("<font color='black'>rY</font>")
         self.y_rel_box = QLineEdit()
 
         self.z_rel_txt = QLabel()
-        self.z_rel_txt.setText("<font color='white'>rZ</font>")
+        self.z_rel_txt.setText("<font color='black'>rZ</font>")
         self.z_rel_box = QLineEdit()
 
         self.relative_pos_layout.addWidget(self.x_rel_txt, 0, 0)

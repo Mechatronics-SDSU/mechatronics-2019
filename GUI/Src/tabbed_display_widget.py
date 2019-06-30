@@ -25,18 +25,18 @@ class Tabbed_Display(QWidget):
         self.layout = QVBoxLayout(self)
 
         # Set the background color of the widget
-        tabbed_display_palette = self.palette()
-        tabbed_display_palette.setColor(self.backgroundRole(), QColor(64, 64, 64))
-        self.setPalette(tabbed_display_palette)
+        #tabbed_display_palette = self.palette()
+        #tabbed_display_palette.setColor(self.backgroundRole(), QColor(64, 64, 64))
+        #self.setPalette(tabbed_display_palette)
 
         # Initialize tab screen
         self.tabs = QTabWidget()
         self.tabs.setFixedSize(700, 700)
 
         # Set color of QTabWidget
-        tabs_palette = self.tabs.palette()
-        tabs_palette.setColor(QPalette.Window, QColor(64, 64, 64))
-        self.tabs.setPalette(tabs_palette)
+        #tabs_palette = self.tabs.palette()
+        #tabs_palette.setColor(QPalette.Window, QColor(64, 64, 64))
+        #self.tabs.setPalette(tabs_palette)
 
         # Add tabs to layout
         self.layout.addWidget(self.tabs)
@@ -67,10 +67,10 @@ class Tabbed_Display(QWidget):
         layout = QVBoxLayout(individual_tab)
 
         # Set color
-        background = individual_tab.palette()
-        background.setColor(QPalette.Window, QColor(64, 64, 64))
-        individual_tab.setPalette(background)
-        individual_tab.setAutoFillBackground(True)
+        #background = individual_tab.palette()
+        #background.setColor(QPalette.Window, QColor(64, 64, 64))
+        #individual_tab.setPalette(background)
+        #individual_tab.setAutoFillBackground(True)
 
         # Add widget to individual_tab
         layout.setAlignment(Qt.AlignTop)
@@ -94,7 +94,7 @@ class Tabbed_Display(QWidget):
         '''
         # Get current index
         mode = self.tabs.currentIndex()
-        
+
         mode_serialized = struct.pack('b', mode)
         # Publish current index
         self.movement_mode_publisher.publish(mode_serialized)
