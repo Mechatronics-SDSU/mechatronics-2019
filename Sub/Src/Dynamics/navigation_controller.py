@@ -3,6 +3,7 @@
 Copyright 2019, David Pierce Walker-Howell, All rights reserved
 
 Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
+Collaborator: Mohammad Shafi <ma.shafi99@gmail.com>
 Last Modified 06/16/2019
 Description: This module contains a highest level navigation controller for Perseverance.
                 It contains multiple modes of control for the sub including
@@ -240,7 +241,7 @@ class Navigation_Controller(node_base):
         while True:
             if self.remote_control_listen:
                 self._udp_received_message = self._recv('RC', local = False)
-                self.remote_commands = struct.unpack('ffff?', self._udp_received_message)
+                self.remote_commands = struct.unpack('ffff??', self._udp_received_message)
             else:
                 time.sleep(0.01)
 
