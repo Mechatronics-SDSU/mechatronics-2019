@@ -40,10 +40,11 @@ class remote_control_node(node_base):
         self._joystick = pygame.joystick.Joystick(0)
         self._joystick.init()
 
-        self._axes = [0.0, 0.0, 0.0, 0.0, 0.0, 0]
+        self._axes = [0.0, 0.0, 0.0, 0.0, 0.0, 0, 0]
         self._memory = MEM
         self._ip_route = IP
         self.remote_depth_hold = False
+        self.record_waypoint = False
 
     def _control(self, axis_array):
         '''
@@ -84,7 +85,8 @@ class remote_control_node(node_base):
                                             axis_array[1],
                                             axis_array[0],
                                             depth,
-                                            axis_array[5])
+                                            axis_array[5],
+                                            axis_array[6])
 
         return byte_axis_array
 
@@ -121,9 +123,13 @@ class remote_control_node(node_base):
                 if instance.type == pygame.JOYBUTTONUP:
                     if instance.button == 1:
                         self.remote_depth_hold = not self.remote_depth_hold
+                    if instance.button == 0:
+                        self.record_waypoint = True
 
                 self._axes[5] = self.remote_depth_hold
+                self._axes[6] = self.record_waypoint
                 self._send(msg=(self._control(self._axes)), register = 'RC', local = False, foreign = True)
+                self.record_waypoint = False
 
             else:
                 #print(self.remote_depth_hold)
