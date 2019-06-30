@@ -35,14 +35,14 @@ class Vision(threading.Thread):
 
 
         #---IMAGEZMQ BASED COMMUNICATION---#
-        image_zmq_connection = "%s:%s" %(configs["ip"], configs["video_port"])
+        image_zmq_connection = "%s:%s" %("tcp://192.168.1.1", configs["video_port"])
         self.image_publisher = imagezmq.ImageSender(connect_to=image_zmq_connection)
 
         self.test_image = cv2.imread("test_image.png")
         #----------------------------------#
 
         #Opencv video capture object
-        self.video_capture = cv2.VideoCapture(0)
+        self.video_capture = cv2.VideoCapture(1)
 
         #Resizing the video
         #TODO: Make this a parameter in the parameter server.
@@ -70,7 +70,7 @@ class Vision(threading.Thread):
         Returns:
             N/A
         '''
-        video_stream_test = True
+        video_stream_test = False
         while(self.run_thread):
 
             #Attempt

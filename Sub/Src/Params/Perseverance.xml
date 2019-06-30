@@ -75,9 +75,9 @@
                 <i>0.0</i>
                 <d>0.0</d>
                 <min_error>-1</min_error>
-                <max_error>4</max_error>
-                <bias>23</bias>
-                <active_bias_depth>2</active_bias_depth>
+                <max_error>4.5</max_error>
+                <bias>24</bias>
+                <active_bias_depth>0.75</active_bias_depth>
             </z_pid>
         </PID>
         <Remote>

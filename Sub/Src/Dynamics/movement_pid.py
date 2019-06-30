@@ -224,7 +224,7 @@ class Movement_PID:
                      (x_control * thruster.orientation[0]) + \
                      (y_control * thruster.orientation[1]) + \
                      (z_control * thruster.orientation[2])
-
+            
             #Write the thrust to the given thruster. Some thrusters have an additional offset to given them
             #a higher strength. This is used to help balance out weigth distribution issues with the sub.
             if(curr_z_pos >= self.thruster_offset_active_depth):
