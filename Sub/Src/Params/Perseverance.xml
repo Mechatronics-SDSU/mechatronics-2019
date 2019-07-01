@@ -96,6 +96,6 @@
         <trans_2_scaling>1.0</trans_2_scaling>
     </Sensors>
     <Missions>
-      <waypoint_collect_file>/home/piercedhowell/</waypoint_collect_file>
+      <waypoint_collect_file>waypoint_test.csv</waypoint_collect_file>
     </Missions>
 </Perseverance>

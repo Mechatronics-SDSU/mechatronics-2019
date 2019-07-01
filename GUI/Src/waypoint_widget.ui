@@ -29,7 +29,7 @@
     <item row="0" column="0">
      <widget class="QLabel" name="waypoint_file_label">
       <property name="text">
-       <string>Waypoint File(.json)</string>
+       <string>Waypoint File(.csv)</string>
       </property>
      </widget>
     </item>

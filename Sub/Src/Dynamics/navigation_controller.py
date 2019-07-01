@@ -12,6 +12,7 @@ Description: This module contains a highest level navigation controller for Pers
 import sys
 import os
 import time
+import csv
 
 HELPER_PATH = os.path.join("..", "Helpers")
 sys.path.append(HELPER_PATH)
@@ -168,6 +169,8 @@ class Navigation_Controller(node_base):
         self.remote_thread.daemon = True
         self.remote_control_listen = False
         self.remote_thread.start()
+        self.waypoint_file = None
+        self.enable_waypoint_collection = False
 
         self.daemon = True
 
@@ -251,7 +254,9 @@ class Navigation_Controller(node_base):
                 #Record a waypoint if waypoint collection is enabeled and the A button on
                 #remote is pressed.
                 if(self.enable_waypoint_collection and self.remote_commands[5]):
-                    north_pos, east_pos, depth = self.current_position[3:]
+                    [north_pos, east_pos, depth] = self.current_position[3:]
+                    print("[INFO]: Saving waypoint: Num %d, North Pos: %0.2fft, East Pos: %0.2fft, Depth: %0.2fft" \
+                            % (self.current_waypoint_number, north_pos, east_pos, depth))
                     self.waypoint_csv_writer.writerow([self.current_waypoint_number, north_pos, east_pos, depth])
                     self.current_waypoint_number += 1
 
@@ -304,6 +309,7 @@ class Navigation_Controller(node_base):
                 self.navigation_controller_node.spinOnce(self.sub_killed_subscriber)
                 self.navigation_controller_node.spinOnce(self.desired_position_subscriber)
 
+                self.navigation_controller_node.spinOnce(self.enable_waypoint_collection_subscriber)
                 #If pid values update is not frozen, then update the pid values from the parameter server.
                 if(self.pid_values_update_freeze == False):
                     self.navigation_controller_node.spinOnce(self.pid_configs_subscriber)
@@ -437,7 +443,6 @@ class Navigation_Controller(node_base):
                 self.nav_timer.restart_timer()
             #Get the current position form sensor driver
             current_position = self.sensor_driver._get_sensor_data()
-
             if(current_position != None):
                 self.current_position = current_position
 
