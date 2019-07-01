@@ -1,7 +1,6 @@
 
 '''
 Copyright 2019, David Pierce Walker-Howell, All rights reserved
-
 Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
 Collaborator: Mohammad Shafi <ma.shafi99@gmail.com>
 Last Modified 06/16/2019
@@ -52,17 +51,17 @@ class Navigation_Controller(node_base):
     The second component is the movement controller components, which controls the movement
     pid control system. There is also a command_listener that listens for requests from the gui/mission commander.
     '''
-    def __init__(self, MEM, IP):
+    def __init__(self, MEM, IP, sensor_driver):
         '''
         Initialize the navigation controller. This includes getting parameters from the
         parameter server, initializing subscribers to listen for command messages, and
         initalizing the sensor driver.
-
         Parameters:
             MEM: Local dictionary needed to send data over RAM
             IP: Dictionary containing addresses, sockets, and everything needed
                 to send over the network
-
+            sensor_driver: An initialized sensor driver thread needed to get sensor_data
+                            from.
         Returns:
             N/A
         '''
@@ -112,7 +111,7 @@ class Navigation_Controller(node_base):
 
         #Initialize the sensor driver, which will run all the threads to recieve
         #sensor data.
-        self.sensor_driver = Sensor_Driver()
+        self.sensor_driver = sensor_driver
 
         #Publisher to send the sensor data/current position/navigation data to the GUI and Mission Commander
         self.nav_data_publisher = self.navigation_controller_node.create_publisher("NAV", configs["pub_port"])
@@ -180,7 +179,6 @@ class Navigation_Controller(node_base):
         '''
         The callback function to update the sub_killed state if the sub kill/unkill
         button is pressed. Updates the self.sub_killed attribute
-
         Parameters:
             killed_state: Raw byte (representing a boolean) for if the sub should
                             be killed or unkilled.
@@ -196,10 +194,8 @@ class Navigation_Controller(node_base):
         The callback function to select which movement controller mode is being used.
         It does this by setting the movment_mode class attribute. Updates the self.movement_mode
         attribute.
-
         Parameters:
             movement_mode: Raw byte of the mode.
-
         Returns:
             N/A
         '''
@@ -229,7 +225,6 @@ class Navigation_Controller(node_base):
         '''
         The callback function to update the pid configuration if the save button
         is pressed. Calls the update pid values function of movement_pid.py.
-
         Parameters:
             misc: This parameter is not passed anything of value, because if this function
                     is called then it should just update the PID's.
@@ -268,7 +263,6 @@ class Navigation_Controller(node_base):
         '''
         The callback function to see if the GUI is asking to enable/disable collecting
         waypoints mode.
-
         Parameters:
             N/A
         Returns:
@@ -296,10 +290,8 @@ class Navigation_Controller(node_base):
         '''
         The thread to run to update requests from the gui or mission commaner for changes in the movement mode,
         sub_killed, and desired position. Also send the current sensor data to the GUI and mission commander.
-
         Parameters:
             N/A
-
         Returns:
             N/A
         '''
@@ -322,7 +314,6 @@ class Navigation_Controller(node_base):
         '''
         This thread publishes the sensor data which gives the current naviagtion position to
         the GUI and Mission Commander. It also sends the current PID error if in PID tuning mode.
-
         Parameters:
             N/A
         Returns:
@@ -362,10 +353,8 @@ class Navigation_Controller(node_base):
         '''
         The callback function to unpack the desired position proto message received
         through MechOS.
-
         Parameters:
             desired_position_proto: Protobuf of type DESIRED_POS to unpack
-
         Returns:
             N/A
         '''
@@ -390,10 +379,8 @@ class Navigation_Controller(node_base):
         '''
         The callback function to unpack and write thrusts to each thruster for
         thruster test.
-
         Parameters:
             thruster_proto: Protobuf of type Thrusters.
-
         Returns:
             N/A
         '''
@@ -420,13 +407,10 @@ class Navigation_Controller(node_base):
         '''
         Runs the movement control in the control mode specified by the user. The
         different modes of control are as follows.
-
             '0' --> PID tunning mode.
             '1' --> Thruster test mode.
-
         Parameters:
             N/A
-
         Returns:
             N/A
         '''

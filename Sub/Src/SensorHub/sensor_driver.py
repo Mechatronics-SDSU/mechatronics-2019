@@ -31,7 +31,7 @@ import threading
 import time
 import math
 
-class Sensor_Driver:
+class Sensor_Driver(threading.Thread):
     '''
     This is the main sensor driver that gathers and publishes sensor data to the
     mechos network. This includes AHRS, Backplane, Pressure Transducers, and DVL.
@@ -46,6 +46,9 @@ class Sensor_Driver:
         Returns:
             N/A
         '''
+
+        threading.Thread.__init__(self)
+
         #proto buff packaging
         #self.nav_data_proto = navigation_data_pb2.NAV_DATA()
 
@@ -92,6 +95,10 @@ class Sensor_Driver:
 
         #Previous time at which the dvl was read, keeps consistent timining of the dvl
         self.prev_dvl_read_time = 0
+        self.sensor_data = [0, 0, 0, 0, 0, 0]
+
+        self.run_thread = True
+        self.daemon = True
 
     def zero_pos(self):
         '''
@@ -122,7 +129,7 @@ class Sensor_Driver:
         #Get the AHRS data
 
         sensor_data[0:3] = self.ahrs_driver_thread.ahrs_data
-        
+
         #Get x and y position
         #TODO: Need to move the position estimator to here in the sensor driver
         #DVL returns [x_vel, y_vel, z_vel, x_vel_time_est, y_vel_time_est, z_vel_time_est]
@@ -160,6 +167,26 @@ class Sensor_Driver:
         #Get the depth from the Backplane
         sensor_data[5] = self.backplane_driver_thread.depth_data
         return(sensor_data)
+
+    def run(self):
+        '''
+        If sensor driver is to be run as it's own thread, this is the run function
+        that it will execute.
+
+        Parameters:
+            N/A
+        Returns:
+            N/A
+        '''
+
+        while(self.run_thread):
+            try:
+                self.sensor_data = self._get_sensor_data()
+            except Exception as e:
+                print("[ERROR]: Sensor Driver could not correctly collect sensor data. Error:", e)
+                time.sleep(0.001)
+
+
 
 if __name__ == "__main__":
 
