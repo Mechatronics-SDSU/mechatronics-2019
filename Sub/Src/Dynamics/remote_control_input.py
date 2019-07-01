@@ -40,11 +40,12 @@ class remote_control_node(node_base):
         self._joystick = pygame.joystick.Joystick(0)
         self._joystick.init()
 
-        self._axes = [0.0, 0.0, 0.0, 0.0, 0.0, 0, 0]
+        self._axes = [0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0]
         self._memory = MEM
         self._ip_route = IP
-        self.remote_depth_hold = False
-        self.record_waypoint = False
+        self._remote_depth_hold = False
+        self._record_waypoint = False
+        self._zero_waypoint = False
 
     def _control(self, axis_array):
         '''
@@ -80,13 +81,14 @@ class remote_control_node(node_base):
         elif axis_array[4] > 0:
             depth = (axis_array[4] + 1)/2
 
-        byte_axis_array = struct.pack('ffff??',
+        byte_axis_array = struct.pack('ffff???',
                                             axis_array[3],
                                             axis_array[1],
                                             axis_array[0],
                                             depth,
                                             axis_array[5],
-                                            axis_array[6])
+                                            axis_array[6],
+                                            axis_array[7])
 
         return byte_axis_array
 
@@ -122,14 +124,18 @@ class remote_control_node(node_base):
 
                 if instance.type == pygame.JOYBUTTONUP:
                     if instance.button == 1:
-                        self.remote_depth_hold = not self.remote_depth_hold
+                        self._remote_depth_hold = not self._remote_depth_hold
                     if instance.button == 0:
-                        self.record_waypoint = True
+                        self._record_waypoint = True
+                    if instance.button == 2:
+                        self._zero_waypoint == True
 
-                self._axes[5] = self.remote_depth_hold
-                self._axes[6] = self.record_waypoint
+                self._axes[5] = self._remote_depth_hold
+                self._axes[6] = self._record_waypoint
+                self._axes[7] = self._zero_waypoint
                 self._send(msg=(self._control(self._axes)), register = 'RC', local = False, foreign = True)
-                self.record_waypoint = False
+                self._record_waypoint = False
+                self._zero_waypoint = False
 
             else:
                 #print(self.remote_depth_hold)

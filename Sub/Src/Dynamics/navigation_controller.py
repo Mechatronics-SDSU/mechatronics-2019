@@ -241,7 +241,7 @@ class Navigation_Controller(node_base):
         while True:
             if self.remote_control_listen:
                 self._udp_received_message = self._recv('RC', local = False)
-                self.remote_commands = struct.unpack('ffff??', self._udp_received_message)
+                self.remote_commands = struct.unpack('ffff???', self._udp_received_message)
             else:
                 time.sleep(0.01)
 
