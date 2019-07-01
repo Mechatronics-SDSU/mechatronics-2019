@@ -61,9 +61,9 @@ class PID_Tuner_Widget(QWidget):
 
 
         #Set background color of the widget
-        nav_gui_palette = self.palette()
-        nav_gui_palette.setColor(self.backgroundRole(), QColor(64, 64, 64))
-        self.setPalette(nav_gui_palette)
+        #nav_gui_palette = self.palette()
+        #nav_gui_palette.setColor(self.backgroundRole(), QColor(64, 64, 64))
+        #self.setPalette(nav_gui_palette)
 
         #Create widgets main layout structure
         self.primary_linking_layout = QVBoxLayout(self)
@@ -106,7 +106,7 @@ class PID_Tuner_Widget(QWidget):
         #Signal to change which PID controller is being tunned when selection changes
         self.pid_channel_select.currentIndexChanged.connect(self._PID_controller_change)
         self.pid_channel_select_label = QLabel("PID Controller:")
-        self.pid_channel_select_label.setStyleSheet("color: white")
+        self.pid_channel_select_label.setStyleSheet("color: black")
 
         #A button to save the PID values to the parameter server. This is how to sub
         #will update its PID values
@@ -145,7 +145,7 @@ class PID_Tuner_Widget(QWidget):
         self.k_p_slider.setValue(0)
         self.k_p_slider.valueChanged.connect(self._update_gains_with_slider)
         self.k_p_label = QLabel("K_P:")
-        self.k_p_label.setStyleSheet("color: white")
+        self.k_p_label.setStyleSheet("color: black")
         self.k_p_display = QLineEdit()
         self.k_p_display.editingFinished.connect(self._update_gain_with_line_edits)
 
@@ -154,13 +154,13 @@ class PID_Tuner_Widget(QWidget):
         self.k_p_max_value_line_edit.setText(str(self.max_k_p))
         self.k_p_max_value_line_edit.editingFinished.connect(self._update_PID_precision)
         self.k_p_max_value_label = QLabel("Max K_P:")
-        self.k_p_max_value_label.setStyleSheet("color: white")
+        self.k_p_max_value_label.setStyleSheet("color: black")
         self.k_p_precision_combobox = QComboBox()
         self.k_p_precision_combobox.addItems(["1", "0.1", "0.01", "0.001"])
         self.precision_k_p = float(self.k_p_precision_combobox.currentText())
         self.k_p_precision_combobox.currentIndexChanged.connect(self._update_PID_precision)
         self.k_p_precision_label = QLabel("K_P Precision:")
-        self.k_p_precision_label.setStyleSheet("color: white")
+        self.k_p_precision_label.setStyleSheet("color: black")
 
 
         self.k_i_slider = QSlider(Qt.Horizontal)
@@ -169,7 +169,7 @@ class PID_Tuner_Widget(QWidget):
         self.k_i_slider.setValue(0)
         self.k_i_slider.valueChanged.connect(self._update_gains_with_slider)
         self.k_i_label = QLabel("K_I:")
-        self.k_i_label.setStyleSheet("color: white")
+        self.k_i_label.setStyleSheet("color: black")
         self.k_i_display = QLineEdit()
         self.k_i_display.editingFinished.connect(self._update_gain_with_line_edits)
 
@@ -178,13 +178,13 @@ class PID_Tuner_Widget(QWidget):
         self.k_i_max_value_line_edit.setText(str(self.max_k_i))
         self.k_i_max_value_line_edit.editingFinished.connect(self._update_PID_precision)
         self.k_i_max_value_label = QLabel("Max K_I:")
-        self.k_i_max_value_label.setStyleSheet("color: white")
+        self.k_i_max_value_label.setStyleSheet("color: black")
         self.k_i_precision_combobox = QComboBox()
         self.k_i_precision_combobox.addItems(["1", "0.1", "0.01", "0.001"])
         self.precision_k_i = float(self.k_i_precision_combobox.currentText())
         self.k_i_precision_combobox.currentIndexChanged.connect(self._update_PID_precision)
         self.k_i_precision_label = QLabel("K_I Precision:")
-        self.k_i_precision_label.setStyleSheet("color: white")
+        self.k_i_precision_label.setStyleSheet("color: black")
 
         self.k_d_slider = QSlider(Qt.Horizontal)
         self.k_d_slider.setMaximum(10)
@@ -192,7 +192,7 @@ class PID_Tuner_Widget(QWidget):
         self.k_d_slider.setValue(0)
         self.k_d_slider.valueChanged.connect(self._update_gains_with_slider)
         self.k_d_label = QLabel("K_D:")
-        self.k_d_label.setStyleSheet("color: white")
+        self.k_d_label.setStyleSheet("color: black")
         self.k_d_display = QLineEdit()
         self.k_d_display.editingFinished.connect(self._update_gain_with_line_edits)
 
@@ -201,13 +201,13 @@ class PID_Tuner_Widget(QWidget):
         self.k_d_max_value_line_edit.setText(str(self.max_k_d))
         self.k_d_max_value_line_edit.editingFinished.connect(self._update_PID_precision)
         self.k_d_max_value_label = QLabel("Max K_D:")
-        self.k_d_max_value_label.setStyleSheet("color: white")
+        self.k_d_max_value_label.setStyleSheet("color: black")
         self.k_d_precision_combobox = QComboBox()
         self.k_d_precision_combobox.addItems(["1", "0.1", "0.01", "0.001"])
         self.precision_k_d = float(self.k_d_precision_combobox.currentText())
         self.k_d_precision_combobox.currentIndexChanged.connect(self._update_PID_precision)
         self.k_d_precision_label = QLabel("K_D Precision:")
-        self.k_d_precision_label.setStyleSheet("color: white")
+        self.k_d_precision_label.setStyleSheet("color: black")
 
         self.k_p_precision_layout.addWidget(self.k_p_max_value_label, 0, 0)
         self.k_p_precision_layout.addWidget(self.k_p_max_value_line_edit, 0, 1)

@@ -40,12 +40,13 @@ class Kill_Button(QWidget):
         self.title = "Kill Switch"
 
         #Set background color of the widget
-        nav_gui_palette = self.palette()
-        nav_gui_palette.setColor(self.backgroundRole(), QColor(64, 64, 64))
-        self.setPalette(nav_gui_palette)
+        #nav_gui_palette = self.palette()
+        #nav_gui_palette.setColor(self.backgroundRole(), QColor(64, 64, 64))
+        #self.setPalette(nav_gui_palette)
 
         #Create widgets main layout
         self.linking_layout = QGridLayout(self)
+        self.linking_layout.setAlignment(Qt.AlignCenter)
         self.setLayout(self.linking_layout)
         self.setWindowTitle(self.title)
 
@@ -58,12 +59,13 @@ class Kill_Button(QWidget):
 
         #Connect the update function
         self.pushButton.clicked.connect(self._update_status)
-        
+
 
         #Create MechOS node
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
         self.sub_killed_node = mechos.Node("GUI_KILL_STATUS", configs["ip"])
         self.sub_killed_publisher = self.sub_killed_node.create_publisher("KS", configs["pub_port"])
+
 
     def _update_status(self):
         '''
@@ -84,7 +86,7 @@ class Kill_Button(QWidget):
             killed_state = struct.pack('b', 0)
             self.sub_killed_publisher.publish(killed_state)
             self.pushButton.setStyleSheet("background-color: green")
-            self.pushButton.setText("Kill Sub")
+            self.pushButton.setText("Un-Killed")
             self.KILL_STATUS = "operational"
 
 

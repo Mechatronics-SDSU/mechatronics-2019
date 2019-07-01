@@ -35,9 +35,9 @@ class Set_Desired_Position_GUI(QWidget):
         QWidget.__init__(self)
 
         #Set the background color of the widget
-        nav_gui_palette = self.palette()
-        nav_gui_palette.setColor(self.backgroundRole(), QColor(64, 64, 64))
-        self.setPalette(nav_gui_palette)
+        #nav_gui_palette = self.palette()
+        #nav_gui_palette.setColor(self.backgroundRole(), QColor(64, 64, 64))
+        #self.setPalette(nav_gui_palette)
 
         #Set up MechOS network configurations
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
@@ -64,39 +64,39 @@ class Set_Desired_Position_GUI(QWidget):
         Returns:
             N/A
         '''
-        orientation_txt = QLabel("<font color='white'>Set Desired Position</font>")
+        orientation_txt = QLabel("<font color='black'>Set Desired Position</font>")
         orientation_txt.setAlignment(Qt.AlignCenter)
         self.linking_layout.addWidget(orientation_txt, 0)
         self.orientation_layout = QGridLayout()
 
         #Initialize text boxes and line edit displays
         self.yaw_txt = QLabel()
-        self.yaw_txt.setText("<font color='white'>YAW</font>")
+        self.yaw_txt.setText("<font color='black'>YAW</font>")
         self.yaw_box = QLineEdit()
         self.yaw_box.setText("0.0")
 
         self.pitch_txt = QLabel()
-        self.pitch_txt.setText("<font color='white'>PITCH</font>")
+        self.pitch_txt.setText("<font color='black'>PITCH</font>")
         self.pitch_box = QLineEdit()
         self.pitch_box.setText("0.0")
 
         self.roll_txt = QLabel()
-        self.roll_txt.setText("<font color='white'>ROLL</font>")
+        self.roll_txt.setText("<font color='black'>ROLL</font>")
         self.roll_box = QLineEdit()
         self.roll_box.setText("0.0")
 
         self.depth_txt = QLabel()
-        self.depth_txt.setText("<font color='white'>DEPTH</font>")
+        self.depth_txt.setText("<font color='black'>DEPTH</font>")
         self.depth_box = QLineEdit()
         self.depth_box.setText("0.0")
 
         self.x_txt = QLabel()
-        self.x_txt.setText("<font color='white'>X Pos.</font>")
+        self.x_txt.setText("<font color='black'>X Pos.</font>")
         self.x_box = QLineEdit()
         self.x_box.setText("0.0")
 
         self.y_txt = QLabel()
-        self.y_txt.setText("<font color='white'>Y Pos.</font>")
+        self.y_txt.setText("<font color='black'>Y Pos.</font>")
         self.y_box = QLineEdit()
         self.y_box.setText("0.0")
 

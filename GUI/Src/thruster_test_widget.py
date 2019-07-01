@@ -44,9 +44,9 @@ class Thruster_Test(QWidget):
         QWidget.__init__(self)
 
         #Set background color of the widget
-        nav_gui_palette = self.palette()
-        nav_gui_palette.setColor(self.backgroundRole(), QColor(64, 64, 64))
-        self.setPalette(nav_gui_palette)
+        #nav_gui_palette = self.palette()
+        #nav_gui_palette.setColor(self.backgroundRole(), QColor(64, 64, 64))
+        #self.setPalette(nav_gui_palette)
 
         #Create widgets main layout structer
         self.linking_layout = QGridLayout(self)
@@ -85,7 +85,7 @@ class Thruster_Test(QWidget):
         for thruster_id in range(8):
             title = "Thruster " + str(thruster_id + 1) + ":"
             self.thruster_check_boxes.append(QCheckBox(title))
-            self.thruster_check_boxes[thruster_id].setStyleSheet("color: white")
+            self.thruster_check_boxes[thruster_id].setStyleSheet("color: black")
 
             #create signal/slot to update which thrusters are active
             self.thruster_check_boxes[thruster_id].stateChanged.connect(self._update_test_thrust)
@@ -129,7 +129,7 @@ class Thruster_Test(QWidget):
         self.thrust_slider_display.setText(str(0) + "%")
 
         slider_label = QLabel("Thrust %")
-        slider_label.setStyleSheet("color: white")
+        slider_label.setStyleSheet("color: black")
         self.thruster_slider_layout.addWidget(slider_label, 0, 0)
         self.thruster_slider_layout.addWidget(self.thrust_slider, 0, 1)
         self.thruster_slider_layout.addWidget(self.thrust_slider_display, 1, 1)
@@ -186,7 +186,7 @@ class Thruster_Test(QWidget):
         else:
             self.thruster_test_proto.thruster_8 = 0
 
-        
+
 
         #package test thrust data into a protobuf
 

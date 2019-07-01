@@ -12,6 +12,7 @@ Description: This module contains a highest level navigation controller for Pers
 import sys
 import os
 import time
+import csv
 
 HELPER_PATH = os.path.join("..", "Helpers")
 sys.path.append(HELPER_PATH)
@@ -89,6 +90,9 @@ class Navigation_Controller(node_base):
         #Subscriber to get the desired position set by the user/mission controller.
         self.desired_position_subscriber = self.navigation_controller_node.create_subscriber("DP", self.__unpack_desired_position_callback, configs["sub_port"])
 
+        #Subscriber to see if waypoint recording is enabled
+        self.enable_waypoint_collection_subscriber = self.navigation_controller_node.create_subscriber("WYP", self.__update_enable_waypoint_collection, configs["sub_port"])
+
         #TODO: Create a thread that publishes the errors
         #Publisher that published the PID errors for each degree of freedom
         self.pid_errors_proto = pid_errors_pb2.PID_ERRORS()
@@ -165,6 +169,8 @@ class Navigation_Controller(node_base):
         self.remote_thread.daemon = True
         self.remote_control_listen = False
         self.remote_thread.start()
+        self.waypoint_file = None
+        self.enable_waypoint_collection = False
 
         self.daemon = True
 
@@ -241,9 +247,50 @@ class Navigation_Controller(node_base):
         while True:
             if self.remote_control_listen:
                 self._udp_received_message = self._recv('RC', local = False)
+
+                #Remote commands [yaw, x, y, depth, hold_depth?, record_waypoint?]
                 self.remote_commands = struct.unpack('ffff???', self._udp_received_message)
+
+                #Record a waypoint if waypoint collection is enabeled and the A button on
+                #remote is pressed.
+                if(self.enable_waypoint_collection and self.remote_commands[5]):
+                    [north_pos, east_pos, depth] = self.current_position[3:]
+                    print("[INFO]: Saving waypoint: Num %d, North Pos: %0.2fft, East Pos: %0.2fft, Depth: %0.2fft" \
+                            % (self.current_waypoint_number, north_pos, east_pos, depth))
+                    self.waypoint_csv_writer.writerow([self.current_waypoint_number, north_pos, east_pos, depth])
+                    self.current_waypoint_number += 1
+
+
             else:
                 time.sleep(0.01)
+
+    def __update_enable_waypoint_collection(self, enable_waypoint_collection):
+        '''
+        The callback function to see if the GUI is asking to enable/disable collecting
+        waypoints mode.
+
+        Parameters:
+            N/A
+        Returns:
+            N/A
+        '''
+        self.enable_waypoint_collection = struct.unpack('b', enable_waypoint_collection)[0]
+        waypoint_file = self.param_serv.get_param("Missions/waypoint_collect_file") #Get the waypoint save file
+
+        if(self.enable_waypoint_collection):
+            #Close a waypoint file if it is already open.
+            if(self.waypoint_file != None):
+                self.waypoint_file.close()
+
+            self.waypoint_file = open(waypoint_file, 'w')
+            self.waypoint_csv_writer = csv.writer(self.waypoint_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            self.current_waypoint_number = 0
+            print("[INFO]: Waypoint collection enabled. Saving waypoints to file: %s" % waypoint_file)
+        else:
+            if(self.waypoint_file != None):
+                self.waypoint_file.close()
+            print("[INFO]: Waypoint collection disabled.")
+
 
     def _command_listener(self):
         '''
@@ -263,6 +310,7 @@ class Navigation_Controller(node_base):
                 self.navigation_controller_node.spinOnce(self.sub_killed_subscriber)
                 self.navigation_controller_node.spinOnce(self.desired_position_subscriber)
 
+                self.navigation_controller_node.spinOnce(self.enable_waypoint_collection_subscriber)
                 #If pid values update is not frozen, then update the pid values from the parameter server.
                 if(self.pid_values_update_freeze == False):
                     self.navigation_controller_node.spinOnce(self.pid_configs_subscriber)
@@ -396,7 +444,6 @@ class Navigation_Controller(node_base):
                 self.nav_timer.restart_timer()
             #Get the current position form sensor driver
             current_position = self.sensor_driver._get_sensor_data()
-
             if(current_position != None):
                 self.current_position = current_position
 

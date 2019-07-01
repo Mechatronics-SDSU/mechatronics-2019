@@ -13,7 +13,7 @@ from MechOS import mechos
 
 from PyQt5.QtWidgets import QApplication, QWidget, QGridLayout, QVBoxLayout, QComboBox, QCheckBox
 from PyQt5.QtWidgets import QHBoxLayout, QLabel, QStackedWidget
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtGui import QColor
 from real_time_plotter_widget import Real_Time_Plotter
 from nav_odometery_widget import Navigation_GUI
@@ -21,7 +21,7 @@ from pid_tuner_widget import PID_Tuner_Widget
 from thruster_test_widget import Thruster_Test
 from tabbed_display_widget import Tabbed_Display
 from kill_sub_widget import Kill_Button
-from controller_diagram import Controller_Diagram
+from waypoint_widget import Waypoint_GUI
 import struct
 
 class Main_GUI(QWidget):
@@ -40,14 +40,16 @@ class Main_GUI(QWidget):
 
         #creates main GUI layout
         self.main_layout = QGridLayout(self)
+        self.main_layout.setAlignment(Qt.AlignCenter)
         self.secondary_layout = QVBoxLayout()
+        self.secondary_layout.setAlignment(Qt.AlignCenter)
 
         self.main_layout.addLayout(self.secondary_layout, 0, 0)
 
         #Set the background color of the widget
-        main_gui_palette = self.palette()
-        main_gui_palette.setColor(self.backgroundRole(), QColor(64, 64, 64))
-        self.setPalette(main_gui_palette)
+        #main_gui_palette = self.palette()
+        #main_gui_palette.setColor(self.backgroundRole(), QColor(64, 64, 64))
+        #self.setPalette(main_gui_palette)
 
         #Place Tabbing System
         self.set_tabbed_display()
@@ -56,7 +58,7 @@ class Main_GUI(QWidget):
         self.set_nav_odometery()
         self.set_pid_visualizer()
         self.set_thruster_test_widget()
-        self.set_remote_controller_widget()
+        self.set_remote_controller_widget() #Sets remote control mode and record waypoints
         self.set_kill_button()
 
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
@@ -80,7 +82,8 @@ class Main_GUI(QWidget):
             N/A
         '''
         self.kill_button = Kill_Button()
-        self.main_layout.addWidget(self.kill_button, 1, 1)
+        self.secondary_layout.addWidget(self.kill_button, 1)
+        self.kill_button.pushButton.setMinimumSize(400, 32)
 
     def set_tabbed_display(self):
         '''
@@ -128,19 +131,28 @@ class Main_GUI(QWidget):
 
     def set_thruster_test_widget(self):
         self.thruster_test = Thruster_Test()
+        print(type(self.thruster_test))
         optimal_size = self.thruster_test.sizeHint()
         self.thruster_test.setMaximumSize(optimal_size)
         self.tab_widget.add_tab(self.thruster_test, "Thruster Test")
 
     def set_remote_controller_widget(self):
-        self.controller_image = Controller_Diagram()
-        self.Stack = QStackedWidget(self)
-        self.Stack.addWidget(self.controller_image)
-        #optimal_size = self.controller_image.sizeHint()
-        #self.controller_image.setMaximumSize(optimal_size)
-        self.tab_widget.add_tab(self.controller_image, "Remote Control")
+        '''
+        Set up the remote control mode. This includes the waypoint
+        gathering.
 
-    def _udpate_sub_killed_state(self):
+        Parameters:
+            N/A
+        Returns:
+            N/A
+        '''
+        self.waypoint_widget = Waypoint_GUI()
+        optimal_size = self.waypoint_widget.sizeHint()
+        print(optimal_size)
+        self.tab_widget.add_tab(self.waypoint_widget, "Remote Control")
+        #self.main_layout.addWidget(self.waypoint_widget, 0, 2)
+
+    def _update_sub_killed_state(self):
         '''
         Kill or Unkill the sub based on the sub killed checkbox state.
 
@@ -168,14 +180,17 @@ class Main_GUI(QWidget):
         if mode == 0:
             self.thruster_test.setEnabled(True)
             self.pid_tuner.setEnabled(False)
+            self.waypoint_widget.setEnabled(False)
             self.pid_tuner.pid_error_update_timer.stop()
         elif mode == 1:
             self.thruster_test.setEnabled(False)
             self.pid_tuner.setEnabled(True)
+            self.waypoint_widget.setEnabled(False)
             self.pid_tuner.pid_error_update_timer.start()
         elif mode == 2:
             self.thruster_test.setEnabled(False)
             self.pid_tuner.setEnabled(False)
+            self.waypoint_widget.setEnabled(True)
             self.pid_tuner.pid_error_update_timer.stop()
 
             #TODO: Location to start up thread to read controller inputs.

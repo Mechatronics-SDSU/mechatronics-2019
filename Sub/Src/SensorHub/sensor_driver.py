@@ -119,10 +119,10 @@ class Sensor_Driver:
                     form --> [roll, pitch, yaw, x_pos, y_pos, depth]
         '''
         sensor_data = [0, 0, 0, 0, 0, 0]
-
         #Get the AHRS data
-        sensor_data[0:2] = self.ahrs_driver_thread.ahrs_data
 
+        sensor_data[0:3] = self.ahrs_driver_thread.ahrs_data
+        
         #Get x and y position
         #TODO: Need to move the position estimator to here in the sensor driver
         #DVL returns [x_vel, y_vel, z_vel, x_vel_time_est, y_vel_time_est, z_vel_time_est]
@@ -154,13 +154,11 @@ class Sensor_Driver:
 
             self.current_north_pos += x_translation
             self.current_east_pos += y_translation
-
         sensor_data[3] = self.current_north_pos
         sensor_data[4] = self.current_east_pos
 
         #Get the depth from the Backplane
         sensor_data[5] = self.backplane_driver_thread.depth_data
-
         return(sensor_data)
 
 if __name__ == "__main__":
