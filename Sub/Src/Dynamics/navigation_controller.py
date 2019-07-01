@@ -487,5 +487,7 @@ if __name__ == "__main__":
         }
     MEM={'RC':b'irrelevant'}
 
-    navigation_controller = Navigation_Controller(MEM, IP)
+    sensor_driver = Sensor_Driver()
+    navigation_controller = Navigation_Controller(MEM, IP, sensor_driver)
+    sensor_driver.start()
     navigation_controller.start()
