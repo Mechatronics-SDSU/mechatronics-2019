@@ -260,6 +260,7 @@ class Navigation_Controller(node_base):
                     self.waypoint_csv_writer.writerow([self.current_waypoint_number, north_pos, east_pos, depth])
                     self.current_waypoint_number += 1
 
+
             else:
                 time.sleep(0.01)
 
