@@ -42,6 +42,9 @@ class Image_Capture(QWidget):
         self.web_thread.start()
         self.web_thread.threadrunning = True
 
+        #Inititialize array of image numbers
+        self.imageNumArray = []
+
     def paintEvent(self, event):
 
         qp = QPainter(self) 
@@ -78,6 +81,8 @@ class Image_Capture(QWidget):
         self.begin = event.pos()
         self.end = event.pos()
 
+        self.imageNumArray.append(self.web_thread.imageNumber)
+
         name = "img"+(str)(self.web_thread.imageNumber)+".txt"
         yfile = open(name, "a")
 
@@ -107,6 +112,20 @@ class Image_Capture(QWidget):
         yfile.write("\n")
 
         self.update()
+
+    def cleanUpTrainFile(self):
+
+        with open("train.txt", "a") as trainFile:
+            for line in trainFile:
+                #Split string to get number in data/obj/img ____
+                line = line.split(".") 
+                line = line[1]
+                line = line.split("g")
+                print(line[1])
+                #If number isn't in imageNumArray
+                #Delete that line
+                #Else
+                #Continue
 
 def main():
    app = QApplication(sys.argv)
