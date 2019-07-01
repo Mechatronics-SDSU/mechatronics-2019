@@ -249,7 +249,7 @@ class Navigation_Controller(node_base):
                 self._udp_received_message = self._recv('RC', local = False)
 
                 #Remote commands [yaw, x, y, depth, hold_depth?, record_waypoint?]
-                self.remote_commands = struct.unpack('ffff??', self._udp_received_message)
+                self.remote_commands = struct.unpack('ffff???', self._udp_received_message)
 
                 #Record a waypoint if waypoint collection is enabeled and the A button on
                 #remote is pressed.
