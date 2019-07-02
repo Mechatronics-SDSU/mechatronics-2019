@@ -20,9 +20,11 @@ from nav_odometery_widget import Navigation_GUI
 from pid_tuner_widget import PID_Tuner_Widget
 from thruster_test_widget import Thruster_Test
 from tabbed_display_widget import Tabbed_Display
+from remote_control_main import Remote_Control_Widget
 from kill_sub_widget import Kill_Button
 from waypoint_widget import Waypoint_GUI
 import struct
+import numpy
 
 class Main_GUI(QWidget):
     '''
@@ -58,7 +60,7 @@ class Main_GUI(QWidget):
         self.set_nav_odometery()
         self.set_pid_visualizer()
         self.set_thruster_test_widget()
-        self.set_remote_controller_widget() #Sets remote control mode and record waypoints
+        self.set_remote_control_widget() #Sets remote control mode and record waypoints
         self.set_kill_button()
 
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
@@ -136,21 +138,11 @@ class Main_GUI(QWidget):
         self.thruster_test.setMaximumSize(optimal_size)
         self.tab_widget.add_tab(self.thruster_test, "Thruster Test")
 
-    def set_remote_controller_widget(self):
-        '''
-        Set up the remote control mode. This includes the waypoint
-        gathering.
-
-        Parameters:
-            N/A
-        Returns:
-            N/A
-        '''
-        self.waypoint_widget = Waypoint_GUI()
-        optimal_size = self.waypoint_widget.sizeHint()
-        print(optimal_size)
-        self.tab_widget.add_tab(self.waypoint_widget, "Remote Control")
-        #self.main_layout.addWidget(self.waypoint_widget, 0, 2)
+    def set_remote_control_widget(self):
+        self.remote_control = Remote_Control_Widget()
+		#optimal_size = self.remote_control.sizeHint()
+		#self.remote_control.setMaximumSize(optimal_size)
+        self.tab_widget.add_tab(self.remote_control, "Remote Control")
 
     def _update_sub_killed_state(self):
         '''
@@ -178,23 +170,20 @@ class Main_GUI(QWidget):
         mode = self.mode_selection.currentIndex()
 
         if mode == 0:
-            self.thruster_test.setEnabled(True)
-            self.pid_tuner.setEnabled(False)
-            self.waypoint_widget.setEnabled(False)
-            self.pid_tuner.pid_error_update_timer.stop()
-        elif mode == 1:
-            self.thruster_test.setEnabled(False)
-            self.pid_tuner.setEnabled(True)
-            self.waypoint_widget.setEnabled(False)
-            self.pid_tuner.pid_error_update_timer.start()
-        elif mode == 2:
-            self.thruster_test.setEnabled(False)
-            self.pid_tuner.setEnabled(False)
-            self.waypoint_widget.setEnabled(True)
-            self.pid_tuner.pid_error_update_timer.stop()
-
-            #TODO: Location to start up thread to read controller inputs.
-
+			self.remote_control.setEnabled(False)
+			self.thruster_test.setEnabled(True)
+			self.pid_tuner.setEnabled(False)
+			self.pid_tuner.pid_error_update_timer.stop()
+		elif mode == 1:
+			self.remote_control.setEnabled(False)
+			self.thruster_test.setEnabled(False)
+			self.pid_tuner.setEnabled(True)
+			self.pid_tuner.pid_error_update_timer.start()
+		elif mode == 2:
+			self.remote_control.setEnabled(True)
+			self.thruster_test.setEnabled(False)
+			self.pid_tuner.setEnabled(False)
+			self.pid_tuner.pid_error_update_timer.stop()
 
         mode_serialized = struct.pack('b', mode)
         self.movement_mode_publisher.publish(mode_serialized)
