@@ -255,6 +255,10 @@ class Navigation_Controller(node_base):
                     self.waypoint_csv_writer.writerow([self.current_waypoint_number, north_pos, east_pos, depth])
                     self.current_waypoint_number += 1
 
+                #Zero position if the X button is pressed.
+                if(self.remote_commands[6]):
+                    self.sensor_driver.zero_pos()
+
 
             else:
                 time.sleep(0.01)
