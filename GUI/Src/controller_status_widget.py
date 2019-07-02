@@ -73,7 +73,7 @@ class Joystick_Test(QWidget):
             pixmap = QPixmap('red.png')
 
         label.setPixmap(pixmap)
-        self.resize(pixmap.width(), pixmap.height())
+        self.resize(pixmap.width()+25, pixmap.height()+25)
 
 if __name__ == "__main__":
     import sys

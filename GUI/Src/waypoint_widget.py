@@ -58,7 +58,7 @@ class Waypoint_GUI(QWidget):
         #Connect button to save button to the parameter server.
         self.waypoint_widget.save_waypoint_file_btn.clicked.connect(self._update_save_waypoint_file)
         currently_set_waypoint_file = self.param_serv.get_param("Missions/waypoint_collect_file")
-        self.waypoint_widget.waypoint_file_line_edit.setText(currently_set_waypoint_file)
+        #self.waypoint_widget.waypoint_file_line_edit.setText(currently_set_waypoint_file)
 
         #Send disable waypoint message on start up.
         self._update_waypoint_enable()

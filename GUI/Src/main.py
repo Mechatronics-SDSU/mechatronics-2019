@@ -170,20 +170,20 @@ class Main_GUI(QWidget):
         mode = self.mode_selection.currentIndex()
 
         if mode == 0:
-			self.remote_control.setEnabled(False)
-			self.thruster_test.setEnabled(True)
-			self.pid_tuner.setEnabled(False)
-			self.pid_tuner.pid_error_update_timer.stop()
-		elif mode == 1:
-			self.remote_control.setEnabled(False)
-			self.thruster_test.setEnabled(False)
-			self.pid_tuner.setEnabled(True)
-			self.pid_tuner.pid_error_update_timer.start()
-		elif mode == 2:
-			self.remote_control.setEnabled(True)
-			self.thruster_test.setEnabled(False)
-			self.pid_tuner.setEnabled(False)
-			self.pid_tuner.pid_error_update_timer.stop()
+            self.remote_control.setEnabled(False)
+            self.thruster_test.setEnabled(True)
+            self.pid_tuner.setEnabled(False)
+            self.pid_tuner.pid_error_update_timer.stop()
+        elif mode == 1:
+            self.remote_control.setEnabled(False)
+            self.thruster_test.setEnabled(False)
+            self.pid_tuner.setEnabled(True)
+            self.pid_tuner.pid_error_update_timer.start()
+        elif mode == 2:
+            self.remote_control.setEnabled(True)
+            self.thruster_test.setEnabled(False)
+            self.pid_tuner.setEnabled(False)
+            self.pid_tuner.pid_error_update_timer.stop()
 
         mode_serialized = struct.pack('b', mode)
         self.movement_mode_publisher.publish(mode_serialized)
