@@ -126,9 +126,12 @@ class Sensor_Driver(threading.Thread):
                     form --> [roll, pitch, yaw, x_pos, y_pos, depth]
         '''
         sensor_data = [0, 0, 0, 0, 0, 0]
-        #Get the AHRS data
+        #Get the AHRS data. The ahrs is flipped 180 in the sub, so fix that
+        roll, pitch, yaw_flipped = self.ahrs_driver_thread.ahrs_data
 
-        sensor_data[0:3] = self.ahrs_driver_thread.ahrs_data
+        yaw = (yaw_flipped + 180.0) % 360.0
+
+        sensor_data[0:3] = [roll, pitch, yaw]
 
         #Get x and y position
         #TODO: Need to move the position estimator to here in the sensor driver
@@ -150,10 +153,17 @@ class Sensor_Driver(threading.Thread):
             #y_translation = ((-1* math.sin(yaw_rad)*x_vel*x_vel_time_est) + \
             #                (math.cos(yaw_rad)*y_vel*y_vel_time_est)) #* 3.28084 #conver to feet
 
-            x_translation = ((math.cos(yaw_rad)*x_vel*dvl_vel_timing) + \
+            #x_translation = ((math.cos(yaw_rad)*x_vel*dvl_vel_timing) + \
+            #                (math.sin(yaw_rad)*y_vel*dvl_vel_timing)) * 3.28084
+
+            #y_translation = ((-1* math.sin(yaw_rad)*x_vel*dvl_vel_timing) + \
+            #                (math.cos(yaw_rad)*y_vel*dvl_vel_timing)) * 3.28084 #convert to feet
+
+            #FIXED: Rotation matrix was incorrect prior
+            x_translation = ((math.cos(yaw_rad)*x_vel*dvl_vel_timing) - \
                             (math.sin(yaw_rad)*y_vel*dvl_vel_timing)) * 3.28084
 
-            y_translation = ((-1* math.sin(yaw_rad)*x_vel*dvl_vel_timing) + \
+            y_translation = ((math.sin(yaw_rad)*x_vel*dvl_vel_timing) + \
                             (math.cos(yaw_rad)*y_vel*dvl_vel_timing)) * 3.28084 #convert to feet
 
             #Get the current times
