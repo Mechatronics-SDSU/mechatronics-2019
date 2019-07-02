@@ -6,6 +6,7 @@ import io
 import csv
 import matplotlib.pyplot as plt
 import time
+from datetime import datetime
 
 # Port Information
 HOST    = '127.0.0.101'
@@ -16,7 +17,19 @@ sock.bind((HOST, ADDRESS))
 # Data Size Per Packet
 MAX_UDP_PACKET_SIZE = 256
 
+FRAME_WIDTH = None
+FRAME_HEGHT = None
 
+# Make Sure User didn't Blindly initialize Node
+if not (FRAME_WIDTH or FRAME_HEIGHT):
+    raise ValueError('Please Specify FRAME WIDTH and FRAME HEIGHT')
+
+
+# TimeStamp of Capture (looks complicated but does something like this 2019-4-2-secondsmins etc.
+TimeStamp = str(datetime.now()).replace(' ', '_').replace(':','#')[:-7]
+
+# Note: Comment Out VideoStuff for Speed Increase
+video_file = cv2.VideoWriter('VideoCapture{}.avi'.format(TimeStamp),cv2.VideoWriter_fourcc('M','J','P','G'), 15, (FRAME_WIDTH,FRAME_HEGHT))
 ramBuffer = b''
 
 while(True):
@@ -45,11 +58,12 @@ while(True):
 
                 # Our operations on the frame come here (if any)
                 '''
-                None: No operations Specified
+                imageToVideo: Turn OpenCV images into Video Ouput
                 '''
+                video_file.write(img_frame)
 
                 # Display the resulting frame
-                cv2.imshow('FRAME', img_frame)
+                cv2.imshow('Capture', img_frame)
 
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
