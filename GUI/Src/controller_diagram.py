@@ -47,13 +47,13 @@ class Controller_Diagram(QWidget):
         self.linking_layout = QGridLayout(self)
         self.setLayout(self.linking_layout)
         self.setWindowTitle(self.title)
-        self.setGeometry(0,0,800,500)
+        self.setGeometry(0,0,400,250)
 
         label = QLabel(self)
-        label.setGeometry(QRect(0,0,800,500))
+        label.setGeometry(QRect(0,0,400,250))
 
         pixmap = QPixmap('labeledcontroller.png')
-        picscaled = pixmap.scaled(800,650,Qt.KeepAspectRatio)
+        picscaled = pixmap.scaled(450,375,Qt.KeepAspectRatio)
         label.setPixmap(picscaled)
 
 if __name__ == "__main__":
