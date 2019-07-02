@@ -23,7 +23,7 @@ class PointGrey_AppSrc:
 	def __init__(self):
 		self.is_push_buffer_allowed = None
 		self._mainloop = GObject.MainLoop.new(None, False)
-		udp_sink_pipeline = "appsrc name=source ! image/jpeg,framerate=(fraction)30/1 ! decodebin ! videoscale ! capsfilter caps=video/x-raw,width=640,height=480 ! queue ! jpegenc ! rtpjpegpay ! udpsink host=127.0.0.1 port=5200"
+		udp_sink_pipeline = "appsrc name=source ! image/jpeg,framerate=(fraction)30/1 ! decodebin ! videoscale ! capsfilter caps=video/x-raw,width=640,height=480 ! queue ! jpegenc ! rtpjpegpay ! udpsink host=192.168.1 port=5200"
 
 		self._pipeline = Gst.parse_launch(udp_sink_pipeline)
 
