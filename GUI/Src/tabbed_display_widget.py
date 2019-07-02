@@ -3,6 +3,7 @@ import os
 from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, QWidget, QAction, QTabWidget, QVBoxLayout
 from PyQt5.QtGui import QIcon, QColor, QPalette
 from PyQt5.QtCore import pyqtSlot, Qt
+from controller_status_thread import Status_Thread
 
 PARAM_PATH = os.path.join("..", "..", "Sub", "Src", "Params")
 sys.path.append(PARAM_PATH)
@@ -49,6 +50,9 @@ class Tabbed_Display(QWidget):
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
         self.tab_display_node = mechos.Node("GUI_TABS", configs["ip"])
         self.movement_mode_publisher = self.tab_display_node.create_publisher("MM", configs["pub_port"])
+
+        self.controller_stat_thread = Status_Thread()
+        self.controller_stat_thread = Start()
 
 
     def add_tab(self, widget, title):
@@ -98,6 +102,11 @@ class Tabbed_Display(QWidget):
         mode_serialized = struct.pack('b', mode)
         # Publish current index
         self.movement_mode_publisher.publish(mode_serialized)
+        
+        if mode == 2:
+            self.controller_stat_thread.threadrunning == True
+        else:
+            self.controller_stat_thread.threadrunning == False
 
 
 if __name__ == "__main__":
