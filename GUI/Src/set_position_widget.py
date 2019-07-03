@@ -91,12 +91,12 @@ class Set_Desired_Position_GUI(QWidget):
         self.depth_box.setText("0.0")
 
         self.x_txt = QLabel()
-        self.x_txt.setText("<font color='black'>X Pos.</font>")
+        self.x_txt.setText("<font color='black'>North Pos.</font>")
         self.x_box = QLineEdit()
         self.x_box.setText("0.0")
 
         self.y_txt = QLabel()
-        self.y_txt.setText("<font color='black'>Y Pos.</font>")
+        self.y_txt.setText("<font color='black'>East Pos.</font>")
         self.y_box = QLineEdit()
         self.y_box.setText("0.0")
 
