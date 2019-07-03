@@ -217,7 +217,7 @@ class Movement_PID:
         '''
         for thruster_id, thruster in enumerate(self.thrusters):
 
-            thrust = (roll_control * thruster.orientation[2] * thruster.location[1]) + \
+            thrust = (-1*roll_control * thruster.orientation[2] * thruster.location[1]) + \
                      (pitch_control * thruster.orientation[2] * thruster.location[0]) + \
                      (yaw_control * thruster.orientation[1] * thruster.location[0]) + \
                      (yaw_control * thruster.orientation[0] * thruster.location[1]) + \
