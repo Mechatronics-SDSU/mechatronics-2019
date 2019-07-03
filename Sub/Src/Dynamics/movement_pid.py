@@ -216,7 +216,8 @@ class Movement_PID:
             N/A
         '''
         for thruster_id, thruster in enumerate(self.thrusters):
-
+            #Multiplied roll control by negative one to account for the thrusters going in the
+            #wrong direction.
             thrust = (-1*roll_control * thruster.orientation[2] * thruster.location[1]) + \
                      (pitch_control * thruster.orientation[2] * thruster.location[0]) + \
                      (yaw_control * thruster.orientation[1] * thruster.location[0]) + \
@@ -224,7 +225,7 @@ class Movement_PID:
                      (x_control * thruster.orientation[0]) + \
                      (y_control * thruster.orientation[1]) + \
                      (z_control * thruster.orientation[2])
-            
+
             #Write the thrust to the given thruster. Some thrusters have an additional offset to given them
             #a higher strength. This is used to help balance out weigth distribution issues with the sub.
             if(curr_z_pos >= self.thruster_offset_active_depth):
@@ -312,7 +313,7 @@ class Movement_PID:
         north_error = desired_position[3] - current_position[3]
         east_error = desired_position[4] - current_position[4]
         yaw_rad = math.radians(curr_yaw) #convert yaw from degrees to radians
-        
+
         x_error = (math.cos(yaw_rad) * north_error) + (math.sin(yaw_rad) * east_error)
         y_error = (-1 * math.sin(yaw_rad) * north_error) + (math.cos(yaw_rad) * east_error)
         error[3] = self.bound_error(x_error, self.x_min_error, self.x_max_error)
