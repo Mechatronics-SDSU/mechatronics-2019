@@ -19,11 +19,14 @@ MAX_UDP_PACKET_SIZE = 256
 ENCAPSULATION_0xC0 = bytes.fromhex('c0c0')
 
 # videoCapture from Webcam
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(2)
 
 while(True):
     # Capture frame-by-frame
     ret, frame = cap.read()
+
+    # Check Video Size
+    # print(frame.shape[:2])
 
     # print('NO imencode',sys.getsizeof(frame))
     # Capture Bytes
@@ -47,16 +50,16 @@ while(True):
         packet_size = math.ceil(image_size/number_of_packets)
 
         # Uncomment for Manual Control of Send Speed:
-        #info_print=
+        # info_print=
         '''
         IMAGE  SIZE:       {}
         PACKET SIZE:       {}
         NUMBER OF PACKETS: {}
         '''
-        #.format(image_size, packet_size, number_of_packets)
+        # .format(image_size, packet_size, number_of_packets)
 
-        #print(info_print)
-        #input('Press Enter to Continue...')
+#        print(info_print)
+#        input('Press Enter to Continue...')
 
         # Count out the number of packets that need to be sent
         for count_var in range(0, number_of_packets):
