@@ -13,20 +13,20 @@ ADDRESS = 6666 # Doom Eternal
 OURSOCKET=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 # Data Size per Packet
-MAX_UDP_PACKET_SIZE = 256
+MAX_UDP_PACKET_SIZE = 1500
 
 # Encapsulation information
 ENCAPSULATION_0xC0 = bytes.fromhex('c0c0')
 
 # videoCapture from Webcam
-cap = cv2.VideoCapture(2)
+cap = cv2.VideoCapture(0)
 
 while(True):
     # Capture frame-by-frame
     ret, frame = cap.read()
 
     # Check Video Size
-    # print(frame.shape[:2])
+    print(frame.shape[:2])
 
     # print('NO imencode',sys.getsizeof(frame))
     # Capture Bytes

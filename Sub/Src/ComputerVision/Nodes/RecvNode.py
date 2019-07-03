@@ -14,18 +14,18 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind((HOST, ADDRESS))
 
 # Data Size Per Packet
-MAX_UDP_PACKET_SIZE = 256
+MAX_UDP_PACKET_SIZE = 1500
 
 
 # Record Movie (Switch to False for speed)
 record_movie = False
 # Collec Images (Switch to False for speed)
-save_image = True
+save_image = False
 
 if record_movie:
-    # Frame Size
-    FRAME_WIDTH = 480
-    FRAME_HEIGHT = 640
+    # Frame Size (reversed in np.shape)
+    FRAME_HEIGHT = 480
+    FRAME_WIDTH = 640
 
     # Make Sure User didn't Blindly initialize Node
     if not (FRAME_WIDTH or FRAME_HEIGHT):
@@ -34,7 +34,7 @@ if record_movie:
     TimeStamp = str(datetime.now()).replace(' ', '_').replace(':','#')[:-7]
 
     # Note: Comment Out VideoStuff for Speed Increase
-    video_file = cv2.VideoWriter('VideoCapture{}.mpv4'.format(TimeStamp),cv2.VideoWriter_fourcc('M','J','P','G'), 15, (FRAME_WIDTH,FRAME_HEIGHT))
+    video_file = cv2.VideoWriter('VideoCap.avi'.format(TimeStamp),cv2.VideoWriter_fourcc('M','J','P','G'), 36, (FRAME_WIDTH, FRAME_HEIGHT))
 
 ramBuffer = b''
 
