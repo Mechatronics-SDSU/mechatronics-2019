@@ -46,8 +46,8 @@ class Vision(threading.Thread):
 
         #Resizing the video
         #TODO: Make this a parameter in the parameter server.
-        width = 320
-        height = 240
+        width = 608
+        height = 808
         width_set = self.video_capture.set(3, width) #Sets width
         if( not width_set):
             print("[ERROR]: Failed to set the video capture width to %s!" % width)

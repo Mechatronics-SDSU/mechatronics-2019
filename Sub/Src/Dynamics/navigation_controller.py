@@ -378,7 +378,7 @@ class Navigation_Controller(node_base):
             print("%s: %0.2f" % (MOVEMENT_AXIS[index], dp), end='')
         print("")
 
-
+        
     def __update_thruster_test_callback(self, thruster_proto):
         '''
         The callback function to unpack and write thrusts to each thruster for
