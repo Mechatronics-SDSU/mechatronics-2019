@@ -1,4 +1,3 @@
-
 '''
 Copyright 2019, David Pierce Walker-Howell, All rights reserved
 Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
@@ -41,7 +40,7 @@ class Drive_Function:
             N/A
         '''
         self.sensor_driver = sensor_driver
-        self.time_out_timer = util_timer.Timer()
+        self.timeout_timer = util_timer.Timer()
 
         #Get the mechos network parameters
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
@@ -114,7 +113,7 @@ class Drive_Function:
 
         return(distance)
 
-    def move_to_depth(self, desired_depth, buffer_zone=0.0, time_out=None):
+    def move_to_depth(self, desired_depth, buffer_zone=0.0, timeout=None, desired_orientation=None):
         '''
         Go to the desired depth. This function will exit with success if
         the sub reaches within the buffer zone of the desired_depth. Note
@@ -126,27 +125,35 @@ class Drive_Function:
             should reach.
             buffer_zone: The buffer zone bubble in feet that can be considered
                         successfully making the depth dive.
-            time_out: The amount of time this function can loop before exiting.
+            timeout: The amount of time this function can loop before exiting.
                     If it doesn't reach the buffer_zone in time, the function
                     will exit.
+            desired_orientation: If None, use the current North, East, and
+                                and yaw values to do the depth dive. Else use the
+                                desired_position. Which has the form
+                                    [Yaw, North, East]
         '''
 
         current_position = self.sensor_driver.sensor_data
 
         #Construct the desired depth and send it.
-        desired_yaw = current_position[2]
-        desired_north = current_positon[3]
-        desired_east = current_position[4]
+        if(desired_orientation != None):
+            desired_yaw, desired_north, desired_east = desired_orientation
+
+        else:
+            desired_yaw, desired_north, desired_east = current_position[2:5]
+
         desired_position = [0.0, 0.0, desired_yaw, desired_north, desired_east, desired_depth]
+
         self.send_desired_position(desired_position)
 
         #Begin the timeout timer.
-        self.time_out_timer.restart_timer()
+        self.timeout_timer.restart_timer()
 
         while(abs(desired_depth - current_position[5]) > buffer_zone):
 
-            if(time_out != None):
-                if(self.time_out_timer.net_timer() > time_out):
+            if(timeout != None):
+                if(self.timeout_timer.net_timer() > timeout):
                     print("[WARNING]: Move to depth timed out. Depth error", current_position[5] - desired_depth)
                     current_position = self.sensor_driver.sensor_data
                     return False, desired_depth
@@ -157,7 +164,7 @@ class Drive_Function:
         return True, desired_depth
 
 
-    def move_to_face_position(self, north_position, east_position, buffer_zone=0.0, time_out=None):
+    def move_to_face_position(self, north_position, east_position, buffer_zone=0.0, timeout=None, desired_orientation=None):
         '''
         Re-orient the yaw position to face the north / east coordinate (relative to
         the set zero or origin position).
@@ -169,33 +176,41 @@ class Drive_Function:
                         face
             buffer_zone: The buffer zone in degrees at which the sub is considered
                     to have sucessfully reached the correct yaw. Default = 0
-            time_out: The amount of time this function can loop before exiting. If
+            timeout: The amount of time this function can loop before exiting. If
                         it doesn't rech the buffer_zone in time, the function
                         will exit
+            desired_orientation: If None, hold the current North, East, and Depth
+                                will orienting to face position.
         '''
 
         current_position = self.sensor_driver.sensor_data
 
         #Get the distance components
-        north_dist = north_positon - current_position[3]
-        east_dist = east_position - current_position[4]
+        if(desired_orientation != None):
+            hold_north, hold_east, hold_depth = desired_orientation
+
+        else:
+            hold_north, hold_east, hold_depth = current_position[3:]
+
+        north_dist = north_position - hold_north
+        east_dist = east_position - hold_east
 
         desired_yaw = math.degrees(math.atan2(east_dist/north_dist))
 
         #Assemble the desired Position
-        desired_position = [0.0, 0.0, desired_yaw, current_positon[3], current_position[4], current_position[5]]
+        desired_position = [0.0, 0.0, desired_yaw, hold_north, hold_east, hold_depth]
 
         self.send_desired_position(desired_position)
 
         #Begin the timeout timer.
-        self.time_out_timer.restart_timer()
+        self.timeout_timer.restart_timer()
 
         yaw_error = self.get_yaw_error(current_positon[2], desired_yaw)
 
         while(abs(yaw_error) > buffer_zone):
 
-            if(time_out != None):
-                if(self.time_out_timer.net_timer() > time_out):
+            if(timeout != None):
+                if(self.timeout_timer.net_timer() > timeout):
                     print("[WARNING]: Move to face position timed out. Yaw Error:", yaw_error)
                     current_position = self.sensor_driver.sensor_data
                     return False, desired_yaw
@@ -206,7 +221,7 @@ class Drive_Function:
         print("[INFO]: Move to face position succeeded. Facing coordinate: (%0.2fft, %0.2fft)" % (north_position, east_position))
         return True, desired_yaw
 
-    def move_to_position_hold_orientation(self, north_position, east_position, buffer_zone=0.0, time_out=None):
+    def move_to_position_hold_orientation(self, north_position, east_position, buffer_zone=0.0, timeout=None, desired_orientation=None):
         '''
         Re-orient the yaw position to face the north / east coordinate (relative to
         the set zero or origin position).
@@ -216,36 +231,46 @@ class Drive_Function:
             east_positon: The east position to drive to.
             buffer_zone: The buffer zone in degrees at which the sub is considered
                     to have sucessfully reached the correct position.
-            time_out: The amount of time this function can loop before exiting. If
+            timeout: The amount of time this function can loop before exiting. If
                         it doesn't rech the buffer_zone in time, the function
-                        will exit
+                        will exit.
+            desired_orientation: If None, then use the current yaw and depth while
+                                moving to the desired_position. Else pass a
+                                list with [yaw, depth] hold while moving towards the
+                                desired position.
         '''
         #Get the current position
         current_position = self.sensor_driver.sensor_data
 
-        desired_position = [0.0, 0.0, current_positon[2], north_position, east_position, current_position[5]]
+        if(desired_orientation != None):
+            desired_yaw, desired_depht = desired_orientation
+        else:
+            desired_yaw = current_position[2]
+            desired_depth = current_position[5]
+
+        desired_position = [0.0, 0.0, desired_yaw, north_position, east_position, desired_depth]
 
 
         self.send_desired_position(desired_position)
 
         #Begin the timeout timer.
-        self.time_out_timer.restart_timer()
+        self.timeout_timer.restart_timer()
 
         distance_to_position = self.get_distance_to_position(current_position[3], current_position[4], north_position, east_position)
         while(abs(distance_to_position) > buffer_zone):
 
-            if(time_out != None):
-                if(self.time_out_timer.net_timer() > time_out):
+            if(timeout != None):
+                if(self.timeout_timer.net_timer() > timeout):
                     print("[WARNING]: Move to position while holding orientatio timed out. Distance to position:", distance_to_position)
                     current_position = self.sensor_driver.sensor_data
-                    return False, desired_yaw
+                    return False, north_position, east_position
             distance_to_position = self.get_distance_to_position(current_position[3], current_position[4], north_position, east_position)
             current_position = self.sensor_driver.sensor_data
 
         print("[INFO]: Move to position while holding orientation succeeded. At position (%0.2fft, %0.2fft)" % (north_position, east_position))
-        return True, desired_yaw
+        return True, north_position, east_position
 
-    def move_x_direction(self, distance_x, buffer_zone, time_out=None):
+    def move_x_direction(self, distance_x, buffer_zone, timeout=None):
         '''
         Move in the x direction (forward/backward) distance_x amount of feet.
 
@@ -254,7 +279,7 @@ class Drive_Function:
                         the sub will move forward. Else if negative, the sub will move
                         backwards.
             buffer_zone: The tolerance that x direction move can have.
-            time_out: The amount of time this function can loop before exiting. If
+            timeout: The amount of time this function can loop before exiting. If
                         it doesn't rech the buffer_zone in time, the function
                         will exit
         '''
@@ -264,12 +289,12 @@ class Drive_Function:
         #Calculate what the desired north and east positions are to make that
         #corresponds to how far to move forward.
         current_yaw = math.radians(current_position[2])
-        north_position = distance_x * math.cos(current_yaw)
-        east_position = distance_x * math.sin(current_yaw)
+        north_position = distance_x * math.cos(current_yaw) + current_position[3]
+        east_position = distance_x * math.sin(current_yaw) + current_position[4]
 
-        return(self.move_to_position_hold_orientation(north_position, east_position, buffer_zone, time_out))
+        return(self.move_to_position_hold_orientation(north_position, east_position, buffer_zone, timeout))
 
-    def move_y_direction(self, distance_y, buffer_zone, time_out=None):
+    def move_y_direction(self, distance_y, buffer_zone, timeout=None):
         '''
         Move in the y direction (right/left) distance_y amount of feet.
 
@@ -278,7 +303,7 @@ class Drive_Function:
                         the sub will move right. Else if negative, the sub will move
                         left.
             buffer_zone: The tolerance that y direction move can have.
-            time_out: The amount of time this function can loop before exiting. If
+            timeout: The amount of time this function can loop before exiting. If
                         it doesn't rech the buffer_zone in time, the function
                         will exit
         '''
@@ -288,7 +313,7 @@ class Drive_Function:
         #Calculate what the desired north and east positions are to make that
         #corresponds to how far to move forward.
         current_yaw = math.radians(current_position[2])
-        north_position = -1 * distance_y * math.sin(current_yaw)
-        east_position = distance_y * math.cos(current_yaw)
+        north_position = (-1 * distance_y * math.sin(current_yaw)) + current_position[3]
+        east_position = (distance_y * math.cos(current_yaw))  + current_position[4]
 
-        return(self.move_to_position_hold_orientation(north_position, east_position, buffer_zone, time_out))
+        return(self.move_to_position_hold_orientation(north_position, east_position, buffer_zone, timeout))
