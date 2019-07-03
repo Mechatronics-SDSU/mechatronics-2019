@@ -128,7 +128,7 @@ class remote_control_node(node_base):
                     if instance.button == 0:
                         self._record_waypoint = True
                     if instance.button == 2:
-                        self._zero_waypoint == True
+                        self._zero_waypoint = True
 
                 self._axes[5] = self._remote_depth_hold
                 self._axes[6] = self._record_waypoint
