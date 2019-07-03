@@ -228,8 +228,13 @@ class Movement_PID:
 
             #Write the thrust to the given thruster. Some thrusters have an additional offset to given them
             #a higher strength. This is used to help balance out weigth distribution issues with the sub.
-            if(curr_z_pos >= self.thruster_offset_active_depth):
-                thrust = thrust + self.thruster_strengths[thruster_id]
+            #if(curr_z_pos >= self.thruster_offset_active_depth):
+            #    thrust = thrust + self.thruster_strengths[thruster_id]
+
+            #Since the center of mass of the sub is not in the center of the axises of the sub,
+            #some thruster will need to produce more torque to have movement about that axis,
+            #be stable.
+            thrust = thrust + (thrust * self.thruster_strengths[thruster_id])
 
             if(curr_z_pos >= self.z_active_bias_depth):
 
