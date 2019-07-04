@@ -26,7 +26,7 @@ from mechos_network_configs import MechOS_Network_Configs
 
 from MechOS import mechos
 
-class Drive_Function:
+class Drive_Functions:
     '''
     A class containing basic functions for movements of the sub.
     Helpful for constructing missions.
