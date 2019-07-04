@@ -8,7 +8,7 @@ import io
 import time
 
 # Port Information
-HOST    = '127.0.0.101'
+HOST    = '192.168.1.20'
 ADDRESS = 6666 # Doom Eternal
 OURSOCKET=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
@@ -19,14 +19,17 @@ MAX_UDP_PACKET_SIZE = 1500
 ENCAPSULATION_0xC0 = bytes.fromhex('c0c0')
 
 # videoCapture from Webcam
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
+cap.set(3, 450)
+cap.set(4, 450)
 
 while(True):
     # Capture frame-by-frame
     ret, frame = cap.read()
 
+#    input('press enter to continue...')
     # Check Video Size
-    print(frame.shape[:2])
+#    print(frame.shape[:2])
 
     # print('NO imencode',sys.getsizeof(frame))
     # Capture Bytes
@@ -50,13 +53,12 @@ while(True):
         packet_size = math.ceil(image_size/number_of_packets)
 
         # Uncomment for Manual Control of Send Speed:
-        # info_print=
-        '''
-        IMAGE  SIZE:       {}
-        PACKET SIZE:       {}
-        NUMBER OF PACKETS: {}
-        '''
-        # .format(image_size, packet_size, number_of_packets)
+
+#        info_print='''
+#        IMAGE  SIZE:       {}
+#        PACKET SIZE:       {}
+#        NUMBER OF PACKETS: {}
+#        '''.format(image_size, packet_size, number_of_packets)
 
 #        print(info_print)
 #        input('Press Enter to Continue...')
