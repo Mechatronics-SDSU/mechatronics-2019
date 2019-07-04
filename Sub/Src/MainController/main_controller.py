@@ -27,6 +27,8 @@ from message_passing.Nodes.node_base_udp import node_base
 import time
 import socket
 
+from mission_commander import Mission_Commander
+
 class Main_Controller(node_base):
     '''
     '''
@@ -51,12 +53,14 @@ class Main_Controller(node_base):
 
         self.sensor_driver = Sensor_Driver()
         self.navigation_controller = Navigation_Controller(MEM, IP, self.sensor_driver)
+        self.mission_commander = Mission_Commander()
 
         self.run_main_controller = True
-       
+
         #Start up threads
         self.sensor_driver.start()
         self.navigation_controller.start()
+        self.mission_commander.start()
 
     def print_sensor_data(self, sensor_data):
         '''

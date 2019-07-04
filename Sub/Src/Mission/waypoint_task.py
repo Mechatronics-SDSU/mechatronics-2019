@@ -50,11 +50,15 @@ class Waypoint_Task:
                             to complete tasks.
         '''
         self.waypoint_task_dict = waypoint_task_dict
-        self.sensor_driver = sensor_driver
+        self.name = self.waypoint_task_dict["name"]
+        self.type = "Waypoint"
+        
         self.drive_functions = drive_functions
 
         #Initialize the timeout timer
         self.timeout_timer = util_timer.Timer()
+
+        self.print_task_info()
 
     def print_task_info(self):
         '''
@@ -68,8 +72,8 @@ class Waypoint_Task:
         print("[INFO]:Task Name:", self.waypoint_task_dict["name"])
         print("\tTask Type:", self.waypoint_task_dict["type"])
         print("\tLocation of Waypoint File:", self.waypoint_task_dict["waypoint_file"])
-        print("\tTimeout Time for Task:", self.waypoint_file_dict["timeout"])
-        print("\tBuffer Zone Distance for Points:", self.waypoint_file_dict["buffer_zone"])
+        print("\tTimeout Time for Task: %0.2f min" % self.waypoint_task_dict["timeout"])
+        print("\tBuffer Zone Distance for Points: %s ft" % self.waypoint_task_dict["buffer_zone"])
 
     def unpack_waypoints(self):
         '''
@@ -129,7 +133,7 @@ class Waypoint_Task:
             succeeded, _ = self.drive_functions.move_to_depth(desired_depth=depth_position,
                                                 buffer_zone=0.1,
                                                 timeout=remaining_task_time)
-            if(!succeeded):
+            if(not succeeded):
                 return False
 
             #Face position desired_position
@@ -139,7 +143,7 @@ class Waypoint_Task:
                                                             buffer_zone=1,
                                                             timeout=remaining_task_time)
 
-            if(!succeeded):
+            if(not succeeded):
                 return False
             #Drive to the desired_position
             remaining_task_time = task_time - self.timout_timer.net_time()
@@ -147,7 +151,9 @@ class Waypoint_Task:
                                                                           east_position=east_position,
                                                                           buffer_zone=1,
                                                                           timeout=remaining_task_time)
-            if(!succeeded):
+            if(not succeeded):
                 return False
 
+            print("[INFO]: Waypoint Task %s: North=%0.2f, East=%0.2f, Depth=%0.2f successfully reached." \
+                                % (self.waypoint_task_dict["name"], north_position, east_position, depth_position))
         return True

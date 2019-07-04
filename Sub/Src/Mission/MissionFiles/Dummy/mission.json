@@ -1,0 +1,10 @@
+{
+    "Task_1":{
+        "type": "Waypoint",
+        "name": "test_waypoint_task",
+        "timeout":15.0,
+        "buffer_zone":2.0,
+        "waypoint_file": "MissionFiles/Dummy/waypoint_test.csv"
+    }
+
+}
