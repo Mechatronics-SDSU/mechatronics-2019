@@ -468,7 +468,7 @@ class Navigation_Controller(node_base):
             #Autonomous Mission mode. Mission is live and running.
             elif self.movement_mode == 3:
 
-                self.pid_controller.advance_mode(self.current_position, self.desired_position)
+                self.pid_controller.advance_move(self.current_position, self.desired_position)
 
 if __name__ == "__main__":
 
