@@ -59,6 +59,9 @@ class Mission_Commander(threading.Thread):
         #subscriber to listen if the mission informatin has changed.
         self.update_mission_info_subscriber = self.mission_commander_node.create_subscriber("MS", self._update_mission_info_callback, configs["sub_port"])
 
+        #subscriber to listen if the mission informatin has changed.
+        self.update_mission_info_subscriber = self.mission_commander_node.create_subscriber("MS", self._update_mission_info_callback, configs["sub_port"])
+
         #Publisher to be able to kill the sub within the mission
         self.kill_sub_publisher = self.mission_commander_node.create_publisher("KS", configs["pub_port"])
 
@@ -175,6 +178,25 @@ class Mission_Commander(threading.Thread):
 
             self.mission_mode = False
 
+    def _update_mission_info_callback(self, misc):
+        '''
+        If the update mission info button is pressed in the mission planner widget,
+        update the mission info here. Note that the mission being live should go to
+        false.
+
+        Parameters:
+            misc: Nothing used.
+        Returns:
+            N/A
+        '''
+
+        #Get the new mission file from the parameter server.
+        self.mission_file = self.param_serv.get_param("Missions/mission_file")
+        self.mission_live = False
+
+        print("[INFO]: New Mission file set as %s", self.mission_file)
+        #Parse the mission file
+        self.parse_mission()
     def _command_listener(self):
         '''
         The thread to run update requests from the GUI to tell the mission commander
