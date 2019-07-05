@@ -4,6 +4,7 @@
         <AHRS>/dev/ttyUSB3</AHRS>
         <backplane>/dev/ttyUSB0</backplane>
         <DVL>/dev/ttyUSB1</DVL>
+        <auto></auto>
     </COM_Ports>
     <Timing>
         <AHRS>0.05</AHRS>
