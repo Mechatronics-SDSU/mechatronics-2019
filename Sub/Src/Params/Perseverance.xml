@@ -4,7 +4,7 @@
         <AHRS>/dev/ttyUSB3</AHRS>
         <backplane>/dev/ttyUSB0</backplane>
         <DVL>/dev/ttyUSB1</DVL>
-        <auto></auto>
+	<auto>/dev/ttyUSB6</auto>
     </COM_Ports>
     <Timing>
         <AHRS>0.05</AHRS>
@@ -98,6 +98,6 @@
     </Sensors>
     <Missions>
       <waypoint_collect_file>waypoint_test.csv</waypoint_collect_file>
-      <mission_file>MissionFiles/Dummy/mission.json</mission_file>
+      <mission_file>/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/Dummy/mission.json</mission_file>
     </Missions>
 </Perseverance>

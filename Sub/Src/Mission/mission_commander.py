@@ -14,7 +14,7 @@ import threading
 import time
 import json
 import serial
-
+import struct
 #Import all the tasks
 from drive_functions import Drive_Functions
 from waypoint_task import Waypoint_Task
@@ -55,13 +55,12 @@ class Mission_Commander(threading.Thread):
         self.mission_commander_node = mechos.Node("MISSION_COMMANDER", configs["ip"])
 
         #subscriber to listen if the movement mode is set to be autonomous mission mode
-        self.movement_mode_subscriber = self.mission_commander_node.create_subscriber("MM", self._update_movement_mode_callback, configs["sub_port"])
-
+        self.movement_mode_subscriber = self.mission_commander_node.create_subscriber("MM", self._update_movement_mode_callback, configs["sub_port"]) 
         #subscriber to listen if the mission informatin has changed.
         self.update_mission_info_subscriber = self.mission_commander_node.create_subscriber("MS", self._update_mission_info_callback, configs["sub_port"])
 
         #Publisher to be able to kill the sub within the mission
-        self.kill_sub_publisher = self.mission_commander_node.create_subscriber("KS", configs["pub_port"])
+        self.kill_sub_publisher = self.mission_commander_node.create_publisher("KS", configs["pub_port"])
 
         #Set up a thread to listen to request from the GUI
         self.command_listener_thread = threading.Thread(target=self._command_listener)
@@ -83,7 +82,7 @@ class Mission_Commander(threading.Thread):
         self.auto_serial = serial.Serial(com_port, 9600)
 
         #load the mission data
-        self._update_mission_info_callback()
+        self._update_mission_info_callback(None)
         self.parse_mission()
 
     def _update_movement_mode_callback(self, movement_mode):
@@ -101,7 +100,7 @@ class Mission_Commander(threading.Thread):
 
             #Initially have the sub killed when switched to mission commander mode
             kill_state = struct.pack('b', 1)
-            self.kill_sub_publisher.publisher(kill_state)
+            self.kill_sub_publisher.publish(kill_state)
 
             self.mission_mode = True
 
@@ -165,7 +164,7 @@ class Mission_Commander(threading.Thread):
 
         #Count the number of tasks in the mission
         self.num_tasks = len(self.mission_data)
-        print("[INFO]: Number of tasks for mission is", num_tasks, ".")
+        print("[INFO]: Number of tasks for mission is", self.num_tasks, ".")
 
         task_keys = self.mission_data.keys()
 
@@ -195,16 +194,22 @@ class Mission_Commander(threading.Thread):
                 #pressed.
                 if(self.mission_mode):
                     #TODO: Use serial communication to listen to the autonomous mode button
-                    auto_pressed = struct.unpack('b', self.auto_serial.read())[0]
-                    print(auto_pressed)
+                    auto_pressed = (self.auto_serial.read(13)).decode()
+                    self.auto_serial.read(2) #Read the excess two bytes
+                    
+                    if(auto_pressed == "Auto Status:1"):
+                        print("[INFO]: Mission Now Live")
+                        self.mission_live = True
+                    elif(auto_pressed == "Auto Status:0"):
+                        print("[INFO]: Mission is no longer Live.")
+                        self.mission_live = False
 
                     #When mission is live, run the mission
                     if(self.mission_live):
 
                         unkill_state = struct.pack('b', 0)
                         self.kill_sub_publisher.publish(unkill_state)
-
-                        for task_id, task in enumeration(self.mission_tasks):
+                        for task_id, task in enumerate(self.mission_tasks):
                             print("[INFO]: Starting Task %s: %s. Mission task %d/%d" %(task.type, task.name, task_id, self.num_tasks))
                             task.run()
 
