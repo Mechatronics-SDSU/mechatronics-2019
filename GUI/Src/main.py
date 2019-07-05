@@ -22,6 +22,7 @@ from thruster_test_widget import Thruster_Test
 from tabbed_display_widget import Tabbed_Display
 from kill_sub_widget import Kill_Button
 from waypoint_widget import Waypoint_GUI
+from mission_planner_widget import Mission_Planner_Widget
 import struct
 
 class Main_GUI(QWidget):
@@ -59,6 +60,7 @@ class Main_GUI(QWidget):
         self.set_pid_visualizer()
         self.set_thruster_test_widget()
         self.set_remote_controller_widget() #Sets remote control mode and record waypoints
+        self.set_mission_planner_widget()
         self.set_kill_button()
 
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
@@ -151,6 +153,19 @@ class Main_GUI(QWidget):
         print(optimal_size)
         self.tab_widget.add_tab(self.waypoint_widget, "Remote Control")
         #self.main_layout.addWidget(self.waypoint_widget, 0, 2)
+
+    def set_mission_planner_widget(self):
+
+        '''
+        Set up the mission planner widget in its own tab.
+
+        Parameters:
+            N/A
+        Returns:
+            N/A
+        '''
+        self.mission_planner_widget = Mission_Planner_Widget()
+        self.tab_widget.add_tab(self.mission_planner_widget, "Mission Planner")
 
     def _update_sub_killed_state(self):
         '''
