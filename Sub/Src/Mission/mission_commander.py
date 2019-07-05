@@ -149,6 +149,51 @@ class Mission_Commander(threading.Thread):
                 print("[ERROR]: Could not properly recieved messages in command listener. Error:", e)
             time.sleep(0.2)
 
+    def _update_movement_mode_callback(self, movement_mode):
+        '''
+        The callback function to select which navigation controller mode is being used.
+        If it is set to 3, then the navigation controller is ready for autonomous mode.
+        Parameters:
+            movement_mode: Raw byte of the mode.
+        Returns:
+            N/A
+        '''
+        movement_mode = struct.unpack('b', movement_mode)[0]
+        if(movement_mode == 3):
+            print("[INFO]: Mission Commander Ready to Run Missions. Sub Initially Killed")
+
+            #Initially have the sub killed when switched to mission commander mode
+            kill_state = struct.pack('b', 1)
+            self.kill_sub_publisher.publisher(kill_state)
+
+            self.mission_mode = True
+
+        else:
+
+            if(self.mission_mode == True):
+                print("[INFO]: Exited Mission Command Mode.")
+
+            self.mission_mode = False
+
+    def _command_listener(self):
+        '''
+        The thread to run update requests from the GUI to tell the mission commander
+        when it is ready to run missions and what missions to do.
+
+        Parameters:
+            N/A
+        Returns:
+            N/A
+        '''
+        while self.command_listener_thread_run:
+            try:
+                #Recieve commands from the the GUI and/or Mission Commander
+                self.mission_commander_node.spinOnce(self.movement_mode_subscriber)
+
+            except Exception as e:
+                print("[ERROR]: Could not properly recieved messages in command listener. Error:", e)
+            time.sleep(0.2)
+
     def parse_mission(self):
         '''
         Parse the mission .json file and generate the code for each task. Save
