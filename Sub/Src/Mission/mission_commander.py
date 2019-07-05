@@ -47,6 +47,10 @@ class Mission_Commander(threading.Thread):
         #Get the mechos network parameters
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
+        #Connect to parameters server
+        self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
+        self.param_serv.use_parameter_database(configs["param_server_path"])
+
         #MechOS node to connect the mission commander to the mechos network
         self.mission_commander_node = mechos.Node("MISSION_COMMANDER", configs["ip"])
 
@@ -73,6 +77,10 @@ class Mission_Commander(threading.Thread):
 
         self.mission_mode = False #If true, then the subs navigation system is ready for missions
         self.mission_live = False  #Mission live corresponds to the autonomous buttons state.
+
+        #Set up serial com to read the autonomous button
+        com_port = self.param_serv.get_param("COM_Ports/auto")
+        self.auto_serial = serial.Serial(com_port, 9600)
 
         #load the mission data
         self._update_mission_info_callback()
@@ -187,6 +195,8 @@ class Mission_Commander(threading.Thread):
                 #pressed.
                 if(self.mission_mode):
                     #TODO: Use serial communication to listen to the autonomous mode button
+                    auto_pressed = struct.unpack('b', self.auto_serial.read())[0]
+                    print(auto_pressed)
 
                     #When mission is live, run the mission
                     if(self.mission_live):
