@@ -15,6 +15,9 @@ import os
 #sys.path.append(SENSOR_HUB_PATH)
 #from sensor_driver import Sensor_Driver
 
+MISSION_COMMANDER_PATH = os.path.join("..", "Mission")
+sys.path.append(MISSION_COMMANDER_PATH)
+
 NAV_CONT_PATH = os.path.join("..", "Dynamics")
 sys.path.append(NAV_CONT_PATH)
 from navigation_controller import Navigation_Controller

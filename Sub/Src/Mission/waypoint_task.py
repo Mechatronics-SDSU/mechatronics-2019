@@ -59,7 +59,7 @@ class Waypoint_Task:
         self.timeout_timer = util_timer.Timer()
 
         self.print_task_info()
-
+        self.unpack_waypoints()
     def print_task_info(self):
         '''
         Print the task information.
@@ -89,13 +89,11 @@ class Waypoint_Task:
         with open(self.waypoint_task_dict["waypoint_file"]) as waypoint_file:
             csv_reader = csv.reader(waypoint_file, delimiter=',')
 
-            for waypoint_id, waypoint in enumeration(csv_reader):
-
+            for waypoint_id, waypoint in enumerate(csv_reader):
                 if(waypoint_id == 0):
-                    self.waypoints = np.array(waypoint)
+                    self.waypoints = np.array(waypoint).reshape(1, 4)
                 else:
-                    self.waypoints.append(waypoint, axis=0) #append waypoints as rows
-
+                    self.waypoints = np.append(self.waypoints, np.array(waypoint).reshape(1, 4), axis=0) #append waypoints as rows
         waypoint_file.close()
 
     def run(self):
@@ -110,7 +108,7 @@ class Waypoint_Task:
                     out.
             False: If the waypoint task reaches its timout but hasn't finished.
         '''
-
+        print("[INFO]: Starting Waypoint Task:", self.name)
         self.timeout_timer.restart_timer()
 
         #Convert the timout to seconds
@@ -118,12 +116,13 @@ class Waypoint_Task:
 
         #Iterate through each waypoint. Only move onto the next waypoint after
         #you have made it the current one
-        for waypoint_id in self.waypoints.shape[0]:
+
+        print(self.waypoints.shape)
+        for waypoint_id in range(0, self.waypoints.shape[0]):
             #The order from moving to waypoint to waypoint is
             #1st: Dive to the desired_depth
             #2nd: Turn yaw to face desired_position
             #3rd: Drive to the desired waypoint position
-
             north_position = self.waypoints[waypoint_id, 1]
             east_position = self.waypoints[waypoint_id, 2]
             depth_position = self.waypoints[waypoint_id, 3]
