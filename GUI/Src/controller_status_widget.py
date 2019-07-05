@@ -14,6 +14,7 @@ from PyQt5.QtWidgets import QWidget, QApplication, QGridLayout, QCheckBox, QLabe
 from PyQt5.QtWidgets import QLineEdit, QVBoxLayout
 from PyQt5.QtGui import QColor, QIcon, QPixmap
 from PyQt5.QtCore import Qt
+from controller_status_thread import Status_Thread
 
 class Joystick_Test(QWidget):
     '''
@@ -51,11 +52,17 @@ class Joystick_Test(QWidget):
         self.setWindowTitle(self.title)
         
         #Set the value for connections status
-        self.JOYSTICK_STATUS = "Connected"
-        self.change_status()
+        #self.JOYSTICK_STATUS = "Connected"
+        #self.change_status()
     
         #platform.platform()
         #print(platform.system()) #prints Linux, Darwin, or Windows
+
+        self.controller_stat_thread = Status_Thread()
+        self.controller_stat_thread.threadrunning = True
+        self.controller_stat_thread.start()
+
+        self.controller_stat_thread.valueUpdated.connect(self.change_status)
     
     def change_status(self):
         '''
@@ -67,7 +74,7 @@ class Joystick_Test(QWidget):
             N/A
         '''
         label = QLabel(self)
-        if (self.JOYSTICK_STATUS == "Connected"):
+        if (self.controller_stat_thread.joystickDisconnected == False):
             pixmap = QPixmap('green.png')
         else:
             pixmap = QPixmap('red.png')
