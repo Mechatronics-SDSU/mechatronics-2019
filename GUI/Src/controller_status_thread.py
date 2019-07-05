@@ -21,21 +21,22 @@ from MechOS import mechos
 import pygame
 import numpy
 from PyQt5.QtCore import QThread
+from PyQt5 import QtCore
 
 class Status_Thread(QThread):
+
+	valueUpdated = QtCore.pyqtSignal(bool)
 
 	def __init__(self):
 		QThread.__init__(self)
 		pygame.joystick.init()
 		self.joystickDisconnected = False
 
+
 	def __del__(self):
 		self.wait()
 
 	def run(self):
-		#while self.threadrunning == False:
-			#print("not running")
-			#time.sleep(1)
 		while self.threadrunning == True:
 			self.checkStatus()
 			time.sleep(1)
@@ -45,4 +46,5 @@ class Status_Thread(QThread):
 		joysticks = [pygame.joystick.Joystick(x) for x in range (pygame.joystick.get_count())]
 		if len(joysticks) == 1:
 			self.joystickDisconnected = True
+		self.valueUpdated.emit(self.joystickDisconnected)
 
