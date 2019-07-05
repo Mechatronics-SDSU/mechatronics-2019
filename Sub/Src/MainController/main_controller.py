@@ -53,7 +53,7 @@ class Main_Controller(node_base):
 
         self.sensor_driver = Sensor_Driver()
         self.navigation_controller = Navigation_Controller(MEM, IP, self.sensor_driver)
-        self.mission_commander = Mission_Commander()
+        self.mission_commander = Mission_Commander('MissionFiles/Dummy/mission.json')
 
         self.run_main_controller = True
 
@@ -61,6 +61,9 @@ class Main_Controller(node_base):
         self.sensor_driver.start()
         self.navigation_controller.start()
         self.mission_commander.start()
+
+        #Initialize the current position to (0, 0)
+        self.sensor_driver.zero_pos()
 
     def print_sensor_data(self, sensor_data):
         '''
