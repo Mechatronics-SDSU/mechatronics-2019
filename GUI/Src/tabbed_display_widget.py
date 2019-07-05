@@ -51,9 +51,9 @@ class Tabbed_Display(QWidget):
         self.tab_display_node = mechos.Node("GUI_TABS", configs["ip"])
         self.movement_mode_publisher = self.tab_display_node.create_publisher("MM", configs["pub_port"])
 
-        self.controller_stat_thread = Status_Thread()
-        self.controller_stat_thread = Start()
-
+        #self.controller_stat_thread = Status_Thread()
+        #self.controller_stat_thread.threadrunning = False
+        #self.controller_stat_thread.start()
 
     def add_tab(self, widget, title):
         '''
@@ -102,11 +102,15 @@ class Tabbed_Display(QWidget):
         mode_serialized = struct.pack('b', mode)
         # Publish current index
         self.movement_mode_publisher.publish(mode_serialized)
-        
-        if mode == 2:
-            self.controller_stat_thread.threadrunning == True
-        else:
-            self.controller_stat_thread.threadrunning == False
+
+        #if self.controller_stat_thread.isRunning()==False:
+            #self.controller_stat_thread.threadrunning == False
+            #self.controller_stat_thread.start()
+
+        #if mode == 2:
+            #self.controller_stat_thread.threadrunning = True
+        #elif mode==0 or mode==1:
+            #self.controller_stat_thread.threadrunning = False
 
 
 if __name__ == "__main__":
