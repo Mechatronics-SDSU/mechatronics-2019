@@ -26,11 +26,10 @@ class Mission_Commander(threading.Thread):
     '.json'.
     '''
 
-    def __init__(self, mission_file, sensor_driver):
+    def __init__(self, sensor_driver):
         '''
         Initialize the mission given the mission .json file.
         Parameters:
-            mission_file: The path to the .json mission file.
             sensor_driver: The sensor driver thread object so
             the drive functions have access to the sensor data.
         Returns:
@@ -39,7 +38,7 @@ class Mission_Commander(threading.Thread):
 
         threading.Thread.__init__(self)
 
-        self.mission_file = mission_file
+        self.mission_file = None
         self.sensor_driver = sensor_driver
 
         #Initialize the drive functions
@@ -53,6 +52,9 @@ class Mission_Commander(threading.Thread):
 
         #subscriber to listen if the movement mode is set to be autonomous mission mode
         self.movement_mode_subscriber = self.mission_commander_node.create_subscriber("MM", self._update_movement_mode_callback, configs["sub_port"])
+
+        #subscriber to listen if the mission informatin has changed.
+        self.update_mission_info_subscriber = self.mission_commander_node.create_subscriber("MS", self._update_mission_info_callback, configs["sub_port"])
 
         #Publisher to be able to kill the sub within the mission
         self.kill_sub_publisher = self.mission_commander_node.create_subscriber("KS", configs["pub_port"])
@@ -73,6 +75,7 @@ class Mission_Commander(threading.Thread):
         self.mission_live = False  #Mission live corresponds to the autonomous buttons state.
 
         #load the mission data
+        self._update_mission_info_callback()
         self.parse_mission()
 
     def _update_movement_mode_callback(self, movement_mode):
@@ -101,6 +104,25 @@ class Mission_Commander(threading.Thread):
 
             self.mission_mode = False
 
+    def _update_mission_info_callback(self, misc):
+        '''
+        If the update mission info button is pressed in the mission planner widget,
+        update the mission info here. Note that the mission being live should go to
+        false.
+
+        Parameters:
+            misc: Nothing used.
+        Returns:
+            N/A
+        '''
+
+        #Get the new mission file from the parameter server.
+        self.mission_file = self.param_serv.get_param("Missions/mission_file")
+        self.mission_live = False
+
+        print("[INFO]: New Mission file set as %s", self.mission_file)
+        #Parse the mission file
+        self.parse_mission()
     def _command_listener(self):
         '''
         The thread to run update requests from the GUI to tell the mission commander

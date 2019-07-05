@@ -97,5 +97,6 @@
     </Sensors>
     <Missions>
       <waypoint_collect_file>waypoint_test.csv</waypoint_collect_file>
+      <mission_file>MissionFiles/Dummy/mission.json</mission_file>
     </Missions>
 </Perseverance>
