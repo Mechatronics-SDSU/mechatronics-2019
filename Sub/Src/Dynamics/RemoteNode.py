@@ -125,7 +125,7 @@ class RemoteControlNode(node_base):
 if __name__ == '__main__':
     rc_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     thrust_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    ip_address = ('192.168.1.14', 5558)
+    ip_address = ('127.0.0.101', 5558)
 
     IP={'RC':
             {
