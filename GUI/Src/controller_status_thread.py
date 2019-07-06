@@ -29,9 +29,8 @@ class Status_Thread(QThread):
 
 	def __init__(self):
 		QThread.__init__(self)
-		pygame.joystick.init()
 		self.joystickDisconnected = False
-
+		pygame.init()
 
 	def __del__(self):
 		self.wait()
@@ -42,9 +41,12 @@ class Status_Thread(QThread):
 			time.sleep(1)
 
 	def checkStatus(self):
-		print("checking status")
-		joysticks = [pygame.joystick.Joystick(x) for x in range (pygame.joystick.get_count())]
-		if len(joysticks) == 1:
-			self.joystickDisconnected = True
+		joysticks = pygame.joystick.get_count()
+		for x in range(joysticks):
+			if pygame.joystick.Joystick(x).get_name() == "VirtualBox mouse integration":
+				self.joystickDisconnected = False
+				print("Joystick is connected")
+			else:
+				self.joystickDisconnected = True
 		self.valueUpdated.emit(self.joystickDisconnected)
 
