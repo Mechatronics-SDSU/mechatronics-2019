@@ -223,7 +223,7 @@ class Movement_PID:
                      (yaw_control * thruster.orientation[1] * thruster.location[0]) + \
                      (yaw_control * thruster.orientation[0] * thruster.location[1]) + \
                      (x_control * thruster.orientation[0]) + \
-                     (y_control * thruster.orientation[1]) + \
+                     (-1 *y_control * thruster.orientation[1]) + \
                      (z_control * thruster.orientation[2])
 
             #Write the thrust to the given thruster. Some thrusters have an additional offset to given them
