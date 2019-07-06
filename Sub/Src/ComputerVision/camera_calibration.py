@@ -8,6 +8,7 @@ def chess_board():
     object_points = np.zeros((6*9, 3), np.float32)
     object_points[:,:2] = np.mgrid[0:9,0:6].T.reshape(-1, 2)
 
+
     #list of 3d object points, 2d image points
     three_dim_points = []
     two_dim_points = []
@@ -15,6 +16,7 @@ def chess_board():
     list_pics = glob.glob('chessboard_cal_pics/*.jpg')
 
     for index, pic in enumerate(list_pics):
+        print(pic)
         picture = cv2.imread(pic)
         gray_pic = cv2.cvtColor(picture, cv2.COLOR_BGR2GRAY)
         shape = gray_pic.shape[::-1]
@@ -28,17 +30,21 @@ def chess_board():
 
             cv2.drawChessboardCorners(picture, (9, 6), board_corners, ret)
             cv2.imshow('picture', picture)
-            cv2.waitKey(50)
+            cv2.waitKey(1)
 
+    #print(three_dim_points)
+    #print(np.shape)
+    #input("Press enter to continue")
+    #print(two_dim_points)
+    ret, camera_matrix, distortion_matrix, rvecs, tvecs = cv2.calibrateCamera(three_dim_points, two_dim_points, shape, None, None)
     cv2.destroyAllWindows()
-    return three_dim_points, two_dim_points, shape
+    return three_dim_points, two_dim_points, camera_matrix, distortion_matrix, rvecs, tvecs
 
 if __name__ == '__main__':
 
-    three_dim_points, two_dim_points, shape = chess_board()
-    print(shape)
-    ret, camera_matrix, distortion_matrix, rvecs, tvecs  = cv2.calibrateCamera(three_dim_points, two_dim_points, shape, None, None)
+    three_dim_points, two_dim_points, camera_matrix, distortion_matrix, rvecs, tvecs  = chess_board()
+    #TODO: Save these values to the parameter server
     print(camera_matrix)
     print(distortion_matrix)
-    print(rvecs)
-    print(tvecs)
+    #print(rvecs)
+    #print(tvecs)
