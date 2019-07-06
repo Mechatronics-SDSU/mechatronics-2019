@@ -196,7 +196,6 @@ class Mission_Commander(threading.Thread):
                     #TODO: Use serial communication to listen to the autonomous mode button
                     auto_pressed = (self.auto_serial.read(13)).decode()
                     self.auto_serial.read(2) #Read the excess two bytes
-                    
                     if(auto_pressed == "Auto Status:1"):
                         print("[INFO]: Mission Now Live")
                         self.mission_live = True
