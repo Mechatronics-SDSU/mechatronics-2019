@@ -90,6 +90,8 @@ class Waypoint_Task:
             csv_reader = csv.reader(waypoint_file, delimiter=',')
 
             for waypoint_id, waypoint in enumerate(csv_reader):
+                
+                waypoint = [float(point) for point in waypoint]
                 if(waypoint_id == 0):
                     self.waypoints = np.array(waypoint).reshape(1, 4)
                 else:
@@ -136,7 +138,7 @@ class Waypoint_Task:
                 return False
 
             #Face position desired_position
-            remaining_task_time = task_time - self.timout_timer.net_time()
+            remaining_task_time = task_time - self.timeout_timer.net_time()
             succeeded, desired_yaw = self.drive_functions.move_to_face_position(self,north_position=north_position,
                                                             east_position=east_position,
                                                             buffer_zone=1,
@@ -145,7 +147,7 @@ class Waypoint_Task:
             if(not succeeded):
                 return False
             #Drive to the desired_position
-            remaining_task_time = task_time - self.timout_timer.net_time()
+            remaining_task_time = task_time - self.timeout_timer.net_time()
             succedded, _, _ = self.drive_functions.move_to_position_hold_orientation(self, north_position=north_position,
                                                                           east_position=east_position,
                                                                           buffer_zone=1,
