@@ -56,7 +56,7 @@ class Main_Controller(node_base):
 
         self.sensor_driver = Sensor_Driver()
         self.navigation_controller = Navigation_Controller(MEM, IP, self.sensor_driver)
-        self.mission_commander = Mission_Commander('MissionFiles/Dummy/mission.json')
+        self.mission_commander = Mission_Commander(self.sensor_driver)
 
         self.run_main_controller = True
 
