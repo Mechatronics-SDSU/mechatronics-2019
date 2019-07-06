@@ -52,7 +52,7 @@ class Waypoint_Task:
         self.waypoint_task_dict = waypoint_task_dict
         self.name = self.waypoint_task_dict["name"]
         self.type = "Waypoint"
-        
+
         self.drive_functions = drive_functions
 
         #Initialize the timeout timer
@@ -60,6 +60,7 @@ class Waypoint_Task:
 
         self.print_task_info()
         self.unpack_waypoints()
+
     def print_task_info(self):
         '''
         Print the task information.
@@ -90,12 +91,15 @@ class Waypoint_Task:
             csv_reader = csv.reader(waypoint_file, delimiter=',')
 
             for waypoint_id, waypoint in enumerate(csv_reader):
-                
-                waypoint = [float(point) for point in waypoint]
+
+                waypoint = [float(point) for point in waypoint] #Convert the values from csv to floats (they are read initially as strings)
+
+                #Initialize waypoints numpy array on the first iteration through reading the csv.
                 if(waypoint_id == 0):
                     self.waypoints = np.array(waypoint).reshape(1, 4)
                 else:
                     self.waypoints = np.append(self.waypoints, np.array(waypoint).reshape(1, 4), axis=0) #append waypoints as rows
+
         waypoint_file.close()
 
     def run(self):
@@ -119,7 +123,6 @@ class Waypoint_Task:
         #Iterate through each waypoint. Only move onto the next waypoint after
         #you have made it the current one
 
-        print(self.waypoints.shape)
         for waypoint_id in range(0, self.waypoints.shape[0]):
             #The order from moving to waypoint to waypoint is
             #1st: Dive to the desired_depth
