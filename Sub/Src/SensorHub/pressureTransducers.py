@@ -44,15 +44,17 @@ class Pressure_Depth_Transducers:
         #Initialize base classes
         super(Pressure_Depth_Transducers, self).__init__()
 
-        configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
-        self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
-        self.param_serv.use_parameter_database(configs["param_server_path"])
+        #configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
+        #self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
+        #self.param_serv.use_parameter_database(configs["param_server_path"])
 
 
         #This is the variable that you append raw pressure data to once it is
         #received from the backplane.
-        self.depth_scaling = [float(self.param_serv.get_param("Sensors/trans_1_scaling")), float(self.param_serv.get_param("Sensors/trans_2_scaling"))]
-        self.depth_bias = [float(self.param_serv.get_param("Sensors/trans_1_bias")), float(self.param_serv.get_param("Sensors/trans_2_bias"))]
+        #self.depth_scaling = [float(self.param_serv.get_param("Sensors/trans_1_scaling")), float(self.param_serv.get_param("Sensors/trans_2_scaling"))]
+        self.depth_scaling = 10.20185
+        #self.depth_bias = [float(self.param_serv.get_param("Sensors/trans_1_bias")), float(self.param_serv.get_param("Sensors/trans_2_bias"))]
+        self.depth_bias = 598.8
 
         #Initialize Kalman Filter Parameters( Note this needs to be edited per type of transducer and number of transducers)
         #Currently set up for two transducers
@@ -114,8 +116,8 @@ class Pressure_Depth_Transducers:
 
         if(raw_pressure_data != None):
             depths = [0, 0]
-            depths[0] = (1 / self.depth_scaling[0]) * (raw_pressure_data[0] - self.depth_bias[0])
-            depths[1] = (1 / self.depth_scaling[1]) * (raw_pressure_data[1] - self.depth_bias[1])
+            depths[0] = (1 / self.depth_scaling) * (raw_pressure_data[0] - self.depth_bias)
+            depths[1] = (1 / 1.0) * (raw_pressure_data[1] - 1.0)
             self.unfiltered_depth_data = depths
             return depths
         return None

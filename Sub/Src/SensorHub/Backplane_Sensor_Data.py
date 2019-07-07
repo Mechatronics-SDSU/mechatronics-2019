@@ -104,13 +104,14 @@ class Backplane_Responses(threading.Thread):
         self.daemon = True
 
         #Get the mechos network parameters
-        configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
+        #configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
-        self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
-        self.param_serv.use_parameter_database(configs["param_server_path"])
+        #self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
+        #self.param_serv.use_parameter_database(configs["param_server_path"])
 
         self.backplane_response_timer = util_timer.Timer()
-        self.backplane_response_timer_interval = float(self.param_serv.get_param("Timing/backplane_response"))
+        #self.backplane_response_timer_interval = float(self.param_serv.get_param("Timing/backplane_response"))
+        self.backplane_response_timer_interval = 0.025
 
         #A list(Queue) to store data received from backplane
         self.backplane_data_queue = []
@@ -138,6 +139,7 @@ class Backplane_Responses(threading.Thread):
                 self.backplane_response_timer.restart_timer()
             
             backplane_data_packet = self._unpack()
+            #print(backplane_data_packet)
 
             if backplane_data_packet != None:
                 self.backplane_data_queue.append(backplane_data_packet)
@@ -162,10 +164,13 @@ class Backplane_Responses(threading.Thread):
                 #read in first byte and check if it is the correct header byte
                 #header byte should be 0xEE
                 header_byte = ord(self.backplane_serial.read())
+                #print(header_byte)
                 if header_byte == self.header_byte:
 
                     byte_1 = ord(self.backplane_serial.read())
+                    #print(byte_1)
                     byte_2 = ord(self.backplane_serial.read())
+                    #print(byte_2)
 
                     id_frame = (struct.unpack('h', struct.pack('H', (byte_1 << 3) | (byte_2 >> 5)))[0])
 
@@ -240,16 +245,20 @@ class Backplane_Responses(threading.Thread):
                         message = {"W13": 0}
                         print("**WEAPON 13 ON")
                     elif id_frame == 392:   #Read in pressure data from the three pressure sensors
+                        #print("Here")
                         #Byte 2 (bits 0-1) shifted 8 bits left OR Byte 1 (bits 0-7)
-                         ext_pressure_1 = struct.unpack('H', struct.pack('H', (payload[1] & int('0x03', 0)) << 8 | payload[0]))[0]
-                         #Byte 3 (bits 0-3) shifted 6 bits left OR Byte 2 (bits 2-7) shifted 2 bits right
-                         ext_pressure_2 = struct.unpack('H', struct.pack('H', (payload[2] & int('0xF', 0)) << 6 | payload[1] >> 2))[0]
-                         #Byte 4 (bits 0-5) shifted 4 bits left OR Byte 3 (bits 4-7) shifted 4
-                         ext_pressure_3 = struct.unpack('H', struct.pack('H', (payload[3] & int('0x1F', 0)) << 4 | payload[2] >> 4))[0]
-                         inter_pressure_1 = (struct.unpack('i', struct.pack('I', payload[4] | payload[5] << 8 | (int('0xF', 0) & payload[6]) << 16))[0])
-                         #message = {"Press":[ext_pressure_1,ext_pressure_2, ext_pressure_3, inter_pressure_1]}
-                         #Currently only these two transducers are operational
-                         message = {"Press":[ext_pressure_2, ext_pressure_3]}
+                        ext_pressure_1 = struct.unpack('H', struct.pack('H', (payload[1] & int('0x03', 0)) << 8 | payload[0]))[0]
+                        print(ext_pressure_1)
+                        #Byte 3 (bits 0-3) shifted 6 bits left OR Byte 2 (bits 2-7) shifted 2 bits right
+                        ext_pressure_2 = struct.unpack('H', struct.pack('H', (payload[2] & int('0xF', 0)) << 6 | payload[1] >> 2))[0]
+                        print(ext_pressure_2)
+                        #Byte 4 (bits 0-5) shifted 4 bits left OR Byte 3 (bits 4-7) shifted 4
+                        ext_pressure_3 = struct.unpack('H', struct.pack('H', (payload[3] & int('0x1F', 0)) << 4 | payload[2] >> 4))[0]
+                        print(ext_pressure_3)
+                        inter_pressure_1 = (struct.unpack('i', struct.pack('I', payload[4] | payload[5] << 8 | (int('0xF', 0) & payload[6]) << 16))[0])
+                        #message = {"Press":[ext_pressure_1,ext_pressure_2, ext_pressure_3, inter_pressure_1]}
+                        #Currently only these two transducers are operational
+                        message = {"Press":[ext_pressure_2, ext_pressure_3]}
                     elif id_frame == 400:   #This use to be used for an internal pressure sensor
                         pass
 
@@ -299,11 +308,12 @@ class Backplane_Handler(threading.Thread):
         #Get the mechos network parameters
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
-        self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
-        self.param_serv.use_parameter_database(configs["param_server_path"])
+        #self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
+        #self.param_serv.use_parameter_database(configs["param_server_path"])
 
         self.backplane_handler_timer = util_timer.Timer()
-        self.backplane_handler_timer_interval = float(self.param_serv.get_param("Timing/backplane_handler"))
+        #self.backplane_handler_timer_interval = float(self.param_serv.get_param("Timing/backplane_handler"))
+        self.backplane_handler_timer_interval = 0.025
 
         #start backplane response thread
         self.backplane_response_thread.start()
@@ -343,17 +353,20 @@ class Backplane_Handler(threading.Thread):
                 if(len(self.backplane_response_thread.backplane_data_queue) != 0):
                 #pop off data from the backplane
                     backplane_data = self.backplane_response_thread.backplane_data_queue.pop(0)
+                    #print(backplane_data)
 
                     #if pressure data is popped from queue, process it
                     if "Press" in backplane_data.keys():
                         raw_depth_data = backplane_data["Press"]
-
+                        print(raw_depth_data)
                         depth_data = self.depth_processing.process_depth_data(raw_depth_data)
 
                         if(depth_data != None):
                             with self.threading_lock:
                                 self.raw_depth_data = raw_depth_data
                                 self.depth_data = depth_data[0, 0]
+                                #print(self.raw_depth_data)
+                                #print(self.depth_data)
 
             except Exception as e:
                 print("[ERROR]: Cannot pop backplane data. Error:", e)
@@ -365,11 +378,9 @@ class Backplane_Handler(threading.Thread):
 if __name__ == "__main__":
 
     #Get the mechos network parameters
-    configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
+    #configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
+    #param_serv.use_parameter_database(configs["param_server_path"])
 
-    param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
-    param_serv.use_parameter_database(configs["param_server_path"])
-
-    com_port = param_serv.get_param("COM_Ports/backplane")
-    backplane_handler = Backplane_Handler(com_port)
+    #com_port = param_serv.get_param("COM_Ports/backplane")
+    backplane_handler = Backplane_Handler('/dev/ttyUSB0')
     backplane_handler.run()
