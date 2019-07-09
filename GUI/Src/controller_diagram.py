@@ -17,32 +17,55 @@ from PyQt5.QtCore import Qt, QRect
 class Controller_Diagram(QWidget):
     '''
     This class is PyQt widget for displaying what each button on the joystick does
+<<<<<<< HEAD
 
     Parameter:
     N/A
 
+=======
+    
+    Parameter:
+    N/A 
+    
+>>>>>>> bf0125df0fa176e760f65f501c2e53539a18608e
     Returns:
     N/A
     '''
     def __init__(self):
         '''
         Initialize the labeled controller diagram on the GUI
+<<<<<<< HEAD
 
         Parameter:
         N/A
 
+=======
+            
+        Parameter:
+        N/A
+            
+>>>>>>> bf0125df0fa176e760f65f501c2e53539a18608e
         Returns:
         N/A
         '''
         QWidget.__init__(self)
         self.type = "LABELED_CONTROLLER"
         self.title = 'Labeled Controller'
+<<<<<<< HEAD
 
         #Set background color of the widget
         #nav_gui_palette = self.palette()
         #nav_gui_palette.setColor(self.backgroundRole(), QColor(64, 64, 64))
         #self.setPalette(nav_gui_palette)
 
+=======
+        
+        #Set background color of the widget
+        nav_gui_palette = self.palette()
+        nav_gui_palette.setColor(self.backgroundRole(), QColor(64, 64, 64))
+        self.setPalette(nav_gui_palette)
+        
+>>>>>>> bf0125df0fa176e760f65f501c2e53539a18608e
         #Create widgets main layout structer
         self.linking_layout = QGridLayout(self)
         self.setLayout(self.linking_layout)

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> bf0125df0fa176e760f65f501c2e53539a18608e
 '''
 Copyright 2019, Ramiz Hanan, All rights reserved
 Author: Ramiz Hanan<ramizhanan@gmail.com>
@@ -19,10 +23,17 @@ from controller_status_thread import Status_Thread
 class Joystick_Test(QWidget):
     '''
         This class is PyQt widget for displaying controller connection status.
+<<<<<<< HEAD
 
         Parameter:
         N/A for now. Eventually will be passed JOYSTICK_STATUS and OSTYPE
 
+=======
+    
+        Parameter:
+        N/A for now. Eventually will be passed JOYSTICK_STATUS and OSTYPE
+        
+>>>>>>> bf0125df0fa176e760f65f501c2e53539a18608e
         Returns:
         N/A
     '''
@@ -30,31 +41,55 @@ class Joystick_Test(QWidget):
         '''
             Initialize the layout for the widget by setting its color and instantiating
             its components.
+<<<<<<< HEAD
 
             Parameter:
             N/A
 
+=======
+            
+            Parameter:
+            N/A
+            
+>>>>>>> bf0125df0fa176e760f65f501c2e53539a18608e
             Returns:
             N/A
         '''
         QWidget.__init__(self)
         self.type = "JOYSTICK_STATUS"
         self.title = 'Joystick Status'
+<<<<<<< HEAD
 
         #Set background color of the widget
         #nav_gui_palette = self.palette()
         #nav_gui_palette.setColor(self.backgroundRole(), QColor(64, 64, 64))
         #self.setPalette(nav_gui_palette)
 
+=======
+        
+        #Set background color of the widget
+        nav_gui_palette = self.palette()
+        nav_gui_palette.setColor(self.backgroundRole(), QColor(64, 64, 64))
+        self.setPalette(nav_gui_palette)
+        
+>>>>>>> bf0125df0fa176e760f65f501c2e53539a18608e
         #Create widgets main layout structer
         self.linking_layout = QGridLayout(self)
         self.setLayout(self.linking_layout)
         self.setWindowTitle(self.title)
+<<<<<<< HEAD
 
         #Set the value for connections status
         #self.JOYSTICK_STATUS = "Connected"
         #self.change_status()
 
+=======
+        
+        #Set the value for connections status
+        #self.JOYSTICK_STATUS = "Connected"
+        #self.change_status()
+    
+>>>>>>> bf0125df0fa176e760f65f501c2e53539a18608e
         #platform.platform()
         #print(platform.system()) #prints Linux, Darwin, or Windows
 
@@ -63,11 +98,19 @@ class Joystick_Test(QWidget):
         self.controller_stat_thread.start()
 
         self.controller_stat_thread.valueUpdated.connect(self.change_status)
+<<<<<<< HEAD
 
     def change_status(self):
         '''
         Updates status icon if joystick is connected.
 
+=======
+    
+    def change_status(self):
+        '''
+        Updates status icon if joystick is connected.
+        
+>>>>>>> bf0125df0fa176e760f65f501c2e53539a18608e
         Parameters:
             N/A
         Returns:
