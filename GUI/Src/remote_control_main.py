@@ -46,21 +46,21 @@ class Remote_Control_Widget(QWidget):
 		self.setGeometry(0,0,1000,700)
 
 		#Set the background color of the widget
-		main_gui_palette = self.palette()
-		main_gui_palette.setColor(self.backgroundRole(), QColor(64, 64, 64))
-		self.setPalette(main_gui_palette)
+		#main_gui_palette = self.palette()
+		#main_gui_palette.setColor(self.backgroundRole(), QColor(64, 64, 64))
+		#self.setPalette(main_gui_palette)
 
 		#Place the controller config widget and the controller status widget on GUI
 		self.set_gui_label()
 		self.set_controller_status()
 		self.set_controller_diagram()
 		self.set_waypoint_gui()
-		
+
 	def set_gui_label(self):
 		'''
 		Sets label
 		'''
-		rc_title = QLabel("<font color='white'>Remote Control Mode</font>")
+		rc_title = QLabel("<font color='black'>Remote Control Mode</font>")
 		rc_title.setFont(QFont('SansSerif', 30))
 		rc_title.setAlignment(Qt.AlignCenter)
 		self.main_layout.addWidget(rc_title, 0, 0)
