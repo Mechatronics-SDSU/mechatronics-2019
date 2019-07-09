@@ -13,7 +13,7 @@ import numpy as np
 import time
 from message_passing.Nodes.node_base_udp import node_base
 
-class remote_control_node(node_base):
+class Remote_Control_Node(node_base):
     '''
     This class will listen to Xbox inputs, and only four values: Left stick
     horizontal movement for x, left stick vertical for y, right stick horizontal
@@ -105,42 +105,43 @@ class remote_control_node(node_base):
         '''
 
         while True:
+            try:
+                #Set the axes for every event. This gives us simultaenous control
+                #over multiple thrusters
+                if pygame.event.peek():
 
-            #Set the axes for every event. This gives us simultaenous control
-            #over multiple thrusters
-            if pygame.event.peek():
+                    instance = pygame.event.poll()
 
-                instance = pygame.event.poll()
+                    self._axes[0] = self._joystick.get_axis(0)
+                    self._axes[1] = self._joystick.get_axis(1)
 
-                self._axes[0] = self._joystick.get_axis(0)
-                self._axes[1] = self._joystick.get_axis(1)
+                    #map triggers differently, cuz default state is not 0
+                    self._axes[2] = self._joystick.get_axis(2)
+                    self._axes[3] = self._joystick.get_axis(3)
 
-                #map triggers differently, cuz default state is not 0
-                self._axes[2] = self._joystick.get_axis(2)
-                self._axes[3] = self._joystick.get_axis(3)
+                    #map triggers differently, cuz default state is not 0
+                    self._axes[4] = self._joystick.get_axis(5)
 
-                #map triggers differently, cuz default state is not 0
-                self._axes[4] = self._joystick.get_axis(5)
+                    if instance.type == pygame.JOYBUTTONUP:
+                        if instance.button == 1:
+                            self._remote_depth_hold = not self._remote_depth_hold
+                        if instance.button == 0:
+                            self._record_waypoint = True
+                        if instance.button == 2:
+                            self._zero_waypoint = True
 
-                if instance.type == pygame.JOYBUTTONUP:
-                    if instance.button == 1:
-                        self._remote_depth_hold = not self._remote_depth_hold
-                    if instance.button == 0:
-                        self._record_waypoint = True
-                    if instance.button == 2:
-                        self._zero_waypoint = True
+                    self._axes[5] = self._remote_depth_hold
+                    self._axes[6] = self._record_waypoint
+                    self._axes[7] = self._zero_waypoint
+                    self._send(msg=(self._control(self._axes)), register = 'RC', local = False, foreign = True)
+                    self._record_waypoint = False
+                    self._zero_waypoint = False
 
-                self._axes[5] = self._remote_depth_hold
-                self._axes[6] = self._record_waypoint
-                self._axes[7] = self._zero_waypoint
-                self._send(msg=(self._control(self._axes)), register = 'RC', local = False, foreign = True)
-                self._record_waypoint = False
-                self._zero_waypoint = False
-
-            else:
-                #print(self.remote_depth_hold)
-                time.sleep(0)
-
+                else:
+                    #print(self.remote_depth_hold)
+                    time.sleep(0)
+            except Exception as e:
+                print("[ERROR]: Could not recieve inputs from remote controller. Please checked the controller is plugged in. Error:", e)
 if __name__ == '__main__':
 
     rc_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -155,5 +156,5 @@ if __name__ == '__main__':
             }
         }
     MEM={'RC':b'cleaners'}
-    remote_node = remote_control_node(IP, MEM)
+    remote_node = Remote_Control_Node(IP, MEM)
     remote_node.start()
