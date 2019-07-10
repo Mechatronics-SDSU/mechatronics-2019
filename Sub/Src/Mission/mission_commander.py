@@ -55,7 +55,7 @@ class Mission_Commander(threading.Thread):
         self.mission_commander_node = mechos.Node("MISSION_COMMANDER", configs["ip"])
 
         #subscriber to listen if the movement mode is set to be autonomous mission mode
-        self.movement_mode_subscriber = self.mission_commander_node.create_subscriber("MM", self._update_movement_mode_callback, configs["sub_port"]) 
+        self.movement_mode_subscriber = self.mission_commander_node.create_subscriber("MM", self._update_movement_mode_callback, configs["sub_port"])
         #subscriber to listen if the mission informatin has changed.
         self.update_mission_info_subscriber = self.mission_commander_node.create_subscriber("MS", self._update_mission_info_callback, configs["sub_port"])
 

@@ -52,14 +52,22 @@ class Waypoint_Task:
         self.waypoint_task_dict = waypoint_task_dict
         self.name = self.waypoint_task_dict["name"]
         self.type = "Waypoint"
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> Wrote a first iteration version of the mission commander. Still need a GUI component to start and stop missions from running.
         self.drive_functions = drive_functions
 
         #Initialize the timeout timer
         self.timeout_timer = util_timer.Timer()
 
         self.print_task_info()
+<<<<<<< HEAD
         self.unpack_waypoints()
+=======
+
+>>>>>>> Wrote a first iteration version of the mission commander. Still need a GUI component to start and stop missions from running.
     def print_task_info(self):
         '''
         Print the task information.
