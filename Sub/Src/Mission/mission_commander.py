@@ -167,7 +167,7 @@ class Mission_Commander(threading.Thread):
 
             #Initially have the sub killed when switched to mission commander mode
             kill_state = struct.pack('b', 1)
-            self.kill_sub_publisher.publisher(kill_state)
+            self.kill_sub_publisher.publish(kill_state)
 
             self.mission_mode = True
 
