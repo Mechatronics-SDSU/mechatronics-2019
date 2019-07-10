@@ -28,11 +28,12 @@ cap.set(3, 450)
 cap.set(4, 450)
 
 # load yolo here
-net = load_net(b"libs/darknet/cfg/yolov3-tiny.cfg",
-               b"libs/darknet/weights/yolov3-tiny_200.weights",
+net = load_net(b'./libs/darknet/cfg/yolov3-tiny.cfg',
+               b'./libs/darknet/weights/yolov3-tiny.weights',
                0)
 
-meta = load_meta(b"libs/darknet/data/test.data")
+
+meta = load_meta(b'./libs/darknet/cfg/coco.data')
 fps = cap.get(cv2.CAP_PROP_FPS)
 print("Frames per second using video.get(cv2.CAP_PROP_FPS) : {0}".format(fps))
 

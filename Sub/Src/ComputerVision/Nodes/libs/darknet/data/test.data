@@ -1,6 +1,6 @@
 classes= 19
-train  = /darknet/train/train.txt
-valid = /darknet/test/test.txt
-names = /darknet/names/test.names
-backup = /darknet/weights/
+train  = libs/darknet/train/train.txt
+valid = libs/darknet/test/test.txt
+names = libs/darknet/names/test.names
+backup = libs/darknet/weights/
 
