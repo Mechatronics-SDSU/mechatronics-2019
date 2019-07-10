@@ -86,7 +86,6 @@ class Mission_Commander(threading.Thread):
 
         #load the mission data
         self._update_mission_info_callback(None)
-        self.parse_mission()
 
     def _update_movement_mode_callback(self, movement_mode):
         '''
@@ -260,27 +259,39 @@ class Mission_Commander(threading.Thread):
                 #If in Mission mode, listen to see if the autonomous mode button is
                 #pressed.
                 if(self.mission_mode):
-                    #TODO: Use serial communication to listen to the autonomous mode button
-                    auto_pressed = (self.auto_serial.read(13)).decode()
-                    self.auto_serial.read(2) #Read the excess two bytes
-                    if(auto_pressed == "Auto Status:1"):
-                        print("[INFO]: Mission Now Live")
-                        self.mission_live = True
-                    elif(auto_pressed == "Auto Status:0"):
-                        print("[INFO]: Mission is no longer Live.")
-                        self.mission_live = False
+
+                    if(self.auto_serial.in_waiting):
+                        auto_pressed = (self.auto_serial.read(13)).decode()
+                        self.auto_serial.read(2) #Read the excess two bytes
+
+                        if(auto_pressed == "Auto Status:1"):
+                            print("[INFO]: Mission Now Live")
+                            self.mission_live = True
+
+                        elif(auto_pressed == "Auto Status:0"):
+                            print("[INFO]: Mission is no longer Live.")
+                            self.mission_live = False
 
                     #When mission is live, run the mission
                     if(self.mission_live):
 
                         unkill_state = struct.pack('b', 0)
                         self.kill_sub_publisher.publish(unkill_state)
+
+                        #Iterate through each task in the mission and run them
                         for task_id, task in enumerate(self.mission_tasks):
-                            print("[INFO]: Starting Task %s: %s. Mission task %d/%d" %(task.type, task.name, task_id, self.num_tasks))
-                            task.run()
+                            print("[INFO]: Starting Task %s: %s. Mission task %d/%d" %(task.type, task.name, task_id + 1, self.num_tasks))
+                            task_success = task.run()
+
+                            if(task_success):
+                                print("[INFO]: Successfully completed task %s." % task.name)
+                                continue
+                            else:
+                                print("[INFO]: Failed to complete task %s." % task.name)
 
                         print("[INFO]: Finished Mission")
                         self.mission_live = False
+
             except Exception as e:
                 print("[ERROR]: Encountered an Error in Mission Commander. Error:", e)
 
