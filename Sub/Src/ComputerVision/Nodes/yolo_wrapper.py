@@ -57,7 +57,7 @@ class METADATA(Structure):
 #lib = CDLL("/home/nvidia/Desktop/pythonYolo/darknet/libdarknet.so", RTLD_GLOBAL)
 
 # Collect Library DLL
-lib = CDLL("./lib/libdarknet.so", RTLD_GLOBAL)
+lib = CDLL("./sharedlibrary/libdarknet.so", RTLD_GLOBAL)
 lib.network_width.argtypes = [c_void_p]
 lib.network_width.restype = c_int
 lib.network_height.argtypes = [c_void_p]
