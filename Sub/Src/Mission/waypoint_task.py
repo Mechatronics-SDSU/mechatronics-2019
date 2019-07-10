@@ -52,7 +52,7 @@ class Waypoint_Task:
         self.waypoint_task_dict = waypoint_task_dict
         self.name = self.waypoint_task_dict["name"]
         self.type = "Waypoint"
-        
+
         self.drive_functions = drive_functions
 
         #Initialize the timeout timer
@@ -90,7 +90,7 @@ class Waypoint_Task:
             csv_reader = csv.reader(waypoint_file, delimiter=',')
 
             for waypoint_id, waypoint in enumerate(csv_reader):
-                
+
                 waypoint = [float(point) for point in waypoint]
                 if(waypoint_id == 0):
                     self.waypoints = np.array(waypoint).reshape(1, 4)
