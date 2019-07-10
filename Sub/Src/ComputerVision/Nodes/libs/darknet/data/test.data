@@ -1,0 +1,6 @@
+classes= 19
+train  = /darknet/train/train.txt
+valid = /darknet/test/test.txt
+names = /darknet/names/test.names
+backup = /darknet/weights/
+
