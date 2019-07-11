@@ -10,99 +10,122 @@ import io
 import time
 from ctypes import *
 from libs.darknet import *
+from MechOS.message_passing.Nodes.node_base import node_base
 
-# Port Information
-HOST    = '192.168.1.20'
-ADDRESS = 6666 # Doom Eternal
-OURSOCKET=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+class CamNode(node_base):
 
-# Data Size per Packet
-MAX_UDP_PACKET_SIZE = 1500
+    def __init__(self, MEM, IP):
 
-# Encapsulation information
-ENCAPSULATION_0xC0 = bytes.fromhex('c0c0')
+        # IP and MEM RAM locations
+        node_base.__init__(self, MEM, IP)
 
-# videoCapture from Webcam
-cap = cv2.VideoCapture(1)
-cap.set(3, 450)
-cap.set(4, 450)
+        # Instantiations
 
-# load yolo here
-net = load_net(b'./libs/darknet/cfg/yolov3-tiny.cfg',
-               b'./libs/darknet/weights/yolov3-tiny.weights',
-               0)
+        #--MESSAGING INFO--#
+        self.MAX_UDP_PACKET_SIZE = 1500
 
+        # The end byte of the image sent over udp
+        self.END_BYTE = bytes.fromhex('c0c0')*2
 
-meta = load_meta(b'./libs/darknet/cfg/coco.data')
-fps = cap.get(cv2.CAP_PROP_FPS)
-print("Frames per second using video.get(cv2.CAP_PROP_FPS) : {0}".format(fps))
+        # the Max Packet Size the Port will accept
+        self.MAX_PACKET_SIZE = 1500
 
-while(True):
-    # Capture frame-by-frame
-    ret, byte_frame = cap.read()
+        #--CAMERA INSTANCE--#
+        self.capture = cv2.VideoCapture(1)
 
+        # Maximum image size the Tegra allows without timeout
+        self.capture.set(3, 450)
+        self.capture.set(4, 450)
 
-#    input('press enter to continue...')
-    # Check Video Size
-#    print(frame.shape[:2])
+        # Neural Network Loaded from instance in darknet module
+        self.net  = load_net(b'./libs/darknet/cfg/yolov3-tiny.cfg',
+                       b'./libs/darknet/weights/yolov3-tiny.weights',
+                       0)
 
-    # print('NO imencode',sys.getsizeof(frame))
+        self.meta = load_meta(b'./libs/darknet/cfg/coco.data')
 
-    # Operations on the frame
-    '''
-    Yolo: Operations on Frame For Yolo
-    '''
-    if ret:
-        r = detect(net, meta, byte_frame)
+        self.fps = self.capture.get(cv2.CAP_PROP_FPS)
+        print("Frames per second using video.get(cv2.CAP_PROP_FPS) : {0}".format(self.fps))
 
-        for i in r:
-            x, y, w, h = i[2][0], i[2][1], i[2][2], i[2][3]
-            xmin, ymin, xmax, ymax = convertBack(float(x), float(y), float(w), float(h))
-            pt1 = (xmin, ymin)
-            pt2 = (xmax, ymax)
-            cv2.rectangle(byte_frame, pt1, pt2, (0, 255, 0), 2)
-            cv2.putText(byte_frame, i[0].decode() + " [" + str(round(i[1] * 100, 2)) + "]", (pt1[0], pt1[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 1, [0, 255, 0], 4)
-        # Get the Size of the image
-        image_size = sys.getsizeof(byte_frame)
+    def run(self):
+        while(True):
+            # Capture frame-by-frame
+            ret, byte_frame = self.capture.read()
 
-    # Capture Bytes
-    ret, byte_frame = cv2.imencode( '.jpg', byte_frame )
+            # Operations on the frame
+            '''
+            Yolo: Operations on Frame For Yolo
+            '''
+            if ret:
+                r = detect(self.net, self.meta, byte_frame)
 
-    # Sending The Frame
-    if ret:
-        imageBuffer = io.BytesIO(byte_frame)
+                for i in r:
+                    x, y, w, h = i[2][0], i[2][1], i[2][2], i[2][3]
+                    xmin, ymin, xmax, ymax = convertBack(float(x), float(y), float(w), float(h))
+                    pt1 = (xmin, ymin)
+                    pt2 = (xmax, ymax)
+                    cv2.rectangle(byte_frame, pt1, pt2, (0, 255, 0), 2)
+                    cv2.putText(byte_frame, i[0].decode() + " [" + str(round(i[1] * 100, 2)) + "]", (pt1[0], pt1[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 1, [0, 255, 0], 4)
+                # Get the Size of the image
+                image_size = sys.getsizeof(byte_frame)
 
-        number_of_packets = math.ceil(image_size/MAX_UDP_PACKET_SIZE)
-        packet_size = math.ceil(image_size/number_of_packets)
+            # Capture Bytes
+            ret, byte_frame = cv2.imencode( '.jpg', byte_frame )
 
-        # Uncomment for Manual Control of Send Speed:
+            # Sending The Frame
+            if ret:
+                imageBuffer = io.BytesIO(byte_frame)
 
-#        info_print='''
-#        IMAGE  SIZE:       {}
-#        PACKET SIZE:       {}
-#        NUMBER OF PACKETS: {}
-#        '''.format(image_size, packet_size, number_of_packets)
+                number_of_packets = math.ceil(image_size/self.MAX_UDP_PACKET_SIZE)
+                packet_size = math.ceil(image_size/number_of_packets)
 
-#        print(info_print)
-#        input('Press Enter to Continue...')
+                # Uncomment for Manual Control of Send Speed:
 
-        # Count out the number of packets that need to be sent
-        for count_var in range(0, number_of_packets):
+                #info_print=
+                '''
+                IMAGE  SIZE:       {}
+                PACKET SIZE:       {}
+                NUMBER OF PACKETS: {}
+                '''
+                #.format(image_size, packet_size, number_of_packets)
 
-            OURSOCKET.sendto(imageBuffer.read(packet_size), (HOST, ADDRESS))
+                #print(info_print)
+                #input('Press Enter to Continue...')
 
-        # EOF packet for encapsulation
-        OURSOCKET.sendto( ENCAPSULATION_0xC0*2, (HOST, ADDRESS))
+                # Count out the number of packets that need to be sent
+                for count_var in range(0, number_of_packets):
 
-        # Image Corruption decreases as sleep time increases (inversely proportional)
-        # this time.sleep is a manual fix balacing speed and the least
-        # amount of corruption on jpegs (not optimal)
-        time.sleep(0) # check as appropriate
+                    self._send(imageBuffer.read(packet_size), 'CAMERA', local=False, foreign=True)
 
-    else:
-        time.sleep(0)
+                # EOF packet for encapsulation
+                self._send(self.END_BYTE, 'CAMERA', local=False, foreign=True)
 
+# Image Corruption decreases as sleep time increases (inversely proportional)
+                # this time.sleep is a manual fix balacing speed and the least
+                # amount of corruption on jpegs (not optimal)
+                #time.sleep(0) # check as appropriate
 
+            else:
+                time.sleep(0)
 
-# When everything done, release the capture
-cap.release()
+if __name__=='__main__':
+
+    CAMERA_SOCK = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    RECV_SOCK   = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+    # IP initialization
+    IP_ADDRESS  = ('192.168.1.20', 6969)
+
+    IP ={'CAMERA':
+            {
+            'address': IP_ADDRESS,
+            'sockets': (CAMERA_SOCK, RECV_SOCK),
+            'type': 'UDP'
+            }
+        }
+    MEM={'CAMERA':b''}
+
+    # Initialize Node Thread
+    cam_node = CamNode(MEM, IP)
+    cam_node.start()
+
