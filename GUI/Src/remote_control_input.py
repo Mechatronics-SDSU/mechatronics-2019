@@ -34,6 +34,8 @@ class Remote_Control_Node(node_base):
         '''
         node_base.__init__(self, MEM, IP)
 
+        self.rc_thread_running = False
+     
         #Disgusting pygame stuff
         pygame.init()
         pygame.joystick.init()
@@ -46,6 +48,7 @@ class Remote_Control_Node(node_base):
         self._remote_depth_hold = False
         self._record_waypoint = False
         self._zero_waypoint = False
+        
 
     def _control(self, axis_array):
         '''
@@ -104,9 +107,14 @@ class Remote_Control_Node(node_base):
             N/A
         '''
 
-        while True:
+        while self.rc_thread_running == False:
+            time.sleep(0)
+
+        while self.rc_thread_running == True:
+            print("second thread running")
+            
             try:
-                #Set the axes for every event. This gives us simultaenous control
+                #Set the axes for every event. This gives us simultaneous control
                 #over multiple thrusters
                 if pygame.event.peek():
 
@@ -142,6 +150,9 @@ class Remote_Control_Node(node_base):
                     time.sleep(0)
             except Exception as e:
                 print("[ERROR]: Could not recieve inputs from remote controller. Please checked the controller is plugged in. Error:", e)
+            
+
+'''
 if __name__ == '__main__':
 
     rc_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -158,3 +169,4 @@ if __name__ == '__main__':
     MEM={'RC':b'cleaners'}
     remote_node = Remote_Control_Node(IP, MEM)
     remote_node.start()
+'''

@@ -3,7 +3,7 @@ import os
 from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, QWidget, QAction, QTabWidget, QVBoxLayout
 from PyQt5.QtGui import QIcon, QColor, QPalette
 from PyQt5.QtCore import pyqtSlot, Qt
-from controller_status_thread import Status_Thread
+from remote_control_input_thread import RC_Thread
 
 PARAM_PATH = os.path.join("..", "..", "Sub", "Src", "Params")
 sys.path.append(PARAM_PATH)
@@ -51,9 +51,9 @@ class Tabbed_Display(QWidget):
         self.tab_display_node = mechos.Node("GUI_TABS", configs["ip"])
         self.movement_mode_publisher = self.tab_display_node.create_publisher("MM", configs["pub_port"])
 
-        #self.controller_stat_thread = Status_Thread()
-        #self.controller_stat_thread.threadrunning = False
-        #self.controller_stat_thread.start()
+        self.rc_thread = RC_Thread()
+        self.rc_thread.threadrunning = False
+        self.rc_thread.start()
 
     def add_tab(self, widget, title):
         '''
@@ -102,15 +102,18 @@ class Tabbed_Display(QWidget):
         mode_serialized = struct.pack('b', mode)
         # Publish current index
         self.movement_mode_publisher.publish(mode_serialized)
-
-        #if self.controller_stat_thread.isRunning()==False:
-            #self.controller_stat_thread.threadrunning == False
-            #self.controller_stat_thread.start()
-
-        #if mode == 2:
-            #self.controller_stat_thread.threadrunning = True
-        #elif mode==0 or mode==1:
-            #self.controller_stat_thread.threadrunning = False
+        
+        if self.rc_thread.isRunning()==False:
+            self.rc_thread.start()
+            if mode == 2:
+                self.rc_thread.threadrunning = True
+            elif mode==0 or mode==1:
+                self.rc_thread.threadrunning = False
+        
+        if mode == 2:
+            self.rc_thread.threadrunning = True
+        elif mode==0 or mode==1:
+            self.rc_thread.threadrunning = False
 
 
 if __name__ == "__main__":
