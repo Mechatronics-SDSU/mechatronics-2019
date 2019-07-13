@@ -58,14 +58,14 @@
                 <max_error>10</max_error>
             </yaw_pid>
             <x_pid>
-                <p>10.0</p>
+                <p>0.0</p>
                 <i>0.0</i>
                 <d>0.0</d>
                 <min_error>-10</min_error>
                 <max_error>10</max_error>
             </x_pid>
             <y_pid>
-                <p>8.0</p>
+                <p>0.0</p>
                 <i>0.0</i>
                 <d>0.0</d>
 		<min_error>-30</min_error>
@@ -92,7 +92,7 @@
     </Control>
     <Sensors>
         <trans_2_bias>1.0</trans_2_bias>
-        <trans_1_bias>598.8</trans_1_bias>
+        <trans_1_bias>90</trans_1_bias>
         <trans_1_scaling>10.201854882705971</trans_1_scaling>
         <trans_2_scaling>1.0</trans_2_scaling>
     </Sensors>
