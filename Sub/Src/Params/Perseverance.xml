@@ -98,6 +98,6 @@
     </Sensors>
     <Missions>
       <waypoint_collect_file>waypoint_test.csv</waypoint_collect_file>
-      <mission_file>/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/Dummy/mission.json</mission_file>
+      <mission_file>/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/GateQual/mission.json</mission_file>
     </Missions>
 </Perseverance>
