@@ -63,11 +63,11 @@ class Drive_Functions:
             N/A
         '''
         self.desired_position_proto.roll = desired_position[0]
-        self.desired_position_proto.pitch = desired_position[0]
-        self.desired_position_proto.yaw = desired_position[0]
-        self.desired_position_proto.depth = desired_position[0]
-        self.desired_position_proto.north_pos = desired_position[0]
-        self.desired_position_proto.east_pos = desired_position[0]
+        self.desired_position_proto.pitch = desired_position[1]
+        self.desired_position_proto.yaw = desired_position[2]
+        self.desired_position_proto.depth = desired_position[5]
+        self.desired_position_proto.north_pos = desired_position[3]
+        self.desired_position_proto.east_pos = desired_position[4]
         self.desired_position_proto.zero_pos = zero_pos
 
         serialized_pos_proto = self.desired_position_proto.SerializeToString()
@@ -144,7 +144,7 @@ class Drive_Functions:
             desired_yaw, desired_north, desired_east = current_position[2:5]
 
         desired_position = [0.0, 0.0, desired_yaw, desired_north, desired_east, desired_depth]
-
+        
         self.send_desired_position(desired_position)
 
         #Begin the timeout timer.

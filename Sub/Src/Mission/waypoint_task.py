@@ -132,7 +132,6 @@ class Waypoint_Task:
             north_position = self.waypoints[waypoint_id, 1]
             east_position = self.waypoints[waypoint_id, 2]
             depth_position = self.waypoints[waypoint_id, 3]
-
             #Dive to depth with allowable buffer zone of 0.1
             remaining_task_time = task_time - self.timeout_timer.net_timer()
             succeeded, _ = self.drive_functions.move_to_depth(desired_depth=depth_position,

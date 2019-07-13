@@ -112,6 +112,7 @@ class Mission_Commander(threading.Thread):
                 print("[INFO]: Exited Mission Command Mode.")
 
             self.mission_mode = False
+            self.mission_live = False
 
     def _update_mission_info_callback(self, misc):
         '''
@@ -176,6 +177,7 @@ class Mission_Commander(threading.Thread):
                 print("[INFO]: Exited Mission Command Mode.")
 
             self.mission_mode = False
+            self.mission_live = False
 
     def _update_mission_info_callback(self, misc):
         '''
