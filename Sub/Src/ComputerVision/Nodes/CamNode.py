@@ -1,3 +1,16 @@
+'''
+Copyright 2019, Alexa Becerra, All rights reserved
+
+Authors:Alexa Becerra <alexa.becerra99@gmail.com>
+        Mohammad Shafi
+        Ramiz Hanan
+        
+Last Modified 07/13/2019
+
+Description: Cam Node utilizes the neural network and Yolo for object 
+detection of captured images, that are then sent over a socket to be captured by Recv Node.
+'''
+
 import numpy as np
 import cv2
 import math
@@ -13,8 +26,20 @@ from libs.darknet import *
 from MechOS.message_passing.Nodes.node_base import node_base
 
 class CamNode(node_base):
+    '''
+    CamNode captures from the webcam and streams the processed images.
+    '''
 
     def __init__(self, MEM, IP):
+        '''
+        Initializes values for encoded image streaming, begins webcam capture and 
+        loads in the neural network.
+        
+        Parameters:
+            MEM: Dictionary containing Node name and the desired local memory location.
+            IP: Dictionary containing Node name and desired streaming settings: The IP address, send 
+            and recieve sockets, and the streaming protocal.
+        '''
 
         # IP and MEM RAM locations
         node_base.__init__(self, MEM, IP)
@@ -48,6 +73,10 @@ class CamNode(node_base):
         print("Frames per second using video.get(cv2.CAP_PROP_FPS) : {0}".format(self.fps))
 
     def run(self):
+        '''
+        The run loop reads image data from the webcam, processes it through Yolo, and 
+        then encodes it into a byte stream and encapsulation frame to be sent over the socket.
+        '''
         while(True):
             # Capture frame-by-frame
             ret, byte_frame = self.capture.read()
@@ -100,7 +129,7 @@ class CamNode(node_base):
                 # EOF packet for encapsulation
                 self._send(self.END_BYTE, 'CAMERA', local=False, foreign=True)
 
-# Image Corruption decreases as sleep time increases (inversely proportional)
+                # Image Corruption decreases as sleep time increases (inversely proportional)
                 # this time.sleep is a manual fix balacing speed and the least
                 # amount of corruption on jpegs (not optimal)
                 #time.sleep(0) # check as appropriate
