@@ -258,6 +258,7 @@ class Mission_Commander(threading.Thread):
             try:
                 #If in Mission mode, listen to see if the autonomous mode button is
                 #pressed.
+                """
                 if(self.mission_mode):
 
                     if(self.auto_serial.in_waiting):
@@ -271,6 +272,12 @@ class Mission_Commander(threading.Thread):
                         elif(auto_pressed == "Auto Status:0"):
                             print("[INFO]: Mission is no longer Live.")
                             self.mission_live = False
+                """
+                if(self.mission_mode):
+                    print("FOR BS QUALIFICATION, WAITING 10 secs TO START MISSION...")
+                    print("MAKE SURE TO STOP MISSION WHEN DONE...OR IT WILL DO THE MISSION AGAIN.")
+                    time.sleep(10)
+                    self.mission_live = True
 
                     #When mission is live, run the mission
                     if(self.mission_live):
