@@ -248,8 +248,9 @@ class Backplane_Responses(threading.Thread):
                          ext_pressure_3 = struct.unpack('H', struct.pack('H', (payload[3] & int('0x1F', 0)) << 4 | payload[2] >> 4))[0]
                          inter_pressure_1 = (struct.unpack('i', struct.pack('I', payload[4] | payload[5] << 8 | (int('0xF', 0) & payload[6]) << 16))[0])
                          #message = {"Press":[ext_pressure_1,ext_pressure_2, ext_pressure_3, inter_pressure_1]}
-                         #Currently only these two transducers are operational
-                         message = {"Press":[ext_pressure_3, ext_pressure_3]}
+                         
+                         #Currently only these two transducers are operational(since the line reading 1 is broken)
+                         message = {"Press":[ext_pressure_2, ext_pressure_3]}
                     elif id_frame == 400:   #This use to be used for an internal pressure sensor
                         pass
 
