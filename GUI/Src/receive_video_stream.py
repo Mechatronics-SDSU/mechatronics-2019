@@ -90,8 +90,8 @@ class Receive_Video_Stream(node_base):
                             # Frame Size (reversed in np.shape)
                             self.scale_percent = 250 # percent of original size
 
-                            width = int(img_frame.shape[1] * scale_percent / 100)
-                            height = int(img_frame.shape[0] * scale_percent / 100)
+                            width = int(img_frame.shape[1] * self.scale_percent / 100)
+                            height = int(img_frame.shape[0] * self.scale_percent / 100)
 
                             # Make Sure User didn't Blindly initialize Node
                             if not (width or height):
