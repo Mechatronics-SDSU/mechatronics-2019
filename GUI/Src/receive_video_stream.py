@@ -1,4 +1,14 @@
+'''
+Copyright 2019, Alexa Becerra, All rights reserved
 
+Authors:Alexa Becerra <alexa.becerra99@gmail.com>
+        Mohammad Shafi
+        Ramiz Hanan
+
+Last Modified 07/13/2019
+
+Description: Recv Node captures an image byte stream and displays it.
+'''
 import numpy as np
 import cv2
 import socket
@@ -12,7 +22,19 @@ from datetime import datetime
 
 
 class Receive_Video_Stream(node_base):
+    '''
+    Recv Node captures the image data, resizes the image, and displays it.
+    '''
     def __init__(self, MEM, IP):
+        '''
+        Sets the size of data packets, whether or not the image should be resized
+        and if images should be saved.
+
+        Parameters:
+            MEM: Dictionary containing Node name and the desired local memory location.
+            IP: Dictionary containing Node name and desired streaming settings: The IP address, send
+            and recieve sockets, and the streaming protocal.
+        '''
 
         node_base.__init__(self, MEM, IP)
 
@@ -28,6 +50,9 @@ class Receive_Video_Stream(node_base):
         self.ramBuffer = b''
 
     def run(self):
+        '''
+        The loop decapsulates recieved image data and stores it in a buffer to be resized/saved/displayed.
+        '''
 
         while(True):
             # Socket Max receive
