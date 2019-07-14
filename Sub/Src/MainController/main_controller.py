@@ -11,10 +11,6 @@ Description: The main process on the sub that will orchatrate
 import sys
 import os
 
-#SENSOR_HUB_PATH = os.path.join("..", "SensorHub")
-#sys.path.append(SENSOR_HUB_PATH)
-#from sensor_driver import Sensor_Driver
-
 NAV_CONT_PATH = os.path.join("..", "Dynamics")
 sys.path.append(NAV_CONT_PATH)
 from navigation_controller import Navigation_Controller
@@ -22,6 +18,10 @@ from navigation_controller import Navigation_Controller
 SENSOR_HUB_PATH = os.path.join("..", "SensorHub")
 sys.path.append(SENSOR_HUB_PATH)
 from sensor_driver import Sensor_Driver
+
+VISION_PATH = os.path.join("..", "ComputerVision")
+sys.path.append(VISION_PATH)
+from vision import Vision
 
 from message_passing.Nodes.node_base_udp import node_base
 import time
@@ -51,7 +51,8 @@ class Main_Controller(node_base):
 
         self.sensor_driver = Sensor_Driver()
         self.navigation_controller = Navigation_Controller(MEM, IP, self.sensor_driver)
-
+        
+        #Initializing vision thread
         self.run_main_controller = True
        
         #Start up threads
@@ -91,6 +92,7 @@ if __name__ == "__main__":
 
     rc_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     thrust_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    camera_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     ip_address = ('192.168.1.14', 6312)
     thrust_socket.bind((ip_address))
 
@@ -99,8 +101,15 @@ if __name__ == "__main__":
             'address': ip_address,
             'sockets': (rc_socket, thrust_socket),
             'type': 'UDP'
+            },
+        'CAMERA':
+            {
+            'address': ('192.168.1.1', 6969),
+            'sockets': (camera_socket, None),
+            'type': 'UDP'
             }
         }
+
     MEM={'RC':b'\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00'}
 
     main_controller = Main_Controller(MEM, IP)
