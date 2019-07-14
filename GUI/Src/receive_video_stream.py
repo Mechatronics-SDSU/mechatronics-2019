@@ -43,6 +43,7 @@ class Receive_Video_Stream(node_base):
 
         # Resize image
         self.resize_image = True
+        self.scale_percent = 250
 
         # Collect Images (Switch to False for speed)
         self.save_image = False
@@ -87,7 +88,7 @@ class Receive_Video_Stream(node_base):
 
                         if self.resize_image:
                             # Frame Size (reversed in np.shape)
-                            scale_percent = 250 # percent of original size
+                            self.scale_percent = 250 # percent of original size
 
                             width = int(img_frame.shape[1] * scale_percent / 100)
                             height = int(img_frame.shape[0] * scale_percent / 100)
