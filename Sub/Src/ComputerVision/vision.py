@@ -4,10 +4,11 @@ Copyright 2019, Alexa Becerra, All rights reserved
 Authors:Alexa Becerra <alexa.becerra99@gmail.com>
         Mohammad Shafi
         Ramiz Hanan
-        
+        Christian Gould <christian.d.gould@gmail.com>
+        David Pierce Walker-Howell <piercedhowell@gmail.com>
 Last Modified 07/13/2019
 
-Description: Cam Node utilizes the neural network and Yolo for object 
+Description: Vision (Cam Node) utilizes the neural network and Yolo for object
 detection of captured images, that are then sent over a socket to be captured by Recv Node.
 '''
 
@@ -17,6 +18,7 @@ import math
 import random
 import socket
 import sys
+import os
 import struct
 import math
 import io
@@ -24,20 +26,26 @@ import time
 from ctypes import *
 from libs.darknet import *
 from MechOS.message_passing.Nodes.node_base import node_base
+from MechOS import mechos
 
-class CamNode(node_base):
+PARAM_PATH = os.path.join("..", "..", "Params")
+sys.path.append(PARAM_PATH)
+MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
+from mechos_network_configs import MechOS_Network_Configs
+
+class Vision(node_base):
     '''
-    CamNode captures from the webcam and streams the processed images.
+    Vision captures from the webcam, runs the neural network/cv algorithms,  and streams the processed images.
     '''
 
     def __init__(self, MEM, IP):
         '''
-        Initializes values for encoded image streaming, begins webcam capture and 
+        Initializes values for encoded image streaming, begins webcam capture and
         loads in the neural network.
-        
+
         Parameters:
             MEM: Dictionary containing Node name and the desired local memory location.
-            IP: Dictionary containing Node name and desired streaming settings: The IP address, send 
+            IP: Dictionary containing Node name and desired streaming settings: The IP address, send
             and recieve sockets, and the streaming protocal.
         '''
 
@@ -45,6 +53,10 @@ class CamNode(node_base):
         node_base.__init__(self, MEM, IP)
 
         # Instantiations
+        configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
+
+        self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
+        self.param_serv.use_parameter_database(configs["param_server_path"])
 
         #--MESSAGING INFO--#
         self.MAX_UDP_PACKET_SIZE = 1500
@@ -56,25 +68,32 @@ class CamNode(node_base):
         self.MAX_PACKET_SIZE = 1500
 
         #--CAMERA INSTANCE--#
-        self.capture = cv2.VideoCapture(1)
+        front_camera_index = int(self.param_serv.get_param("Vision/front_camera_index"))
+        self.capture = cv2.VideoCapture(front_camera_index)
 
         # Maximum image size the Tegra allows without timeout
         self.capture.set(3, 450)
         self.capture.set(4, 450)
 
         # Neural Network Loaded from instance in darknet module
-        self.net  = load_net(b'./libs/darknet/cfg/yolov3-tiny.cfg',
-                       b'./libs/darknet/weights/yolov3-tiny.weights',
+        darknet_path = self.param_serv.get_param("Vision/yolo/darknet_path")
+        config_file = self.param_serv.get_param("Vision/yolo/config_file")
+        weights_file = self.param_serv.get_param("Vision/yolo/weights_file")
+        metadata_file = self.param_serv.get_param("Vision/yolo/metadata_file")
+
+        config_file_path = os.path.join(darknet_path, config_file).encode()
+        weights_file_path = os.path.join(darknet_path, weights_file).encode()
+        metadata_file_path = os.path.join(darknet_path, metadata_file).encode()
+
+        self.net  = load_net(config_file,
+                       weights_file_path,
                        0)
 
-        self.meta = load_meta(b'./libs/darknet/cfg/coco.data')
-
-        self.fps = self.capture.get(cv2.CAP_PROP_FPS)
-        print("Frames per second using video.get(cv2.CAP_PROP_FPS) : {0}".format(self.fps))
+        self.meta = load_meta(metadata_file)
 
     def run(self):
         '''
-        The run loop reads image data from the webcam, processes it through Yolo, and 
+        The run loop reads image data from the webcam, processes it through Yolo, and
         then encodes it into a byte stream and encapsulation frame to be sent over the socket.
         '''
         while(True):
@@ -88,6 +107,10 @@ class CamNode(node_base):
             if ret:
                 r = detect(self.net, self.meta, byte_frame)
 
+                #Savind detetion to class attribute
+                self.yolo_detections = r
+
+                #Draw detections in photo
                 for i in r:
                     x, y, w, h = i[2][0], i[2][1], i[2][2], i[2][3]
                     xmin, ymin, xmax, ymax = convertBack(float(x), float(y), float(w), float(h))
@@ -143,7 +166,7 @@ if __name__=='__main__':
     RECV_SOCK   = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     # IP initialization
-    IP_ADDRESS  = ('192.168.1.20', 6969)
+    IP_ADDRESS  = ('192.168.1.1', 6969)
 
     IP ={'CAMERA':
             {
@@ -157,4 +180,3 @@ if __name__=='__main__':
     # Initialize Node Thread
     cam_node = CamNode(MEM, IP)
     cam_node.start()
-

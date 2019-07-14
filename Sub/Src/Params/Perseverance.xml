@@ -95,6 +95,16 @@
         <trans_1_scaling>10.201854882705971</trans_1_scaling>
         <trans_2_scaling>1.0</trans_2_scaling>
     </Sensors>
+    <Vision>
+         <front_camera_index>1</front_camera_index>
+         <down_camera_index>2</down_camera_index>
+         <yolo>
+               <darknet_path>./libs/darknet</darknet>
+               <config_file>cfg/yolov3-tiny.cfg</config_file>
+               <weights_file>weights/yolov3-tiny.weights</weights_file>
+               <metadata_file>cfg/coco.data</metadata_file>
+         </yolo>
+    </Vision>
     <Missions>
       <waypoint_collect_file>waypoint_test.csv</waypoint_collect_file>
     </Missions>
