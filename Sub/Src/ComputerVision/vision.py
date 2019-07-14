@@ -28,7 +28,7 @@ from libs.darknet import *
 from MechOS.message_passing.Nodes.node_base import node_base
 from MechOS import mechos
 
-PARAM_PATH = os.path.join("..", "..", "Params")
+PARAM_PATH = os.path.join("..", "Params")
 sys.path.append(PARAM_PATH)
 MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
 from mechos_network_configs import MechOS_Network_Configs
@@ -80,16 +80,15 @@ class Vision(node_base):
         config_file = self.param_serv.get_param("Vision/yolo/config_file")
         weights_file = self.param_serv.get_param("Vision/yolo/weights_file")
         metadata_file = self.param_serv.get_param("Vision/yolo/metadata_file")
-
-        config_file_path = os.path.join(darknet_path, config_file).encode()
-        weights_file_path = os.path.join(darknet_path, weights_file).encode()
-        metadata_file_path = os.path.join(darknet_path, metadata_file).encode()
-
-        self.net  = load_net(config_file,
+        config_file_path = (os.path.join(darknet_path, config_file)).encode()
+        weights_file_path = (os.path.join(darknet_path, weights_file)).encode()
+        metadata_file_path = (os.path.join(darknet_path, metadata_file)).encode()
+        print(config_file_path, weights_file_path)
+        self.net  = load_net(config_file_path,
                        weights_file_path,
                        0)
 
-        self.meta = load_meta(metadata_file)
+        self.meta = load_meta(metadata_file_path)
 
     def run(self):
         '''
@@ -106,7 +105,6 @@ class Vision(node_base):
             '''
             if ret:
                 r = detect(self.net, self.meta, byte_frame)
-
                 #Savind detetion to class attribute
                 self.yolo_detections = r
 
@@ -159,7 +157,6 @@ class Vision(node_base):
 
             else:
                 time.sleep(0)
-
 if __name__=='__main__':
 
     CAMERA_SOCK = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -178,5 +175,5 @@ if __name__=='__main__':
     MEM={'CAMERA':b''}
 
     # Initialize Node Thread
-    cam_node = CamNode(MEM, IP)
+    cam_node = Vision(MEM, IP)
     cam_node.start()

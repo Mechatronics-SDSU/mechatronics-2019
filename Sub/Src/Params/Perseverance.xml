@@ -99,10 +99,10 @@
          <front_camera_index>1</front_camera_index>
          <down_camera_index>2</down_camera_index>
          <yolo>
-               <darknet_path>./libs/darknet</darknet>
+		 <darknet_path>/home/nvidia/mechatronics-2019/Sub/Src/ComputerVision/libs/darknet</darknet_path>
                <config_file>cfg/yolov3-tiny.cfg</config_file>
                <weights_file>weights/yolov3-tiny.weights</weights_file>
-               <metadata_file>cfg/coco.data</metadata_file>
+               <metadata_file>data/coco.data</metadata_file>
          </yolo>
     </Vision>
     <Missions>

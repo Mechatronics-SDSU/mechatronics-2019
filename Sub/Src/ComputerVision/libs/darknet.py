@@ -58,7 +58,7 @@ class METADATA(Structure):
 
 # Collect Library DLL
 
-lib = CDLL("./libs/darknet/sharedlibrary/libdarknet.so", RTLD_GLOBAL)
+lib = CDLL("/home/nvidia/mechatronics-2019/Sub/Src/ComputerVision/libs/darknet/sharedlibrary/libdarknet.so", RTLD_GLOBAL)
 lib.network_width.argtypes = [c_void_p]
 lib.network_width.restype = c_int
 lib.network_height.argtypes = [c_void_p]
