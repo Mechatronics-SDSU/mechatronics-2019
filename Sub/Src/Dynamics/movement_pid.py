@@ -222,8 +222,8 @@ class Movement_PID:
                      (pitch_control * thruster.orientation[2] * thruster.location[0]) + \
                      (yaw_control * thruster.orientation[1] * thruster.location[0]) + \
                      (yaw_control * thruster.orientation[0] * thruster.location[1]) + \
-                     (x_control * thruster.orientation[0]) + \
-                     (-1 *y_control * thruster.orientation[1]) + \
+                     (-1 * x_control * thruster.orientation[0]) + \
+                     (y_control * thruster.orientation[1]) + \
                      (z_control * thruster.orientation[2])
 
             #Write the thrust to the given thruster. Some thrusters have an additional offset to given them
@@ -401,7 +401,7 @@ class Movement_PID:
         #x_control = self.x_pid_controller.control_step(remote_commands[1])
         #y_control = self.y_pid_controller.control_step(remote_commands[2])
         z_control = self.z_pid_controller.control_step(depth_error)
-        self.controlled_thrust(roll_control, pitch_control, yaw_control, x_control, y_control, z_control, current_position[5])
+        self.controlled_thrust(roll_control, pitch_control, yaw_control,-1 * x_control, y_control, z_control, current_position[5])
 
         return
 
