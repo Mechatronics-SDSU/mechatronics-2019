@@ -77,19 +77,19 @@ class distance_calculator():
 
         label = self.detection[0]
         if(label == b'Dice 1' or label == b'Dice 2' or label == b'Dice 3' or label == b'Dice 4' or label == b'Dice 5' or label == b'Dice 6'):
-            min_coordinate = float(self.param_serv.get_param("Vision/solvePnP/Coordinates/dice/topleft"))
-            center_coordinate = float(self.param_serv.get_param("Vision/solvePnP/Coordinates/dice/middle"))
-            max_coordinate = float(self.param_serv.get_param("Vision/solvePnP/Coordinates/dice/bottomright"))
+            self.min_coordinate = float(self.param_serv.get_param("Vision/solvePnP/Coordinates/dice/topleft"))
+            self.center_coordinate = float(self.param_serv.get_param("Vision/solvePnP/Coordinates/dice/middle"))
+            self.max_coordinate = float(self.param_serv.get_param("Vision/solvePnP/Coordinates/dice/bottomright"))
 
-            self.three_dim_points = np.array([[min_coordinate, min_coordinate, min_coordinate],
-                                              [center_coordinate, min_coordinate, min_coordinate],
-                                              [max_coordinate, min_coordinate, min_coordinate],
-                                              [min_coordinate, center_coordinate, min_coordinate],
-                                              [center_coordinate, center_coordinate, min_coordinate],
-                                              [max_coordinate, center_coordinate, min_coordinate],
-                                              [min_coordinate, max_coordinate, min_coordinate],
-                                              [center_coordinate, max_coordinate, min_coordinate],
-                                              [max_coordinate, max_coordinate, min_coordinate]])
+            self.three_dim_points = np.array([[self.min_coordinate, self.min_coordinate, self.min_coordinate],
+                                              [self.center_coordinate, self.min_coordinate, self.min_coordinate],
+                                              [self.max_coordinate, self.min_coordinate, self.min_coordinate],
+                                              [self.min_coordinate, self.center_coordinate, self.min_coordinate],
+                                              [self.center_coordinate, self.center_coordinate, self.min_coordinate],
+                                              [self.max_coordinate, self.center_coordinate, self.min_coordinate],
+                                              [self.min_coordinate, self.max_coordinate, self.min_coordinate],
+                                              [self.center_coordinate, self.max_coordinate, self.min_coordinate],
+                                              [self.max_coordinate, self.max_coordinate, self.min_coordinate]])
 
             print(self.three_dim_points)
 
