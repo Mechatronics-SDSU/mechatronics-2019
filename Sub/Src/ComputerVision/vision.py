@@ -27,7 +27,7 @@ from ctypes import *
 from libs.darknet import *
 from MechOS.message_passing.Nodes.node_base import node_base
 from MechOS import mechos
-from pose_calculation import distance_calculator
+from libs.pose_calculation import distance_calculator
 
 PARAM_PATH = os.path.join("..", "Params")
 sys.path.append(PARAM_PATH)
