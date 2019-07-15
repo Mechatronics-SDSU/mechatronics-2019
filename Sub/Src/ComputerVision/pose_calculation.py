@@ -3,17 +3,18 @@ Copyright 2019, Mohammad Shafi, All rights reserved
 
 Author: Mohammad Shafi <ma.shafi99@gmail.com>
 '''
-
+import os
+import sys
 import cv2
 import numpy as np
-from MechOS import mechOS
+from MechOS import mechos
 
 PARAM_PATH = os.path.join("..", "Params")
 sys.path.append(PARAM_PATH)
 MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
 from mechos_network_configs import MechOS_Network_Configs
 
-class distance_calculator(detection, x, y, w, h):
+class distance_calculator():
     '''
     This class initializes our required matrices using points from the parameter server,
     and detection data from yolo. It will then use openCV operations to interpret the data
@@ -63,6 +64,7 @@ class distance_calculator(detection, x, y, w, h):
         self.camera_matrix = np.array([[self.focal_length_x, 0.0, self.optical_center_x],
                                       [0.0, self.focal_length_y, self.optical_center_y],
                                       [0.0, 0.0, 1.0]])
+        print(self.camera_matrix)
 
         self.distort_var_1 = float(self.param_serv.get_param("Vision/solvePnP/distortion_matrix/k1"))
         self.distort_var_2 = float(self.param_serv.get_param("Vision/solvePnP/distortion_matrix/k2"))
@@ -71,6 +73,7 @@ class distance_calculator(detection, x, y, w, h):
         self.distort_var_5 = float(self.param_serv.get_param("Vision/solvePnP/distortion_matrix/k3"))
 
         self.distortion_matrix = np.array([[self.distort_var_1, self.distort_var_2, self.distort_var_3, self.distort_var_4, self.distort_var_5]])
+        print(self.distortion_matrix)
 
         label = self.detection[0]
         if(label == b'Dice 1' or label == b'Dice 2' or label == b'Dice 3' or label == b'Dice 4' or label == b'Dice 5' or label == b'Dice 6'):
@@ -88,6 +91,8 @@ class distance_calculator(detection, x, y, w, h):
                                               [center_coordinate, max_coordinate, min_coordinate],
                                               [max_coordinate, max_coordinate, min_coordinate]])
 
+            print(self.three_dim_points)
+
             self.two_dim_points = np.array([[(self.x_coordinate - (0.5 * self.width)), (self.y_coordinate - (0.5 * self.height))],
                                             [(self.x_coordinate), (self.y_coordinate - (0.5 * self.height))],
                                             [(self.x_coordinate + (0.5 * self.width)), (self.y_coordinate - (0.5 * self.height))],
@@ -96,7 +101,7 @@ class distance_calculator(detection, x, y, w, h):
                                             [(self.x_coordinate + (0.5 * self.width)), (self.y_coordinate)],
                                             [(self.x_coordinate - (0.5 * self.width)), (self.y_coordinate + (0.5 * self.height))],
                                             [(self.x_coordinate), (self.y_coordinate + (0.5 * self.height))],
-                                            [(self.x_coordinate - (0.5 * self.width)), (self.y_coordinate + (0.5 * self.height))]])
+                                            [(self.x_coordinate + (0.5 * self.width)), (self.y_coordinate + (0.5 * self.height))]])
 
     def calculate_distance(self):
         '''
@@ -110,13 +115,12 @@ class distance_calculator(detection, x, y, w, h):
             z: z coordinate of the translation vector
         '''
 
-        if (three_dim_points != None and two_dim_points != None):
+        if (self.three_dim_points is None or self.two_dim_points is None):
+            return [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]
+
+        else:
             working, rvec, tvec = cv2.solvePnP(self.three_dim_points,
                                                self.two_dim_points,
                                                self.camera_matrix,
                                                self.distortion_matrix)
-
             return rvec, tvec, tvec[2]
-
-        else:
-            return [0.0,0.0], [0.0, 0.0], [0.0, 0.0]
