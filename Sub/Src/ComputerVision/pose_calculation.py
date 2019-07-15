@@ -64,7 +64,7 @@ class distance_calculator():
         self.camera_matrix = np.array([[self.focal_length_x, 0.0, self.optical_center_x],
                                       [0.0, self.focal_length_y, self.optical_center_y],
                                       [0.0, 0.0, 1.0]])
-        print(self.camera_matrix)
+        #print(self.camera_matrix)
 
         self.distort_var_1 = float(self.param_serv.get_param("Vision/solvePnP/distortion_matrix/k1"))
         self.distort_var_2 = float(self.param_serv.get_param("Vision/solvePnP/distortion_matrix/k2"))
@@ -73,16 +73,13 @@ class distance_calculator():
         self.distort_var_5 = float(self.param_serv.get_param("Vision/solvePnP/distortion_matrix/k3"))
 
         self.distortion_matrix = np.array([[self.distort_var_1, self.distort_var_2, self.distort_var_3, self.distort_var_4, self.distort_var_5]])
-        print(self.distortion_matrix)
+        #print(self.distortion_matrix)
 
         label = self.detection[0]
         if(label == b'Dice 1' or label == b'Dice 2' or label == b'Dice 3' or label == b'Dice 4' or label == b'Dice 5' or label == b'Dice 6'):
-            self.min_coordinate = float(self.param_serv.get_param("Vision/solvePnP/Coordinates/dice/topleft"))
-            print(self.min_coordinate)
-            self.center_coordinate = float(self.param_serv.get_param("Vision/solvePnP/Coordinates/dice/middle"))
-            print(self.center_coordinate)
-            self.max_coordinate = float(self.param_serv.get_param("Vision/solvePnP/Coordinates/dice/bottomright"))
-            print(self.max_coordinate)
+            self.min_coordinate = float(self.param_serv.get_param("Vision/Coordinates/dice/topleft"))
+            self.center_coordinate = float(self.param_serv.get_param("Vision/Coordinates/dice/middle"))
+            self.max_coordinate = float(self.param_serv.get_param("Vision/Coordinates/dice/bottomright"))
             self.three_dim_points = np.array([[self.min_coordinate, self.min_coordinate, self.min_coordinate],
                                               [self.center_coordinate, self.min_coordinate, self.min_coordinate],
                                               [self.max_coordinate, self.min_coordinate, self.min_coordinate],
