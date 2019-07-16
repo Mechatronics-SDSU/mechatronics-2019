@@ -141,17 +141,19 @@ class Waypoint_Task:
                 return False
 
             #Face position desired_position
-            remaining_task_time = task_time - self.timeout_timer.net_time()
-            succeeded, desired_yaw = self.drive_functions.move_to_face_position(self,north_position=north_position,
-                                                            east_position=east_position,
-                                                            buffer_zone=1,
-                                                            timeout=remaining_task_time)
+            remaining_task_time = task_time - self.timeout_timer.net_timer()
+            print(north_position, east_position, remaining_task_time)
+            succeeded, desired_yaw = self.drive_functions.move_to_face_position(north_position,
+                                                            east_position,
+                                                            1,
+                                                            remaining_task_time,
+                                                            None)
 
             if(not succeeded):
                 return False
             #Drive to the desired_position
-            remaining_task_time = task_time - self.timeout_timer.net_time()
-            succedded, _, _ = self.drive_functions.move_to_position_hold_orientation(self, north_position=north_position,
+            remaining_task_time = task_time - self.timeout_timer.net_timer()
+            succedded, _, _ = self.drive_functions.move_to_position_hold_orientation(north_position=north_position,
                                                                           east_position=east_position,
                                                                           buffer_zone=1,
                                                                           timeout=remaining_task_time)

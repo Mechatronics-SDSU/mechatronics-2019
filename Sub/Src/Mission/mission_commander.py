@@ -82,7 +82,7 @@ class Mission_Commander(threading.Thread):
 
         #Set up serial com to read the autonomous button
         com_port = self.param_serv.get_param("COM_Ports/auto")
-        self.auto_serial = serial.Serial(com_port, 9600)
+        #self.auto_serial = serial.Serial(com_port, 9600)
 
         #load the mission data
         self._update_mission_info_callback(None)
@@ -301,9 +301,10 @@ class Mission_Commander(threading.Thread):
                         print("[INFO]: Finished Mission")
                         self.mission_live = False
 
-            except Exception as e:
-                print("[ERROR]: Encountered an Error in Mission Commander. Error:", e)
-
+            except:
+                raise
+                #print("[ERROR]: Encountered an Error in Mission Commander. Error:", e)
+                       
 
 if __name__ == "__main__":
     mission_commander = Mission_Commander('MissionFiles/Dummy/mission.json', None)

@@ -8,7 +8,7 @@ Description: This module contains functions to perform basic movements of the
 import sys
 import os
 import time
-
+import math
 HELPER_PATH = os.path.join("..", "Helpers")
 sys.path.append(HELPER_PATH)
 import util_timer
@@ -94,7 +94,7 @@ class Drive_Functions:
                 yaw_error = yaw_error - 360
         return(yaw_error)
 
-    def get_distance_to_position(self, current_north_position, current_east_position, desired_north_position, deisred_east_position):
+    def get_distance_to_position(self, current_north_position, current_east_position, desired_north_position, desired_east_position):
         '''
         Get the linear distance between the current position and desired position
 
@@ -109,7 +109,7 @@ class Drive_Functions:
         north_error = desired_north_position - current_north_position
         east_error = desired_east_position - current_east_position
 
-        distance = sqrt( (north_error**2) + (east_error**2))
+        distance = math.sqrt( (north_error**2) + (east_error**2))
 
         return(distance)
 
@@ -195,7 +195,7 @@ class Drive_Functions:
         north_dist = north_position - hold_north
         east_dist = east_position - hold_east
 
-        desired_yaw = math.degrees(math.atan2(east_dist/north_dist))
+        desired_yaw = math.degrees(math.atan2(east_dist, north_dist))
 
         #Assemble the desired Position
         desired_position = [0.0, 0.0, desired_yaw, hold_north, hold_east, hold_depth]
@@ -205,7 +205,7 @@ class Drive_Functions:
         #Begin the timeout timer.
         self.timeout_timer.restart_timer()
 
-        yaw_error = self.get_yaw_error(current_positon[2], desired_yaw)
+        yaw_error = self.get_yaw_error(current_position[2], desired_yaw)
 
         while(abs(yaw_error) > buffer_zone):
 
@@ -241,7 +241,7 @@ class Drive_Functions:
         '''
         #Get the current position
         current_position = self.sensor_driver.sensor_data
-
+        print("hello1")
         if(desired_orientation != None):
             desired_yaw, desired_depht = desired_orientation
         else:
@@ -257,8 +257,9 @@ class Drive_Functions:
         self.timeout_timer.restart_timer()
 
         distance_to_position = self.get_distance_to_position(current_position[3], current_position[4], north_position, east_position)
+        print("hello2")
         while(abs(distance_to_position) > buffer_zone):
-
+  
             if(timeout != None):
                 if(self.timeout_timer.net_timer() > timeout):
                     print("[WARNING]: Move to position while holding orientatio timed out. Distance to position:", distance_to_position)

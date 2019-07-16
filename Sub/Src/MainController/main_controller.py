@@ -95,7 +95,7 @@ class Main_Controller(node_base):
         Run the Main controller of the sub
         '''
         while(self.run_main_controller):
-            continue
+            time.sleep(0.1)
 
 if __name__ == "__main__":
 
