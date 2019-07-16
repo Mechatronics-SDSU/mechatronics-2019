@@ -45,6 +45,11 @@ class Image_Capture(QWidget):
         #Inititialize array of image numbers
         self.imageNumArray = []
 
+        self.addChildWidget(self.childBoxWidget)
+
+    def childBoxWidget(self):
+        
+
     def paintEvent(self, event):
 
         qp = QPainter(self) 
