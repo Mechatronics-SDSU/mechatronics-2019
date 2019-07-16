@@ -91,7 +91,7 @@ class Vision(node_base):
 
         self.meta = load_meta(metadata_file_path)
 
-        self.distance_calculator = 5
+        self.distance_calculator = Distance_Calculator()
 
     def run(self):
         '''
@@ -114,8 +114,7 @@ class Vision(node_base):
                 #Draw detections in photo
                 for i in r:
                     x, y, w, h = i[2][0], i[2][1], i[2][2], i[2][3]
-                    self.distance_calculator = distance_calculator(i, x, y, w, h)
-                    self.distance_calculator.set_matrices()
+                    self.distance_calculator.set_coordinates(i, x, y, w, h)
                     rotation, translation, distance = self.distance_calculator.calculate_distance()
                     print('Rotation: ', rotation)
                     print('Trnaslation: ', translation)

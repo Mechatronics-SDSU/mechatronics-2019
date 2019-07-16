@@ -14,7 +14,7 @@ sys.path.append(PARAM_PATH)
 MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
 from mechos_network_configs import MechOS_Network_Configs
 
-class distance_calculator():
+class Distance_Calculator():
     '''
     This class initializes our required matrices using points from the parameter server,
     and detection data from yolo. It will then use openCV operations to interpret the data
@@ -32,29 +32,16 @@ class distance_calculator():
         Returns:
             N/A
         '''
-        self.detection = detection
-        self.x_coordinate = float(x)
-        self.y_coordinate = float(y)
-        self.width = float(w)
-        self.height = float(h)
-        self.camera_matrix = None
-        self.distortion_matrix = None
-        self.two_dim_points = None
-        self.three_dim_points = None
+        self.detection = None
+        self.x_coordinate = None
+        self.y_coordinate = None
+        self.width = None
+        self.height = None
 
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
         self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
         self.param_serv.use_parameter_database(configs["param_server_path"])
-
-    def set_matrices(self):
-        '''
-        This function sets our camera, distortion, and dimension points depending on the detection
-        Params:
-            N/A
-        Returns:
-            N/A
-        '''
 
         self.focal_length_x = float(self.param_serv.get_param("Vision/solvePnP/camera_matrix/focal_length_x"))
         self.focal_length_y = float(self.param_serv.get_param("Vision/solvePnP/camera_matrix/focal_length_y"))
@@ -64,7 +51,6 @@ class distance_calculator():
         self.camera_matrix = np.array([[self.focal_length_x, 0.0, self.optical_center_x],
                                       [0.0, self.focal_length_y, self.optical_center_y],
                                       [0.0, 0.0, 1.0]])
-        #print(self.camera_matrix)
 
         self.distort_var_1 = float(self.param_serv.get_param("Vision/solvePnP/distortion_matrix/k1"))
         self.distort_var_2 = float(self.param_serv.get_param("Vision/solvePnP/distortion_matrix/k2"))
@@ -73,11 +59,28 @@ class distance_calculator():
         self.distort_var_5 = float(self.param_serv.get_param("Vision/solvePnP/distortion_matrix/k3"))
 
         self.distortion_matrix = np.array([[self.distort_var_1, self.distort_var_2, self.distort_var_3, self.distort_var_4, self.distort_var_5]])
+        
+        self.two_dim_points = None
+        self.three_dim_points = None
+
+    def set_coordinates(self, detection, x, y, w, h):
+        '''
+        This function sets our three dimensional and two dimensional points depending on the detection
+        Params:
+            N/A
+        Returns:
+            N/A
+        '''
         #print(self.distortion_matrix)
+        self.detection = detection
+        self.x = x
+        self.y = y
+        self.w = w
+        self.h = h
 
         label = self.detection[0]
 
-        if(label == b'Dice 1' or label == b'Dice 2' or label == b'Dice 3' or label == b'Dice 4' or label == b'Dice 5' or label == b'Dice 6'):
+        if(label == b'Dice'):
             self.min_coordinate = float(self.param_serv.get_param("Vision/Coordinates/dice/topleft"))
             self.center_coordinate = float(self.param_serv.get_param("Vision/Coordinates/dice/middle"))
             self.max_coordinate = float(self.param_serv.get_param("Vision/Coordinates/dice/bottomright"))
@@ -101,7 +104,8 @@ class distance_calculator():
                                             [(self.x_coordinate), (self.y_coordinate + (0.5 * self.height))],
                                             [(self.x_coordinate + (0.5 * self.width)), (self.y_coordinate + (0.5 * self.height))]])
 
-        else if(label == b'Gate Arm'):
+        else:
+            pass
 
     def calculate_distance(self):
         '''
