@@ -39,7 +39,7 @@ from MechOS import mechos
 import struct
 import threading
 
-from message_passing.Nodes.node_base_udp import node_base
+from MechOS.message_passing.Nodes.node_base import node_base
 import socket
 
 MOVEMENT_AXIS = ["Roll", "Pitch", "Yaw", "X Pos.", "Y Pos.", "Depth"]
@@ -378,7 +378,7 @@ class Navigation_Controller(node_base):
             print("%s: %0.2f" % (MOVEMENT_AXIS[index], dp), end='')
         print("")
 
-        
+
     def __update_thruster_test_callback(self, thruster_proto):
         '''
         The callback function to unpack and write thrusts to each thruster for

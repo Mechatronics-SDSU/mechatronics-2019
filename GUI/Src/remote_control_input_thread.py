@@ -10,7 +10,7 @@ import struct
 import numpy as np
 import time
 from PyQt5.QtCore import QThread
-from message_passing.Nodes.node_base_udp import node_base
+from MechOS.message_passing.Nodes.node_base import node_base
 from remote_control_input import Remote_Control_Node
 
 class RC_Thread(QThread):
@@ -34,20 +34,16 @@ class RC_Thread(QThread):
         MEM={'RC':b'cleaners'}
 
         self.rc_input_thread = Remote_Control_Node(IP, MEM)
-        self.rc_input_thread.rc_thread_running = False 
-        self.rc_input_thread.start()      
+        self.rc_input_thread.rc_thread_running = False
+        self.rc_input_thread.start()
 
     def __del__(self):
         self.wait()
 
-    def run(self): 
+    def run(self):
 
         while self.threadrunning == False:
-            self.rc_input_thread.rc_thread_running = False 
+            self.rc_input_thread.rc_thread_running = False
 
-        while self.threadrunning == True: 
+        while self.threadrunning == True:
             self.rc_input_thread.rc_thread_running = True
-
-
-
-
