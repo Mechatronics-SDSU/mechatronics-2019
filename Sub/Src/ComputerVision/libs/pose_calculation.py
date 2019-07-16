@@ -20,15 +20,11 @@ class Distance_Calculator():
     and detection data from yolo. It will then use openCV operations to interpret the data
     and give us accurate judgements on how far our objects are from the front of the sub.
     '''
-    def __init__(self, detection, x, y, w, h):
+    def __init__(self):
         '''
         Initializes my distance calculator
         Params:
-            detection: Detection object. Includes image with yolo's bouding box drawn around
-            x: x coordinate of the bounding box
-            y: y coordinate of the bounding box
-            w: width of the bounding box
-            h: height of the bounding box
+            N/A
         Returns:
             N/A
         '''
@@ -63,16 +59,15 @@ class Distance_Calculator():
         self.two_dim_points = None
         self.three_dim_points = None
 
-    def set_coordinates(self, detection_list, detection, x, y, w, h):
+    def set_coordinates(self, detection, x, y, w, h):
         '''
         This function sets our three dimensional and two dimensional points depending on the detection
         Params:
             N/A
-        Returns:
             N/A
+        Returns:
         '''
         #print(self.distortion_matrix)
-        self.detection_list = detection_list
         self.detection = detection
         self.x = x
         self.y = y
