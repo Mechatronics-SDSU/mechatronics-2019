@@ -59,11 +59,11 @@ class Distance_Calculator():
         self.distort_var_5 = float(self.param_serv.get_param("Vision/solvePnP/distortion_matrix/k3"))
 
         self.distortion_matrix = np.array([[self.distort_var_1, self.distort_var_2, self.distort_var_3, self.distort_var_4, self.distort_var_5]])
-        
+
         self.two_dim_points = None
         self.three_dim_points = None
 
-    def set_coordinates(self, detection, x, y, w, h):
+    def set_coordinates(self, detection_list, detection, x, y, w, h):
         '''
         This function sets our three dimensional and two dimensional points depending on the detection
         Params:
@@ -72,6 +72,7 @@ class Distance_Calculator():
             N/A
         '''
         #print(self.distortion_matrix)
+        self.detection_list = detection_list
         self.detection = detection
         self.x = x
         self.y = y
