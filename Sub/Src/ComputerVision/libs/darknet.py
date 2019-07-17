@@ -85,7 +85,7 @@ get_network_boxes = lib.get_network_boxes
 get_network_boxes.argtypes = [c_void_p, c_int, c_int, c_float, c_float, POINTER(c_int), c_int, POINTER(c_int)]
 get_network_boxes.restype = POINTER(DETECTION)
 
-# Make Network 
+# Make Network
 make_network_boxes = lib.make_network_boxes
 make_network_boxes.argtypes = [c_void_p]
 make_network_boxes.restype = POINTER(DETECTION)
@@ -159,7 +159,7 @@ def array_to_image(arr):
     im = IMAGE(w,h,c,data)
     return im, arr
 
-def detect(net, meta, image, thresh=.25, hier_thresh=.25, nms=.45):
+def detect(net, meta, image, thresh=.2, hier_thresh=.2, nms=.45):
     im, image = array_to_image(image)
     rgbgr_image(im)
     num = c_int(0)
@@ -184,4 +184,3 @@ def detect(net, meta, image, thresh=.25, hier_thresh=.25, nms=.45):
     if isinstance(image, bytes): free_image(im)
     free_detections(dets, num)
     return res
-
