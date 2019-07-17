@@ -27,7 +27,7 @@ from ctypes import *
 from libs.darknet import *
 from MechOS.message_passing.Nodes.node_base import node_base
 from MechOS import mechos
-from libs.pose_calculation import distance_calculator
+#from libs.pose_calculation import distance_calculator
 
 PARAM_PATH = os.path.join("..", "Params")
 sys.path.append(PARAM_PATH)
@@ -91,7 +91,7 @@ class Vision(node_base):
 
         self.meta = load_meta(metadata_file_path)
 
-        self.distance_calculator = Distance_Calculator()
+        #self.distance_calculator = Distance_Calculator()
 
     def run(self):
         '''
@@ -114,11 +114,11 @@ class Vision(node_base):
                 #Draw detections in photo
                 for i in r:
                     x, y, w, h = i[2][0], i[2][1], i[2][2], i[2][3]
-                    self.distance_calculator.set_coordinates(i, x, y, w, h)
-                    rotation, translation, distance = self.distance_calculator.calculate_distance()
-                    print('Rotation: ', rotation)
-                    print('Trnaslation: ', translation)
-                    print('Distance: ', distance)
+                    #self.distance_calculator.set_coordinates(i, x, y, w, h)
+                    #rotation, translation, distance = self.distance_calculator.calculate_distance()
+                    #print('Rotation: ', rotation)
+                    #print('Trnaslation: ', translation)
+                    #print('Distance: ', distance)
                     xmin, ymin, xmax, ymax = convertBack(float(x), float(y), float(w), float(h))
                     pt1 = (xmin, ymin)
                     pt2 = (xmax, ymax)
