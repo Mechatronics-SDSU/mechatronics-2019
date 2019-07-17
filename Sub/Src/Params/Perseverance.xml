@@ -24,12 +24,12 @@
             <max_z>16</max_z>
         </Limits>
         <Thruster_Strengths>
-            <T1>0.20</T1>
+            <T1>0</T1>
             <T2>0</T2>
-            <T3>0.26</T3>
+            <T3>0</T3>
             <T4>0</T4>
             <T5>0</T5>
-            <T6>0.28</T6>
+            <T6>0</T6>
             <T7>0</T7>
             <T8>0</T8>
             <active_depth>1.0</active_depth>
@@ -37,48 +37,48 @@
         <PID>
             <dt>.025</dt>
             <roll_pid>
-                <p>0.01</p>
+                <p>0.11</p>
                 <i>0.0</i>
                 <d>0.0</d>
                 <min_error>-100</min_error>
                 <max_error>100</max_error>
             </roll_pid>
             <pitch_pid>
-                <p>0.2</p>
+                <p>0.1</p>
                 <i>0.0</i>
                 <d>0.0</d>
                 <min_error>-100</min_error>
                 <max_error>100</max_error>
             </pitch_pid>
             <yaw_pid>
-                <p>0.85</p>
+                <p>0.5</p>
                 <i>0.0</i>
                 <d>0.0</d>
-                <min_error>-10</min_error>
-                <max_error>10</max_error>
+                <min_error>-40</min_error>
+                <max_error>40</max_error>
             </yaw_pid>
             <x_pid>
                 <p>10.0</p>
                 <i>0.0</i>
                 <d>0.0</d>
-                <min_error>-10</min_error>
-                <max_error>10</max_error>
+                <min_error>-3</min_error>
+                <max_error>3</max_error>
             </x_pid>
             <y_pid>
-                <p>6.0</p>
+                <p>8.0</p>
                 <i>0.0</i>
                 <d>0.0</d>
-		<min_error>-10</min_error>
-                <max_error>10</max_error>
+		<min_error>-3</min_error>
+                <max_error>3</max_error>
             </y_pid>
             <z_pid>
-                <p>12.0</p>
-                <i>0.0</i>
+                <p>8.0</p>
+                <i>0.1</i>
                 <d>0.0</d>
-                <min_error>-100</min_error>
-                <max_error>100</max_error>
-		<bias>25</bias>
-                <active_bias_depth>1</active_bias_depth>
+                <min_error>-3</min_error>
+                <max_error>3</max_error>
+		<bias>26</bias>
+                <active_bias_depth>0.4</active_bias_depth>
             </z_pid>
         </PID>
         <Remote>

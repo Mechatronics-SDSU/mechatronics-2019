@@ -94,7 +94,7 @@ class PID_Controller():
 
         if(self.integral < self.integral_min):
             self.integral = self.integral_min
-        elif(sefl.integral > self.integral_max):
+        elif(self.integral > self.integral_max):
             self.integral = self.integral_max
 
         I = self.k_i * self.integral
