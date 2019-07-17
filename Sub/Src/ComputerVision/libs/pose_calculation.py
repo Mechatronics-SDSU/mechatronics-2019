@@ -80,15 +80,15 @@ class Distance_Calculator():
             self.min_coordinate = float(self.param_serv.get_param("Vision/Coordinates/dice/topleft"))
             self.center_coordinate = float(self.param_serv.get_param("Vision/Coordinates/dice/middle"))
             self.max_coordinate = float(self.param_serv.get_param("Vision/Coordinates/dice/bottomright"))
-            self.three_dim_points = np.array([[self.min_coordinate, self.min_coordinate, self.min_coordinate],
-                                              [self.center_coordinate, self.min_coordinate, self.min_coordinate],
-                                              [self.max_coordinate, self.min_coordinate, self.min_coordinate],
-                                              [self.min_coordinate, self.center_coordinate, self.min_coordinate],
-                                              [self.center_coordinate, self.center_coordinate, self.min_coordinate],
-                                              [self.max_coordinate, self.center_coordinate, self.min_coordinate],
-                                              [self.min_coordinate, self.max_coordinate, self.min_coordinate],
-                                              [self.center_coordinate, self.max_coordinate, self.min_coordinate],
-                                              [self.max_coordinate, self.max_coordinate, self.min_coordinate]])
+            self.three_dim_points = np.array([[self.min_coordinate, self.min_coordinate, self.center_coordinate],
+                                              [self.center_coordinate, self.min_coordinate, self.center_coordinate],
+                                              [self.max_coordinate, self.min_coordinate, self.center_coordinate],
+                                              [self.min_coordinate, self.center_coordinate, self.center_coordinate],
+                                              [self.center_coordinate, self.center_coordinate, self.center_coordinate],
+                                              [self.max_coordinate, self.center_coordinate, self.center_coordinate],
+                                              [self.min_coordinate, self.max_coordinate, self.center_coordinate],
+                                              [self.center_coordinate, self.max_coordinate, self.center_coordinate],
+                                              [self.max_coordinate, self.max_coordinate, self.center_coordinate]])
 
             self.two_dim_points = np.array([[(self.x_coordinate - (0.5 * self.width)), (self.y_coordinate - (0.5 * self.height))],
                                             [(self.x_coordinate), (self.y_coordinate - (0.5 * self.height))],
@@ -99,6 +99,28 @@ class Distance_Calculator():
                                             [(self.x_coordinate - (0.5 * self.width)), (self.y_coordinate + (0.5 * self.height))],
                                             [(self.x_coordinate), (self.y_coordinate + (0.5 * self.height))],
                                             [(self.x_coordinate + (0.5 * self.width)), (self.y_coordinate + (0.5 * self.height))]])
+
+        if(label == b'Gate Top'):
+
+            self.gate_center = float(self.param_serv.get_param("Vision/Coordinates/gate_top/top_mid_x")) #0.0
+            self.gate_right = float(self.param_serv.get_param("Vision/Coordinates/gate_top/top_right_x")) #5
+            self.gate_mid_right = float(self.param_serv.get_param("Vision/Coordinates/gate_top/top_right_mid_x"))
+            self.gate_left = -1.0 * self.gate_right
+            self.gate_mid_left = -1.0 * self.gate_mid_right
+
+            self.three_dim_points = np.array([[self.gate_left, self.gate_mid_left, self.gate_center],
+                                              [self.gate_mid_left, self.gate_mid_left, self.gate_center],
+                                              [self.gate_center, self.gate_mid_left, self.gate_center],
+                                              [self.gate_mid_right, self.gate_mid_left, self.gate_center],
+                                              [self.gate_right, self.gate_mid_left, self.gate_center],
+                                              [self.gate_center, self.gate_center, self.gate_center]])
+
+            self.two_dim_points = np.array([[self.x_coordinate - (0.5 * self.width), self.y_coordinate],
+                                            [self.x_coordinate - (0.25 * self.width), self.y_coordinate],
+                                            [self.x_coordinate, self.y_coordinate],
+                                            [self.x_coordinate + (0.25 * self.width), self.y_coordinate],
+                                            [self.x_coordinate + (0.5 * self.width), self.y_coordinate],
+                                            [self.x_coordinate, self.y_coordinate + ((self.x_coordinate - (0.5 * self.width)) - (self.x_coordinate - (0.25 * self.width)))]])
 
         else:
             pass

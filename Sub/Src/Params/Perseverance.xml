@@ -106,40 +106,32 @@
          </yolo>
          <solvePnP>
                <camera_matrix>
-                  <focal_length_x>656.76117331</focal_length_x>
-                  <focal_length_y>656.5199208</focal_length_y>
-                  <optical_center_x>311.02000055</optical_center_x>
-                  <optical_center_y>235.31118765</optical_center_y>
+                  <focal_length_x>659.40019747</focal_length_x>
+                  <focal_length_y>659.67574743</focal_length_y>
+                  <optical_center_x>316.68549694</optical_center_x>
+                  <optical_center_y>232.10189564</optical_center_y>
                </camera_matrix>
                <distortion_matrix>
-                  <k1>0.079735776</k1>
-                  <k2>-0.0490818</k2>
-                  <p1>-0.0281497</p1>
-                  <p2>-0.00267198</p2>
-                  <k3>-1.08707165</k3>
+                  <k1>0.09439093</k1>
+                  <k2>-0.32645474</k2>
+                  <p1>-0.00576758</p1>
+                  <p2>0.0029054</p2>
+                  <k3>-0.1284451</k3>
                </distortion_matrix>
          </solvePnP>
          <Coordinates>
             <gate_top>
-                <top_y>0.0</top_y>
-                <top_left_x>0.0</top_left_x>
-                <top_right_x>10.0</top_right_x>
-                <top_mid_x>5.0</top_mid_x>
-                <top_right_mid_x>7.5</top_right_mid_x>
-                <top_left_mid_x>2.5</top_left_mid_x>
+                <top_y>-2.5</top_y>
+                <top_left_x>-5.0</top_left_x>
+                <top_right_x>5.0</top_right_x>
+                <top_mid_x>0.0</top_mid_x>
+                <top_right_mid_x>2.5</top_right_mid_x>
+                <top_left_mid_x>-2.5</top_left_mid_x>
             </gate_top>
-            <gate_arm>
-                <arm_x>0.0</arm_x>
-                <arm_top>0.0</arm_top>
-                <arm_bottom>5.0</arm_bottom>
-                <arm_mid>2.5</arm_mid>
-                <arm_upper_mid>1.25</arm_upper_mid>
-                <arm_lower_mid>3.75</arm_lower_mid>
-            </gate_arm>
             <dice>
-                <topleft>0.0</topleft>
-                <middle>0.375</middle>
-                <bottomright>0.75</bottomright>
+                <topleft>-0.375</topleft>
+                <middle>0.0</middle>
+                <bottomright>0.375</bottomright>
             </dice>
          </Coordinates>
     </Vision>
