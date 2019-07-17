@@ -145,7 +145,7 @@ class Waypoint_Task:
             print(north_position, east_position, remaining_task_time)
             succeeded, desired_yaw = self.drive_functions.move_to_face_position(north_position,
                                                             east_position,
-                                                            1,
+                                                            10,
                                                             remaining_task_time,
                                                             None)
 
@@ -155,7 +155,7 @@ class Waypoint_Task:
             remaining_task_time = task_time - self.timeout_timer.net_timer()
             succedded, _, _ = self.drive_functions.move_to_position_hold_orientation(north_position=north_position,
                                                                           east_position=east_position,
-                                                                          buffer_zone=1,
+                                                                          buffer_zone=3,
                                                                           timeout=remaining_task_time)
             if(not succeeded):
                 return False
