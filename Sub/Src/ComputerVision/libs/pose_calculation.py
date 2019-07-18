@@ -117,10 +117,10 @@ class Distance_Calculator():
 
             self.gate_top_points = np.array([[self.center, self.center, self.center], #0, 0, 0
                                               [self.min, self.mid_min, self.center], #-5, -2.5, 0
-                                              [self.mid_min, self.mid_min, self.center],
-                                              [self.center, self.mid_min, self.center],
-                                              [self.mid_max, self.mid_min, self.center],
-                                              [self.max, self.mid_min, self.center]])
+                                              [self.mid_min, self.mid_min, self.center], #-2.5, -2.5, 0
+                                              [self.center, self.mid_min, self.center], #0, -2.5, 0
+                                              [self.mid_max, self.mid_min, self.center], #2.5, -2.5, 0
+                                              [self.max, self.mid_min, self.center]]) #5, -2.5, 0
 
             self.gate_right_points = np.array([[self.max, self.quarter_min, self.center],
                                                [self.max, self.center, self.center],
@@ -136,7 +136,7 @@ class Distance_Calculator():
                 if (second_det[0] == b'Gate Arm'):
                     self.second_x_coordinate, self.second_y_coordinate, self.second_width, self.second_height = second_det[2][0], second_det[2][1], second_det[2][2], second_det[2][3]
                     difference = self.second_x_coordinate - self.x_coordinate
-                    if(difference > 0):
+                    if(difference < 0):
                         self.three_dim_points = np.concatenate((self.gate_top_points, self.gate_right_points), axis = 0)
                     else:
                         self.three_dim_points = np.concatenate((self.gate_top_points, self.gate_left_points), axis = 0)
