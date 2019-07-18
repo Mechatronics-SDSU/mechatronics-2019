@@ -136,7 +136,7 @@ class Distance_Calculator():
                 if (second_det[0] == b'Gate Arm'):
                     self.second_x_coordinate, self.second_y_coordinate, self.second_width, self.second_height = second_det[2][0], second_det[2][1], second_det[2][2], second_det[2][3]
                     difference = self.second_x_coordinate - self.x_coordinate
-                    if(difference < 0):
+                    if(difference > 0):
                         self.three_dim_points = np.concatenate((self.gate_top_points, self.gate_right_points), axis = 0)
                     else:
                         self.three_dim_points = np.concatenate((self.gate_top_points, self.gate_left_points), axis = 0)
