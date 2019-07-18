@@ -1,0 +1,6 @@
+classes= 14
+train  = /home/mechatronics/darknet_alex/7_15_19/train.txt
+valid = /home/mechatronics/darknet_alex/7_15_19/test.txt
+names = /home/mechatronics/darknet_alex/7_15_19/test.names
+backup = /home/mechatronics/darknet_alex/7_15_19/weights/
+
