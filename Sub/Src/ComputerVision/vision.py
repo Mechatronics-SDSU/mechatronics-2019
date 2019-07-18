@@ -69,8 +69,8 @@ class Vision(node_base):
         self.MAX_PACKET_SIZE = 1500
 
         #--CAMERA INSTANCE--#
-        front_camera_index = int(self.param_serv.get_param("Vision/front_camera_index"))
-        self.capture = cv2.VideoCapture(front_camera_index)
+        #print(int(self.param_serv.get_param("Vision/front_camera_index")))
+        self.capture = cv2.VideoCapture(1)
 
         # Maximum image size the Tegra allows without timeout
         self.capture.set(3, 450)

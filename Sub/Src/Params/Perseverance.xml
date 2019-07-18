@@ -98,8 +98,8 @@
     <Vision>
          <front_camera_index>1</front_camera_index>
          <down_camera_index>2</down_camera_index>
-         <yolo>
-		 <darknet_path>/home/nvidia/mechatronics-2019/Sub/Src/ComputerVision/libs/darknet</darknet_path>
+	 <yolo>
+	       <darknet_path>/home/nvidia/mechatronics-2019/Sub/Src/ComputerVision/libs/darknet</darknet_path>
                <config_file>cfg/pool_test_7_16_19.cfg</config_file>
 	       <weights_file>weights/testing.weights</weights_file>
                <metadata_file>data/pool_test_7_16_19.data</metadata_file>
@@ -120,12 +120,12 @@
                </distortion_matrix>
          </solvePnP>
          <Coordinates>
-             <gate>
+            <gate>
                  <max>5.0</max>
-                 <cetner>0.0</center>
+                 <center>0.0</center>
                  <mid>2.5</mid>
                  <quarter>1.25</quarter>
-             </gate>
+            </gate>
             <dice>
                 <topleft>-0.375</topleft>
                 <middle>0.0</middle>
