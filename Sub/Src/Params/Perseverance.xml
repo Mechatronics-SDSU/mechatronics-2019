@@ -82,11 +82,11 @@
         </PID>
         <Remote>
           <yaw_min>-30</yaw_min>
-	        <yaw_max>30</yaw_max>
-	        <x_min>-50</x_min>
-	        <x_max>60</x_max>
-	        <y_min>-50</y_min>
-	        <y_max>60</y_max>
+	      <yaw_max>30</yaw_max>
+	      <x_min>-50</x_min>
+	      <x_max>60</x_max>
+	      <y_min>-50</y_min>
+	      <y_max>60</y_max>
         </Remote>
     </Control>
     <Sensors>
@@ -98,12 +98,40 @@
     <Vision>
          <front_camera_index>1</front_camera_index>
          <down_camera_index>2</down_camera_index>
-         <yolo>
-		 <darknet_path>/home/nvidia/mechatronics-2019/Sub/Src/ComputerVision/libs/darknet</darknet_path>
-               <config_file>cfg/mech.cfg</config_file>
-               <weights_file>weights/mech.weights</weights_file>
-               <metadata_file>data/mech.data</metadata_file>
+	 <yolo>
+	       <darknet_path>/home/nvidia/mechatronics-2019/Sub/Src/ComputerVision/libs/darknet</darknet_path>
+               <config_file>cfg/pool_test_7_16_19.cfg</config_file>
+	       <weights_file>weights/testing.weights</weights_file>
+               <metadata_file>data/pool_test_7_16_19.data</metadata_file>
          </yolo>
+         <solvePnP>
+               <camera_matrix>
+                  <focal_length_x>659.40019747</focal_length_x>
+                  <focal_length_y>659.67574743</focal_length_y>
+                  <optical_center_x>316.68549694</optical_center_x>
+                  <optical_center_y>232.10189564</optical_center_y>
+               </camera_matrix>
+               <distortion_matrix>
+                  <k1>0.09439093</k1>
+                  <k2>-0.32645474</k2>
+                  <p1>-0.00576758</p1>
+                  <p2>0.0029054</p2>
+                  <k3>-0.1284451</k3>
+               </distortion_matrix>
+         </solvePnP>
+         <Coordinates>
+            <gate>
+                 <max>5.0</max>
+                 <center>0.0</center>
+                 <mid>2.5</mid>
+                 <quarter>1.25</quarter>
+            </gate>
+            <dice>
+                <topleft>-0.375</topleft>
+                <middle>0.0</middle>
+                <bottomright>0.375</bottomright>
+            </dice>
+         </Coordinates>
     </Vision>
     <Missions>
       <waypoint_collect_file>waypoint_test.csv</waypoint_collect_file>
