@@ -69,8 +69,8 @@ class Vision(node_base):
         self.MAX_PACKET_SIZE = 1500
 
         #--CAMERA INSTANCE--#
-        #print(int(self.param_serv.get_param("Vision/front_camera_index")))
-        self.capture = cv2.VideoCapture(1)
+        front_camera_index = int(self.param_serv.get_param("Vision/front_camera_index")
+        self.capture = cv2.VideoCapture(front_camera_index)
 
         # Maximum image size the Tegra allows without timeout
         self.capture.set(3, 450)
@@ -114,8 +114,11 @@ class Vision(node_base):
                 #Draw detections in photo
                 for i in r:
                     x, y, w, h = i[2][0], i[2][1], i[2][2], i[2][3]
+
+                    #Perform solve pnp calculations
                     self.distance_calculator.set_coordinates(r, i, x, y, w, h)
                     rotation, translation, distance = self.distance_calculator.calculate_distance()
+                    
                     print('Rotation: ', rotation)
                     print('Translation: ', translation)
                     print('Distance: ', distance)
