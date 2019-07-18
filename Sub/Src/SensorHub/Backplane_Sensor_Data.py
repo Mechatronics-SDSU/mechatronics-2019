@@ -1,6 +1,5 @@
 '''
 Copyright 2019, David Pierce Walker-Howell, All rights reserved
-
 Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
 Last Modified 01/23/2019
 Description: This module is the driver program for the backplane. It is responsible for
@@ -37,7 +36,6 @@ class Backplane_Requests():
     def __init__(self, backplane_serial_obj):
         '''
         Initializes connection with the backplane through serial communication.
-
         Parameters:
             backplane_serial_obj: An already initialized serial communication object
                                 to the backplane.
@@ -52,15 +50,12 @@ class Backplane_Requests():
     def request_pressure_transducer_data(self):
         '''
         Request pressure data from transducers.
-
         Note: The request for pressure data is given by
             byte_1: self.header_byte
             byte_2: 0x41
             byte_3: self.termination_byte
-
         Parameters:
             N/A
-
         Returns:
             true: If request for transducer data is successful
             false: If request for transducer data is unsuccessful
@@ -85,11 +80,9 @@ class Backplane_Responses(threading.Thread):
         '''
         Initialize the backplane response thread to connect through serial to
         backplane.
-
         Parameters:
             backplane_serial_obj: An already initialized serial communication object
                                 to the backplane.
-
         Returns:
             N/A
         '''
@@ -119,10 +112,8 @@ class Backplane_Responses(threading.Thread):
         '''
         Run the tread to continually receive data from the backplane and store
         in backplane_data queue.
-
         Parameters:
             N/A
-
         Returns:
             N/A
         '''
@@ -136,7 +127,7 @@ class Backplane_Responses(threading.Thread):
                 self.backplane_response_timer.restart_timer()
             else:
                 self.backplane_response_timer.restart_timer()
-            
+
             backplane_data_packet = self._unpack()
 
             if backplane_data_packet != None:
@@ -146,10 +137,8 @@ class Backplane_Responses(threading.Thread):
     def _unpack(self):
         '''
         Read in the transmission from the backplane and extract the data from it.
-
         Parameter:
             N/A
-
         Returns:
             message: The backplane data after the raw bytes have been unpacked.
                      This will be in the form of a dictionary were the key is
@@ -247,8 +236,7 @@ class Backplane_Responses(threading.Thread):
                          #Byte 4 (bits 0-5) shifted 4 bits left OR Byte 3 (bits 4-7) shifted 4
                          ext_pressure_3 = struct.unpack('H', struct.pack('H', (payload[3] & int('0x1F', 0)) << 4 | payload[2] >> 4))[0]
                          inter_pressure_1 = (struct.unpack('i', struct.pack('I', payload[4] | payload[5] << 8 | (int('0xF', 0) & payload[6]) << 16))[0])
-                         #message = {"Press":[ext_pressure_1,ext_pressure_2, ext_pressure_3, inter_pressure_1]}
-                         
+
                          #Currently only these two transducers are operational(since the line reading 1 is broken)
                          message = {"Press":[ext_pressure_2, ext_pressure_3]}
                     elif id_frame == 400:   #This use to be used for an internal pressure sensor
@@ -277,7 +265,6 @@ class Backplane_Handler(threading.Thread):
         '''
         Initialize serial connection to the backplane, start the backplane response
         thread.
-
         Parameters:
             com_port: The serial communication port that the backplane is connected
                         to.
@@ -320,10 +307,8 @@ class Backplane_Handler(threading.Thread):
         '''
         Continually receive data from the backplane and perform any necessary
         processing or directing of that data.
-
         Parameters:
             N/A
-
         Returns:
             N/A
         '''

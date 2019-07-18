@@ -1,9 +1,7 @@
-'''
+''
 Copyright 2019, David Pierce Walker-Howell, All rights reserved
-
 Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
 Last Modified 06/5/2019
-
 Description: The main process on the sub that will orchatrate
             everything. This includes the control system, sensor driver,
             and mission commander. Also controls communication with the GUI.
@@ -38,11 +36,9 @@ class Main_Controller(node_base):
     def __init__(self, MEM, IP):
         '''
         Intialize the main controller of the sub.
-
         Parameters:
             MEM: local dictionary containing all data for local message transfer
             IP: dictionary containing address, sockets, etc for network transfer
-
         Returns:
             N/A
         '''
@@ -71,11 +67,9 @@ class Main_Controller(node_base):
     def print_sensor_data(self, sensor_data):
         '''
         Format and print out the sensor data to the command window.
-
         Parameters:
             sensor_data: A list of the sensor data.
                         [roll, pitch, yaw, x_pos, y_pos, depth]
-
         Returns:
             N/A
         '''
@@ -114,4 +108,4 @@ if __name__ == "__main__":
     MEM={'RC':b'\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00\x00\x01\x807\x00\x00\x00\x00'}
 
     main_controller = Main_Controller(MEM, IP)
-    main_controller.start()
+main_controller.start()
