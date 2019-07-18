@@ -58,8 +58,6 @@ class Waypoint_Task:
         #Initialize the timeout timer
         self.timeout_timer = util_timer.Timer()
 
-        self.print_task_info()
-
         self.unpack_waypoints()
 
     def print_task_info(self):
@@ -116,6 +114,9 @@ class Waypoint_Task:
             False: If the waypoint task reaches its timout but hasn't finished.
         '''
         print("[INFO]: Starting Waypoint Task:", self.name)
+
+        self.print_task_info()
+
         self.timeout_timer.restart_timer()
 
         #Convert the timout to seconds
@@ -140,14 +141,13 @@ class Waypoint_Task:
             if(not succeeded):
                 return False
 
-            #Face position desired_position
+            #Face position desired_position while holding the previous desired depth.
             remaining_task_time = task_time - self.timeout_timer.net_timer()
-            print(north_position, east_position, remaining_task_time)
-            succeeded, desired_yaw = self.drive_functions.move_to_face_position(north_position,
-                                                            east_position,
-                                                            10,
-                                                            remaining_task_time,
-                                                            None)
+            succeeded, desired_yaw = self.drive_functions.move_to_face_position(north_position=north_position,
+                                                            east_position=east_position,
+                                                            buffer_zone=10,
+                                                            timeout=remaining_task_time,
+                                                    desired_orientation={"depth":depth_position})
 
             if(not succeeded):
                 return False
@@ -155,8 +155,9 @@ class Waypoint_Task:
             remaining_task_time = task_time - self.timeout_timer.net_timer()
             succedded, _, _ = self.drive_functions.move_to_position_hold_orientation(north_position=north_position,
                                                                           east_position=east_position,
-                                                                          buffer_zone=3,
-                                                                          timeout=remaining_task_time)
+                                                                          buffer_zone=2,
+                                                                          timeout=remaining_task_time,
+                                                                desired_orientation={"depth":depth_position})
             if(not succeeded):
                 return False
 

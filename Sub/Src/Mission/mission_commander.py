@@ -82,7 +82,7 @@ class Mission_Commander(threading.Thread):
 
         #Set up serial com to read the autonomous button
         com_port = self.param_serv.get_param("COM_Ports/auto")
-        #self.auto_serial = serial.Serial(com_port, 9600)
+        self.auto_serial = serial.Serial(com_port, 9600)
 
         #load the mission data
         self._update_mission_info_callback(None)
@@ -232,7 +232,7 @@ class Mission_Commander(threading.Thread):
 
         #Count the number of tasks in the mission
         self.num_tasks = len(self.mission_data)
-        print("[INFO]: Number of tasks for mission is", self.num_tasks, ".")
+        print("[INFO]: Parsing Mission. Number of tasks for mission is", self.num_tasks, ".")
 
         task_keys = self.mission_data.keys()
 
@@ -260,7 +260,7 @@ class Mission_Commander(threading.Thread):
             try:
                 #If in Mission mode, listen to see if the autonomous mode button is
                 #pressed.
-                """
+
                 if(self.mission_mode):
 
                     if(self.auto_serial.in_waiting):
@@ -274,18 +274,15 @@ class Mission_Commander(threading.Thread):
                         elif(auto_pressed == "Auto Status:0"):
                             print("[INFO]: Mission is no longer Live.")
                             self.mission_live = False
-                """
-                if(self.mission_mode):
-                    print("FOR BS QUALIFICATION, WAITING 10 secs TO START MISSION...")
-                    print("MAKE SURE TO STOP MISSION WHEN DONE...OR IT WILL DO THE MISSION AGAIN.")
-                    time.sleep(10)
-                    self.mission_live = True
 
                     #When mission is live, run the mission
                     if(self.mission_live):
 
                         unkill_state = struct.pack('b', 0)
                         self.kill_sub_publisher.publish(unkill_state)
+
+                        #Set the current position as origin
+                        self.sensor_driver.zero_pos()
 
                         #Iterate through each task in the mission and run them
                         for task_id, task in enumerate(self.mission_tasks):
@@ -298,13 +295,17 @@ class Mission_Commander(threading.Thread):
                             else:
                                 print("[INFO]: Failed to complete task %s." % task.name)
 
-                        print("[INFO]: Finished Mission")
+                        print("[INFO]: Finished Mission. Killing the sub.")
                         self.mission_live = False
 
+                        #Kill the sub.
+                        kill_state = struct.pack('b', 1)
+                        self.kill_sub_publisher.publisher(kill_state)
             except:
+                print("[ERROR]: Encountered an Error in Mission Commander. Error:", sys.exc_info()[0])
                 raise
-                #print("[ERROR]: Encountered an Error in Mission Commander. Error:", e)
-                       
+
+
 
 if __name__ == "__main__":
-    mission_commander = Mission_Commander('MissionFiles/Dummy/mission.json', None)
+    mission_commander = Mission_Commander('MissionFiles/GateQual/mission.json', None)

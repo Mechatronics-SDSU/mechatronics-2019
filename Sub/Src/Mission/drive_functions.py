@@ -130,21 +130,22 @@ class Drive_Functions:
                     will exit.
             desired_orientation: If None, use the current North, East, and
                                 and yaw values to do the depth dive. Else use the
-                                desired_position. Which has the form
-                                    [Yaw, North, East]
+                                desired_orientation dictionary where you can set
+                                between 1 and all the follow orientations.
+                                {"yaw":<val>, "north_pos":<val>, "east_pos":<val>}
         '''
 
         current_position = self.sensor_driver.sensor_data
 
-        #Construct the desired depth and send it.
-        if(desired_orientation != None):
-            desired_yaw, desired_north, desired_east = desired_orientation
+        desired_position = [0.0, 0.0] + current_position[2:5] + [desired_depth]
 
-        else:
-            desired_yaw, desired_north, desired_east = current_position[2:5]
+        #If any of these keys are in desired_orientation, then hold that position while yawing
+        orientation_keys = {"yaw":2, "north_pos":3, "east_pos":4}
 
-        desired_position = [0.0, 0.0, desired_yaw, desired_north, desired_east, desired_depth]
-        
+        for orientation_to_lock in desired_orientation:
+            index = orientation_keys[orientation_to_lock]
+            desired_position[index] = desired_orientation[orientation_to_lock]
+
         self.send_desired_position(desired_position)
 
         #Begin the timeout timer.
@@ -184,21 +185,20 @@ class Drive_Functions:
         '''
 
         current_position = self.sensor_driver.sensor_data
+        desired_position = [0.0, 0.0, 0.0] + current_position[3:]
 
-        #Get the distance components
-        if(desired_orientation != None):
-            hold_north, hold_east, hold_depth = desired_orientation
+        #If any of these keys are in desired_orientation, then hold that position while yawing
+        orientation_keys = {"north_pos":3, "east_pos":4, "depth":5}
 
-        else:
-            hold_north, hold_east, hold_depth = current_position[3:]
+        for orientation_to_lock in desired_orientation:
+            index = orientation_keys[orientation_to_lock]
+            desired_position[index] = desired_orientation[orientation_to_lock]
 
-        north_dist = north_position - hold_north
-        east_dist = east_position - hold_east
+        north_dist = north_position - current_position[3]
+        east_dist = east_position - current_position[4]
 
         desired_yaw = math.degrees(math.atan2(east_dist, north_dist))
-
-        #Assemble the desired Position
-        desired_position = [0.0, 0.0, desired_yaw, hold_north, hold_east, hold_depth]
+        desired_position[2] = desired_yaw
 
         self.send_desired_position(desired_position)
 
@@ -235,21 +235,22 @@ class Drive_Functions:
                         it doesn't rech the buffer_zone in time, the function
                         will exit.
             desired_orientation: If None, then use the current yaw and depth while
-                                moving to the desired_position. Else pass a
-                                list with [yaw, depth] hold while moving towards the
-                                desired position.
+                                moving to the desired_position. Else pass a Dictionary
+                                with 1 or all of the following keys with their desired
+                                values.
+                                {"depth":<val>, "yaw":<val>}
         '''
         #Get the current position
         current_position = self.sensor_driver.sensor_data
-        print("hello1")
-        if(desired_orientation != None):
-            desired_yaw, desired_depht = desired_orientation
-        else:
-            desired_yaw = current_position[2]
-            desired_depth = current_position[5]
 
-        desired_position = [0.0, 0.0, desired_yaw, north_position, east_position, desired_depth]
+        desired_position = [0.0, 0.0] + [current_position[2]] + [north_position, east_position] + [current_position[5]]
 
+        #If any of these keys are in desired_orientation, then hold that position while yawing
+        orientation_keys = {"yaw":2, "depth":5}
+
+        for orientation_to_lock in desired_orientation:
+            index = orientation_keys[orientation_to_lock]
+            desired_position[index] = desired_orientation[orientation_to_lock]
 
         self.send_desired_position(desired_position)
 
@@ -257,9 +258,9 @@ class Drive_Functions:
         self.timeout_timer.restart_timer()
 
         distance_to_position = self.get_distance_to_position(current_position[3], current_position[4], north_position, east_position)
-        print("hello2")
+
         while(abs(distance_to_position) > buffer_zone):
-  
+
             if(timeout != None):
                 if(self.timeout_timer.net_timer() > timeout):
                     print("[WARNING]: Move to position while holding orientatio timed out. Distance to position:", distance_to_position)

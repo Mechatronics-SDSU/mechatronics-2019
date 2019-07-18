@@ -216,11 +216,13 @@ class Movement_PID:
             N/A
         '''
         for thruster_id, thruster in enumerate(self.thrusters):
-            #Multiplied roll control by negative one to account for the thrusters going in the
+            #Multiplied roll control and x_control by negative one to account for the thrusters going in the
             #wrong direction.
+            #Also only thruster 2 and 6 are used for yaw, achieve better results this way.
+            #To add in thrusters 4 and 8 for yaw, add the following comment line to the addition.
+            #       (yaw_control * thruster.orientation[0] * thruster.location[1])
 
-            #(yaw_control * thruster.orientation[0] * thruster.location[1]) + \
-            thrust = (-1*roll_control * thruster.orientation[2] * thruster.location[1]) + \
+            thrust = (-1 * roll_control * thruster.orientation[2] * thruster.location[1]) + \
                      (pitch_control * thruster.orientation[2] * thruster.location[0]) + \
                      (yaw_control * thruster.orientation[1] * thruster.location[0]) + \
                      (-1 * x_control * thruster.orientation[0]) + \
