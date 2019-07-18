@@ -221,6 +221,12 @@ class Navigation_Controller(node_base):
             self.pid_values_update_freeze = True
             self.update_pid_errors = False
 
+        elif(self.movement_mode == 3):
+            print("[INFO]: Movement mode selected: Autonomous Mode")
+            self.remote_control_listen = False
+            self.pid_values_update_freeze = True
+            self.update_pid_errors = False
+
     def __update_pid_configs_callback(self, misc):
         '''
         The callback function to update the pid configuration if the save button
@@ -378,7 +384,7 @@ class Navigation_Controller(node_base):
             print("%s: %0.2f" % (MOVEMENT_AXIS[index], dp), end='')
         print("")
 
-        
+
     def __update_thruster_test_callback(self, thruster_proto):
         '''
         The callback function to unpack and write thrusts to each thruster for
@@ -446,22 +452,6 @@ class Navigation_Controller(node_base):
             #yaw are ignored.
             elif self.movement_mode == 0:
 
-
-                #----SIMPLE DEPTH MOVE NO YAW--------------------------------------
-                #NOTE: USED ONLY FOR PID TUNNING AND TESTING PURPOSES.
-                #Perform the PID control step to move the sub to the desired depth
-                #The error received is the roll, pitch, and depth error
-                # error = self.pid_controller.simple_depth_move_no_yaw(self.current_position[0],
-                #                                              self.current_position[1],
-                #                                              self.current_position[5],
-                #                                              self.desired_position[0],
-                #                                              self.desired_position[1],
-                #                                              self.desired_position[5])
-                # self.pos_error[0] = error[0]
-                # self.pos_error[1] = error[1]
-                # self.pos_error[5] = error[2]
-                #----------------------------------------------------------------------
-
                 #----ADVANCE MOVE (ALL 6 DEGREES OF FREEDOMW)--------------------------
                 self.pos_error = self.pid_controller.advance_move(self.current_position, self.desired_position)
 
@@ -474,6 +464,11 @@ class Navigation_Controller(node_base):
             elif self.movement_mode == 2: #SWITCHED MOVMENT MODES FOR TESTING CONTROLLER, REVERT BACK
 
                 self.pid_controller.remote_move(self.current_position, self.remote_commands)
+
+            #Autonomous Mission mode. Mission is live and running.
+            elif self.movement_mode == 3:
+
+                self.pid_controller.advance_move(self.current_position, self.desired_position)
 
 if __name__ == "__main__":
 
