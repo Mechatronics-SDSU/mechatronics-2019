@@ -69,10 +69,10 @@ class Distance_Calculator():
         '''
         #print(self.distortion_matrix)
         self.detection = detection
-        self.x = x
-        self.y = y
-        self.w = w
-        self.h = h
+        self.x_coordinate = x
+        self.y_coordinate = y
+        self.width = w
+        self.height = h
 
         label = self.detection[0]
 
@@ -99,7 +99,7 @@ class Distance_Calculator():
                                             [(self.x_coordinate - (0.5 * self.width)), (self.y_coordinate + (0.5 * self.height))],
                                             [(self.x_coordinate), (self.y_coordinate + (0.5 * self.height))],
                                             [(self.x_coordinate + (0.5 * self.width)), (self.y_coordinate + (0.5 * self.height))]])
-
+    
         if(label == b'Gate Top'):
 
             self.gate_center = float(self.param_serv.get_param("Vision/Coordinates/gate_top/top_mid_x")) #0.0

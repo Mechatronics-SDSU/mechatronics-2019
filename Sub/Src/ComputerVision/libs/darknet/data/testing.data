@@ -1,6 +1,6 @@
 classes= 14
 train  = /home/mechatronics/darknet_alex/7_15_19/train.txt
 valid = /home/mechatronics/darknet_alex/7_15_19/test.txt
-names = /home/mechatronics/darknet_alex/7_15_19/test.names
+names = /home/nvidia/mechatronics-2019/Sub/Src/ComputerVision/libs/darknet/names/pool_test_7_16_19.names
 backup = /home/mechatronics/darknet_alex/7_15_19/weights/
 

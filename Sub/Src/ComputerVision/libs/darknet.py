@@ -159,7 +159,7 @@ def array_to_image(arr):
     im = IMAGE(w,h,c,data)
     return im, arr
 
-def detect(net, meta, image, thresh=.2, hier_thresh=.2, nms=.45):
+def detect(net, meta, image, thresh=.25, hier_thresh=.25, nms=.45):
     im, image = array_to_image(image)
     rgbgr_image(im)
     num = c_int(0)

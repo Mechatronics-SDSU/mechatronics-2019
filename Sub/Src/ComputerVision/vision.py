@@ -117,7 +117,7 @@ class Vision(node_base):
                     self.distance_calculator.set_coordinates(i, x, y, w, h)
                     rotation, translation, distance = self.distance_calculator.calculate_distance()
                     print('Rotation: ', rotation)
-                    print('Trnaslation: ', translation)
+                    print('Translation: ', translation)
                     print('Distance: ', distance)
                     xmin, ymin, xmax, ymax = convertBack(float(x), float(y), float(w), float(h))
                     pt1 = (xmin, ymin)
