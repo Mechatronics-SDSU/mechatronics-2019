@@ -101,7 +101,7 @@
          <yolo>
 		 <darknet_path>/home/nvidia/mechatronics-2019/Sub/Src/ComputerVision/libs/darknet</darknet_path>
                <config_file>cfg/pool_test_7_16_19.cfg</config_file>
-	       <weights_file>weights/pool_test_7_16_19.weights</weights_file>
+	       <weights_file>weights/testing.weights</weights_file>
                <metadata_file>data/pool_test_7_16_19.data</metadata_file>
          </yolo>
          <solvePnP>
