@@ -30,9 +30,13 @@ class Distance_Calculator():
         '''
         self.detection = None
         self.x_coordinate = None
+        self.second_x_coordinate = None
         self.y_coordinate = None
+        self.second_y_coordinate =None
         self.width = None
+        self.second_width = None
         self.height = None
+        self.second_height = None
 
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
@@ -59,7 +63,7 @@ class Distance_Calculator():
         self.two_dim_points = None
         self.three_dim_points = None
 
-    def set_coordinates(self, detection, x, y, w, h):
+    def set_coordinates(self, detect_list, detection, x, y, w, h):
         '''
         This function sets our three dimensional and two dimensional points depending on the detection
         Params:
@@ -80,6 +84,7 @@ class Distance_Calculator():
             self.min_coordinate = float(self.param_serv.get_param("Vision/Coordinates/dice/topleft"))
             self.center_coordinate = float(self.param_serv.get_param("Vision/Coordinates/dice/middle"))
             self.max_coordinate = float(self.param_serv.get_param("Vision/Coordinates/dice/bottomright"))
+
             self.three_dim_points = np.array([[self.min_coordinate, self.min_coordinate, self.center_coordinate],
                                               [self.center_coordinate, self.min_coordinate, self.center_coordinate],
                                               [self.max_coordinate, self.min_coordinate, self.center_coordinate],
@@ -99,28 +104,55 @@ class Distance_Calculator():
                                             [(self.x_coordinate - (0.5 * self.width)), (self.y_coordinate + (0.5 * self.height))],
                                             [(self.x_coordinate), (self.y_coordinate + (0.5 * self.height))],
                                             [(self.x_coordinate + (0.5 * self.width)), (self.y_coordinate + (0.5 * self.height))]])
-    
+
         if(label == b'Gate Top'):
 
-            self.gate_center = float(self.param_serv.get_param("Vision/Coordinates/gate_top/top_mid_x")) #0.0
-            self.gate_right = float(self.param_serv.get_param("Vision/Coordinates/gate_top/top_right_x")) #5
-            self.gate_mid_right = float(self.param_serv.get_param("Vision/Coordinates/gate_top/top_right_mid_x"))
-            self.gate_left = -1.0 * self.gate_right
-            self.gate_mid_left = -1.0 * self.gate_mid_right
+            self.center = float(self.param_serv.get_param("Vision/Coordinates/gate/center")) #0.0
+            self.max = float(self.param_serv.get_param("Vision/Coordinates/gate/max")) #5
+            self.mid_max = float(self.param_serv.get_param("Vision/Coordinates/gate/mid")) #2.5
+            self.quarter_max = float(self.param_serv.get_param("Vision/Coordinates/gate/quarter")) #1.25
+            self.min = -1.0 * self.max #-5
+            self.mid_min = -1.0 * self.mid_max #-2.5
+            self.quarter_min = -1.0 * self.quarter_max #-1.25
 
-            self.three_dim_points = np.array([[self.gate_left, self.gate_mid_left, self.gate_center],
-                                              [self.gate_mid_left, self.gate_mid_left, self.gate_center],
-                                              [self.gate_center, self.gate_mid_left, self.gate_center],
-                                              [self.gate_mid_right, self.gate_mid_left, self.gate_center],
-                                              [self.gate_right, self.gate_mid_left, self.gate_center],
-                                              [self.gate_center, self.gate_center, self.gate_center]])
+            self.gate_top_points = np.array([[self.center, self.center, self.center],
+                                              [self.min, self.mid_min, self.center],
+                                              [self.mid_min, self.mid_min, self.center],
+                                              [self.center, self.mid_min, self.center],
+                                              [self.mid_max, self.mid_min, self.center],
+                                              [self.max, self.mid_min, self.center]])
 
-            self.two_dim_points = np.array([[self.x_coordinate - (0.5 * self.width), self.y_coordinate],
-                                            [self.x_coordinate - (0.25 * self.width), self.y_coordinate],
-                                            [self.x_coordinate, self.y_coordinate],
-                                            [self.x_coordinate + (0.25 * self.width), self.y_coordinate],
-                                            [self.x_coordinate + (0.5 * self.width), self.y_coordinate],
-                                            [self.x_coordinate, self.y_coordinate + ((self.x_coordinate - (0.5 * self.width)) - (self.x_coordinate - (0.25 * self.width)))]])
+            self.gate_right_points = np.array([[self.max, self.quarter_min, self.center],
+                                               [self.max, self.center, self.center],
+                                               [self.max, self.quarter_max, self.center],
+                                               [self.max, self.mid_max, self.center]])
+
+            self.gate_left_points = np.array([[self.min, self.quarter_min, self.center],
+                                              [self.min, self.center, self.center],
+                                              [self.min, self.quarter_max, self.center],
+                                              [self.min, self.mid_max, self.center]])
+
+            for second_det in detect_list:
+                if (second_det[0] == b'Gate Arm'):
+                    self.second_x_coordinate, self.second_y_coordinate, self.second_width, self.second_height = second_det[2][0], second_det[2][1], second_det[2][2], second_det[2][3]
+                    difference = self.second_x_coordinate - self.x_coordinate
+                    if(difference > 0):
+                        self.three_dim_points = np.concatenate((self.gate_top_points, self.gate_right_points), axis = 0)
+                    else:
+                        self.three_dim_points = np.concatenate((self.gate_top_points, self.gate_left_points), axis = 0)
+
+                    self.two_dim_points = np.array([[self.x_coordinate, self.y_coordinate + (self.second_y_coordinate - (0.5 * self.height))],
+                                                    [self.x_coordinate - (0.5 * self.width), self.y_coordinate],
+                                                    [self.x_coordinate - (0.25 * self.width), self.y_coordinate],
+                                                    [self.x_coordinate, self.y_coordinate],
+                                                    [self.x_coordinate + (0.25 * self.width), self.y_coordinate],
+                                                    [self.x_coordinate + (0.5 * self.width), self.y_coordinate],
+                                                    [self.second_x_coordinate, self.second_y_coordinate - (0.5 * self.second_height)],
+                                                    [self.second_x_coordinate, self.second_y_coordinate - (0.25 * self.second_height)],
+                                                    [self.second_x_coordinate, self.second_y_coordinate],
+                                                    [self.second_x_coordinate, self.second_y_coordinate + (0.25 * self.second_height)],
+                                                    [self.second_x_coordinate, self.second_y_coordinate + (0.5 * self.second_height)]])
+
 
         else:
             pass

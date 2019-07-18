@@ -120,14 +120,12 @@
                </distortion_matrix>
          </solvePnP>
          <Coordinates>
-            <gate_top>
-                <top_y>-2.5</top_y>
-                <top_left_x>-5.0</top_left_x>
-                <top_right_x>5.0</top_right_x>
-                <top_mid_x>0.0</top_mid_x>
-                <top_right_mid_x>2.5</top_right_mid_x>
-                <top_left_mid_x>-2.5</top_left_mid_x>
-            </gate_top>
+            <gate>
+                <max>5.0</max>
+                <cetner>0.0</center>
+                <mid>2.5</mid>
+                <quarter>1.25</quarter>
+            </gate>
             <dice>
                 <topleft>-0.375</topleft>
                 <middle>0.0</middle>
