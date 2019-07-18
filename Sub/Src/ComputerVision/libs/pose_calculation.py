@@ -115,8 +115,8 @@ class Distance_Calculator():
             self.mid_min = -1.0 * self.mid_max #-2.5
             self.quarter_min = -1.0 * self.quarter_max #-1.25
 
-            self.gate_top_points = np.array([[self.center, self.center, self.center],
-                                              [self.min, self.mid_min, self.center],
+            self.gate_top_points = np.array([[self.center, self.center, self.center], #0, 0, 0
+                                              [self.min, self.mid_min, self.center], #-5, -2.5, 0
                                               [self.mid_min, self.mid_min, self.center],
                                               [self.center, self.mid_min, self.center],
                                               [self.mid_max, self.mid_min, self.center],
@@ -141,7 +141,7 @@ class Distance_Calculator():
                     else:
                         self.three_dim_points = np.concatenate((self.gate_top_points, self.gate_left_points), axis = 0)
 
-                    self.two_dim_points = np.array([[self.x_coordinate, self.y_coordinate + (self.second_y_coordinate - (0.5 * self.height))],
+                    self.two_dim_points = np.array([[self.x_coordinate, self.y_coordinate + (self.second_y_coordinate - (0.5 * self.second_height))],
                                                     [self.x_coordinate - (0.5 * self.width), self.y_coordinate],
                                                     [self.x_coordinate - (0.25 * self.width), self.y_coordinate],
                                                     [self.x_coordinate, self.y_coordinate],
