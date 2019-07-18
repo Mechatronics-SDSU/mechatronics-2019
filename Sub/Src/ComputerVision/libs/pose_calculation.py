@@ -147,7 +147,6 @@ class Distance_Calculator():
                                                     [self.x_coordinate, self.y_coordinate],
                                                     [self.x_coordinate + (0.25 * self.width), self.y_coordinate],
                                                     [self.x_coordinate + (0.5 * self.width), self.y_coordinate],
-                                                    [self.second_x_coordinate, self.second_y_coordinate - (0.5 * self.second_height)],
                                                     [self.second_x_coordinate, self.second_y_coordinate - (0.25 * self.second_height)],
                                                     [self.second_x_coordinate, self.second_y_coordinate],
                                                     [self.second_x_coordinate, self.second_y_coordinate + (0.25 * self.second_height)],
