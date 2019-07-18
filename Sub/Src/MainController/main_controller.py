@@ -15,6 +15,9 @@ import os
 #sys.path.append(SENSOR_HUB_PATH)
 #from sensor_driver import Sensor_Driver
 
+MISSION_COMMANDER_PATH = os.path.join("..", "Mission")
+sys.path.append(MISSION_COMMANDER_PATH)
+
 NAV_CONT_PATH = os.path.join("..", "Dynamics")
 sys.path.append(NAV_CONT_PATH)
 from navigation_controller import Navigation_Controller
@@ -26,6 +29,8 @@ from sensor_driver import Sensor_Driver
 from message_passing.Nodes.node_base_udp import node_base
 import time
 import socket
+
+from mission_commander import Mission_Commander
 
 class Main_Controller(node_base):
     '''
@@ -51,12 +56,17 @@ class Main_Controller(node_base):
 
         self.sensor_driver = Sensor_Driver()
         self.navigation_controller = Navigation_Controller(MEM, IP, self.sensor_driver)
+        self.mission_commander = Mission_Commander(self.sensor_driver)
 
         self.run_main_controller = True
-       
+
         #Start up threads
         self.sensor_driver.start()
         self.navigation_controller.start()
+        self.mission_commander.start()
+
+        #Initialize the current position to (0, 0)
+        self.sensor_driver.zero_pos()
 
     def print_sensor_data(self, sensor_data):
         '''
@@ -85,7 +95,7 @@ class Main_Controller(node_base):
         Run the Main controller of the sub
         '''
         while(self.run_main_controller):
-            continue
+            time.sleep(0.1)
 
 if __name__ == "__main__":
 

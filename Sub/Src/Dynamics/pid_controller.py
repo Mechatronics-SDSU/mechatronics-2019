@@ -42,8 +42,10 @@ class PID_Controller():
         self.l_bound = l_bound
         self.u_bound = u_bound
 
-        self.integral = 0
-        self.previous_error = 0
+        self.integral = 0.0
+        self.integral_min = -5.0
+        self.integral_max = 5.0
+        self.previous_error = 0.0
 
         #Timer to check difference time in between control calculations
         self.PID_timer = util_timer.Timer()
@@ -89,9 +91,16 @@ class PID_Controller():
             self.PID_timer.restart_timer()
 
         self.integral = self.integral + (error * self.d_t)
+
+        if(self.integral < self.integral_min):
+            self.integral = self.integral_min
+        elif(self.integral > self.integral_max):
+            self.integral = self.integral_max
+
         I = self.k_i * self.integral
 
         D = self.k_d * (error - self.previous_error) / self.d_t
+        self.previous_error = error
 
         PID = P + I + D
 
