@@ -49,7 +49,8 @@ class Waypoint_GUI(QWidget):
         self.waypoint_widget = uic.loadUi("waypoint_widget.ui", self)
 
         self.waypoint_widget.enable_waypoint_collection_checkbox.stateChanged.connect(self._update_waypoint_enable)
-
+        
+        self.waypoint_widget.enable_waypoint_collection_checkbox.setChecked(False)
         #Create a mechos network publisher to publish the enable state of the
         #waypoints
         self.waypoint_node = mechos.Node("Waypoint Node", configs["ip"])
