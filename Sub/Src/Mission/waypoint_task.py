@@ -136,7 +136,7 @@ class Waypoint_Task:
             #Dive to depth with allowable buffer zone of 0.1
             remaining_task_time = task_time - self.timeout_timer.net_timer()
             succeeded, _ = self.drive_functions.move_to_depth(desired_depth=depth_position,
-                                                buffer_zone=0.1,
+                                                buffer_zone=0.3,
                                                 timeout=remaining_task_time)
             if(not succeeded):
                 return False
@@ -145,7 +145,7 @@ class Waypoint_Task:
             remaining_task_time = task_time - self.timeout_timer.net_timer()
             succeeded, desired_yaw = self.drive_functions.move_to_face_position(north_position=north_position,
                                                             east_position=east_position,
-                                                            buffer_zone=10,
+                                                            buffer_zone=11,
                                                             timeout=remaining_task_time,
                                                     desired_orientation={"depth":depth_position})
 
