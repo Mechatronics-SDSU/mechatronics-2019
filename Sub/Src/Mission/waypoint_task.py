@@ -23,18 +23,20 @@ from MechOS import mechos
 import csv
 import numpy as np
 
-class Waypoint_Task:
+from task import Task
+
+class Waypoint_Task(Task):
     '''
     Given the waypoint task description dictionary, drive along the waypointed
     route. If the the task cannot be completed within the given timeout time,
     exit the mission and considerate it a failure.
     '''
-    def __init__(self, waypoint_task_dict, drive_functions):
+    def __init__(self, task_dict, drive_functions):
         '''
         Initialize the waypoint task given the waypoint dict.
 
         Parameters:
-            waypoint_task_dict: A python dictionary containing the parameters
+            task_dict: A python dictionary containing the parameters
                                 for the waitpoint mission.
                             Dictionary Form:
                             -------------------
@@ -49,9 +51,26 @@ class Waypoint_Task:
                             class contains a variety of drive functions that are useful
                             to complete tasks.
         '''
-        self.waypoint_task_dict = waypoint_task_dict
-        self.name = self.waypoint_task_dict["name"]
+
+        Task.__init__(self)
+        
+        self.task_dict = task_dict
+
+        #Unpack the information about the task
+        self.name = self.task_dict["name"]
         self.type = "Waypoint"
+        self.timeout = self.task_dict["timeout"]
+        self.waypoint_file = self.task_dict["waypoint_file"]
+
+        #Buffer zone (bubble) for North/East positions to be considered in at correct coordinate
+        self.position_buffer_zone = self.task_dict["position_buffer_zone"]
+
+        #The buffer zone used to be considered to make it to a certain depth when doing a depth dive
+        self.depth_buffer_zone = self.task_dict["depth_buffer_zone"]
+
+        #The buffer zone to be used for yaw to consider making it to a certain yaw position
+        self.yaw_buffer_zone = self.task_dict["yaw_buffer_zone"]
+
 
         self.drive_functions = drive_functions
 
@@ -69,11 +88,13 @@ class Waypoint_Task:
         Returns:
             N/A
         '''
-        print("[INFO]:Task Name:", self.waypoint_task_dict["name"])
-        print("\tTask Type:", self.waypoint_task_dict["type"])
-        print("\tLocation of Waypoint File:", self.waypoint_task_dict["waypoint_file"])
-        print("\tTimeout Time for Task: %0.2f min" % self.waypoint_task_dict["timeout"])
-        print("\tBuffer Zone Distance for Points: %s ft" % self.waypoint_task_dict["buffer_zone"])
+        print("[INFO]:Task Name:", self.name)
+        print("\tTask Type:", self.type)
+        print("\tLocation of Waypoint File:", self.waypoint_file)
+        print("\tTimeout Time for Task: %0.2f min" % self.timeout)
+        print("\tBuffer Zone Distance for North/East Positions: %0.2fft" % self.position_buffer_zone)
+        print("\tBuffer Zone Distance for Depth Positions: %0.2fft" % self.depth_buffer_zone)
+        print("\tBuffer Zone Distance for Yaw Positions: %0.2fft" % self.yaw_buffer_zone)
 
     def unpack_waypoints(self):
         '''
@@ -86,7 +107,7 @@ class Waypoint_Task:
         '''
         self.waypoints = None
 
-        with open(self.waypoint_task_dict["waypoint_file"]) as waypoint_file:
+        with open(self.task_dict["waypoint_file"]) as waypoint_file:
             csv_reader = csv.reader(waypoint_file, delimiter=',')
 
             for waypoint_id, waypoint in enumerate(csv_reader):
@@ -120,7 +141,7 @@ class Waypoint_Task:
         self.timeout_timer.restart_timer()
 
         #Convert the timout to seconds
-        task_time = self.waypoint_task_dict["timeout"] * 60
+        task_time = self.timeout * 60.0
 
         #Iterate through each waypoint. Only move onto the next waypoint after
         #you have made it the current one
@@ -136,7 +157,7 @@ class Waypoint_Task:
             #Dive to depth with allowable buffer zone of 0.1
             remaining_task_time = task_time - self.timeout_timer.net_timer()
             succeeded, _ = self.drive_functions.move_to_depth(desired_depth=depth_position,
-                                                buffer_zone=0.3,
+                                                buffer_zone=self.depth_buffer_zone,
                                                 timeout=remaining_task_time)
             if(not succeeded):
                 return False
@@ -145,7 +166,7 @@ class Waypoint_Task:
             remaining_task_time = task_time - self.timeout_timer.net_timer()
             succeeded, desired_yaw = self.drive_functions.move_to_face_position(north_position=north_position,
                                                             east_position=east_position,
-                                                            buffer_zone=11,
+                                                            buffer_zone=self.yaw_buffer_zone,
                                                             timeout=remaining_task_time,
                                                     desired_orientation={"depth":depth_position})
 
@@ -155,12 +176,12 @@ class Waypoint_Task:
             remaining_task_time = task_time - self.timeout_timer.net_timer()
             succedded, _, _ = self.drive_functions.move_to_position_hold_orientation(north_position=north_position,
                                                                           east_position=east_position,
-                                                                          buffer_zone=2,
+                                                                          buffer_zone=self.position_buffer_zone,
                                                                           timeout=remaining_task_time,
                                                                 desired_orientation={"depth":depth_position})
             if(not succeeded):
                 return False
 
             print("[INFO]: Waypoint Task %s: North=%0.2f, East=%0.2f, Depth=%0.2f successfully reached." \
-                                % (self.waypoint_task_dict["name"], north_position, east_position, depth_position))
+                                % (self.task_dict["name"], north_position, east_position, depth_position))
         return True
