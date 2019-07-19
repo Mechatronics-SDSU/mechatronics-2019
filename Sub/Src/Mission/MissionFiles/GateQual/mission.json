@@ -4,7 +4,7 @@
         "name": "test_waypoint_task",
         "timeout":5,
         "buffer_zone":2.0,
-        "waypoint_file": "/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/GateQual/waypoints.csv"
+        "waypoint_file": "/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/GateQual/gate_1.csv"
     }
 
 }

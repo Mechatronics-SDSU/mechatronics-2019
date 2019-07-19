@@ -78,7 +78,7 @@
                 <min_error>-3</min_error>
                 <max_error>3</max_error>
 		<bias>26</bias>
-                <active_bias_depth>0.4</active_bias_depth>
+                <active_bias_depth>1</active_bias_depth>
             </z_pid>
         </PID>
         <Remote>
@@ -97,8 +97,8 @@
         <trans_2_scaling>1.0</trans_2_scaling>
     </Sensors>
     <Vision>
-         <front_camera_index>1</front_camera_index>
-         <down_camera_index>2</down_camera_index>
+         <front_camera_index>2</front_camera_index>
+         <down_camera_index>1</down_camera_index>
 	 <yolo>
 	       <darknet_path>/home/nvidia/mechatronics-2019/Sub/Src/ComputerVision/libs/darknet</darknet_path>
                <config_file>cfg/pool_test_7_16_19.cfg</config_file>
@@ -135,7 +135,7 @@
          </Coordinates>
     </Vision>
     <Missions>
-      <waypoint_collect_file>/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/GateQual/waypoints.csv</waypoint_collect_file>
+      <waypoint_collect_file>/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/GateQual/gate_1.csv</waypoint_collect_file>
       <mission_file>/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/GateQual/mission.json</mission_file>
     </Missions>
 </Perseverance>

@@ -113,7 +113,7 @@ class Drive_Functions:
 
         return(distance)
 
-    def move_to_depth(self, desired_depth, buffer_zone=0.0, timeout=None, desired_orientation=None):
+    def move_to_depth(self, desired_depth, buffer_zone=0.0, timeout=None, desired_orientation={}):
         '''
         Go to the desired depth. This function will exit with success if
         the sub reaches within the buffer zone of the desired_depth. Note
@@ -165,7 +165,7 @@ class Drive_Functions:
         return True, desired_depth
 
 
-    def move_to_face_position(self, north_position, east_position, buffer_zone=0.0, timeout=None, desired_orientation=None):
+    def move_to_face_position(self, north_position, east_position, buffer_zone=0.0, timeout=None, desired_orientation={}):
         '''
         Re-orient the yaw position to face the north / east coordinate (relative to
         the set zero or origin position).
@@ -198,6 +198,9 @@ class Drive_Functions:
         east_dist = east_position - current_position[4]
 
         desired_yaw = math.degrees(math.atan2(east_dist, north_dist))
+        if(desired_yaw < 0):
+            desired_yaw = 360 + desired_yaw
+
         desired_position[2] = desired_yaw
 
         self.send_desired_position(desired_position)
@@ -221,7 +224,7 @@ class Drive_Functions:
         print("[INFO]: Move to face position succeeded. Facing coordinate: (%0.2fft, %0.2fft)" % (north_position, east_position))
         return True, desired_yaw
 
-    def move_to_position_hold_orientation(self, north_position, east_position, buffer_zone=0.0, timeout=None, desired_orientation=None):
+    def move_to_position_hold_orientation(self, north_position, east_position, buffer_zone=0.0, timeout=None, desired_orientation={}):
         '''
         Re-orient the yaw position to face the north / east coordinate (relative to
         the set zero or origin position).
