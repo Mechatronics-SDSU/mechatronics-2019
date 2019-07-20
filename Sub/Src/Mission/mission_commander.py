@@ -18,6 +18,7 @@ import struct
 #Import all the tasks
 from drive_functions import Drive_Functions
 from waypoint_task import Waypoint_Task
+from gate_no_vision_task import Gate_No_Vision_Task
 
 class Mission_Commander(threading.Thread):
     '''
@@ -245,6 +246,11 @@ class Mission_Commander(threading.Thread):
             if(task_type == "Waypoint"):
                 waypoint_task = Waypoint_Task(self.mission_data[task], self.drive_functions)
                 self.mission_tasks.append(waypoint_task)
+
+            #Generate Gate with no vision task
+            elif(task_type == "Gate_No_Vision"):
+                gate_no_vision = Gate_No_Vision_Task(self.mission_data[task], self.drive_functions)
+
 
     def run(self):
         '''

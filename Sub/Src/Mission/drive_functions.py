@@ -224,6 +224,55 @@ class Drive_Functions:
         print("[INFO]: Move to face position succeeded. Facing coordinate: (%0.2fft, %0.2fft)" % (north_position, east_position))
         return True, desired_yaw
 
+    def move_to_yaw(self, desired_yaw, buffer_zone=0.0, timeout=None, desired_orientation={}):
+        '''
+        Re-orient the yaw position to face the the new desired yaw.
+
+        Parameters:
+            yaw_position: The desired yaw position in degrees (range [0, 360])
+            buffer_zone: The buffer zone in degrees at which the sub is considered
+                    to have sucessfully reached the correct yaw. Default = 0
+            timeout: The amount of time this function can loop before exiting. If
+                        it doesn't rech the buffer_zone in time, the function
+                        will exit
+            desired_orientation: If None, hold the current North, East, and Depth
+                                will orienting to face position.
+        '''
+
+        current_position = self.sensor_driver.sensor_data
+        desired_position = [0.0, 0.0, desired_yaw] + current_position[3:]
+
+        #If any of these keys are in desired_orientation, then hold that position while yawing
+        orientation_keys = {"north_pos":3, "east_pos":4, "depth":5}
+
+        for orientation_to_lock in desired_orientation:
+            index = orientation_keys[orientation_to_lock]
+            desired_position[index] = desired_orientation[orientation_to_lock]
+
+        north_dist = north_position - current_position[3]
+        east_dist = east_position - current_position[4]
+
+        self.send_desired_position(desired_position)
+
+        #Begin the timeout timer.
+        self.timeout_timer.restart_timer()
+
+        yaw_error = self.get_yaw_error(current_position[2], desired_yaw)
+
+        while(abs(yaw_error) > buffer_zone):
+
+            if(timeout != None):
+                if(self.timeout_timer.net_timer() > timeout):
+                    print("[WARNING]: Move to face position timed out. Yaw Error:", yaw_error)
+                    current_position = self.sensor_driver.sensor_data
+                    return False, desired_yaw
+
+            current_position = self.sensor_driver.sensor_data
+            yaw_error = self.get_yaw_error(current_position[2], desired_yaw)
+
+        print("[INFO]: Move to face position succeeded. Facing coordinate: (%0.2fft, %0.2fft)" % (north_position, east_position))
+        return True, desired_yaw
+
     def move_to_position_hold_orientation(self, north_position, east_position, buffer_zone=0.0, timeout=None, desired_orientation={}):
         '''
         Re-orient the yaw position to face the north / east coordinate (relative to
@@ -275,7 +324,7 @@ class Drive_Functions:
         print("[INFO]: Move to position while holding orientation succeeded. At position (%0.2fft, %0.2fft)" % (north_position, east_position))
         return True, north_position, east_position
 
-    def move_x_direction(self, distance_x, buffer_zone, timeout=None):
+    def move_x_direction(self, distance_x, buffer_zone, timeout=None, desired_orientation={}):
         '''
         Move in the x direction (forward/backward) distance_x amount of feet.
 
@@ -291,15 +340,17 @@ class Drive_Functions:
 
         current_position = self.sensor_driver.sensor_data
 
+        #If any of these keys are in desired_orientation, then hold that position while yawing
+
         #Calculate what the desired north and east positions are to make that
         #corresponds to how far to move forward.
         current_yaw = math.radians(current_position[2])
         north_position = distance_x * math.cos(current_yaw) + current_position[3]
         east_position = distance_x * math.sin(current_yaw) + current_position[4]
 
-        return(self.move_to_position_hold_orientation(north_position, east_position, buffer_zone, timeout))
+        return(self.move_to_position_hold_orientation(north_position, east_position, buffer_zone, timeout, desired_orientation))
 
-    def move_y_direction(self, distance_y, buffer_zone, timeout=None):
+    def move_y_direction(self, distance_y, buffer_zone, timeout=None, desired_orientation={}):
         '''
         Move in the y direction (right/left) distance_y amount of feet.
 
@@ -321,4 +372,4 @@ class Drive_Functions:
         north_position = (-1 * distance_y * math.sin(current_yaw)) + current_position[3]
         east_position = (distance_y * math.cos(current_yaw))  + current_position[4]
 
-        return(self.move_to_position_hold_orientation(north_position, east_position, buffer_zone, timeout))
+        return(self.move_to_position_hold_orientation(north_position, east_position, buffer_zone, timeout, desired_orientation))

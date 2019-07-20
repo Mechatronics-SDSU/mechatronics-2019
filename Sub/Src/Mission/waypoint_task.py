@@ -14,12 +14,6 @@ import time
 HELPER_PATH = os.path.join("..", "Helpers")
 sys.path.append(HELPER_PATH)
 import util_timer
-
-PARAM_PATH = os.path.join("..", "Params")
-sys.path.append(PARAM_PATH)
-MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
-from mechos_network_configs import MechOS_Network_Configs
-from MechOS import mechos
 import csv
 import numpy as np
 
@@ -37,14 +31,16 @@ class Waypoint_Task(Task):
 
         Parameters:
             task_dict: A python dictionary containing the parameters
-                                for the waitpoint mission.
+                                for the waitpoint task.
                             Dictionary Form:
                             -------------------
                             {
                                 "type": "Waypoint"
                                 "name": <task_name>
                                 "timeout": <timeout_time_minutes>
-                                "buffer_zone": <buffer zone for each (North, East) position (ft)>
+                                "position_buffer_zone": <buffer zone for each (North, East) position (ft)>
+                                "depth_buffer_zone": <buffer zone for depth moves (ft)>
+                                "yaw_buffer_zone": <buffer zone for yaw moves (deg)>
                                 "waypoint_file": <location of csv file containing waypoints>
                             }
             drive_functions: An already initialized object of drive_functions. This
@@ -53,13 +49,13 @@ class Waypoint_Task(Task):
         '''
 
         Task.__init__(self)
-        
+
         self.task_dict = task_dict
 
         #Unpack the information about the task
         self.name = self.task_dict["name"]
         self.type = "Waypoint"
-        self.timeout = self.task_dict["timeout"]
+        self.timeout = self.task_dict["timeout"] * 60.0
         self.waypoint_file = self.task_dict["waypoint_file"]
 
         #Buffer zone (bubble) for North/East positions to be considered in at correct coordinate
@@ -91,7 +87,7 @@ class Waypoint_Task(Task):
         print("[INFO]:Task Name:", self.name)
         print("\tTask Type:", self.type)
         print("\tLocation of Waypoint File:", self.waypoint_file)
-        print("\tTimeout Time for Task: %0.2f min" % self.timeout)
+        print("\tTimeout Time for Task: %0.2f min" % self.timeout / 60.0)
         print("\tBuffer Zone Distance for North/East Positions: %0.2fft" % self.position_buffer_zone)
         print("\tBuffer Zone Distance for Depth Positions: %0.2fft" % self.depth_buffer_zone)
         print("\tBuffer Zone Distance for Yaw Positions: %0.2fft" % self.yaw_buffer_zone)
@@ -132,7 +128,7 @@ class Waypoint_Task(Task):
         Returns:
             True: If the waypoint task was completed in its entirety without timing
                     out.
-            False: If the waypoint task reaches its timout but hasn't finished.
+            False: If the waypoint task reaches its timeout but hasn't finished.
         '''
         print("[INFO]: Starting Waypoint Task:", self.name)
 
@@ -140,8 +136,7 @@ class Waypoint_Task(Task):
 
         self.timeout_timer.restart_timer()
 
-        #Convert the timout to seconds
-        task_time = self.timeout * 60.0
+        task_time = self.timeout
 
         #Iterate through each waypoint. Only move onto the next waypoint after
         #you have made it the current one
@@ -178,7 +173,7 @@ class Waypoint_Task(Task):
                                                                           east_position=east_position,
                                                                           buffer_zone=self.position_buffer_zone,
                                                                           timeout=remaining_task_time,
-                                                                desired_orientation={"depth":depth_position})
+                                                                desired_orientation={"depth":depth_position, "yaw":desired_yaw})
             if(not succeeded):
                 return False
 
