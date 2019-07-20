@@ -39,7 +39,7 @@ from MechOS import mechos
 import struct
 import threading
 
-from message_passing.Nodes.node_base_udp import node_base
+from MechOS.message_passing.Nodes.node_base import node_base
 import socket
 
 MOVEMENT_AXIS = ["Roll", "Pitch", "Yaw", "X Pos.", "Y Pos.", "Depth"]

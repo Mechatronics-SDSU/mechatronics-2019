@@ -11,7 +11,7 @@ import socket
 import struct
 import numpy as np
 import time
-from message_passing.Nodes.node_base_udp import node_base
+from MechOS.message_passing.Nodes.node_base import node_base
 
 class remote_control_node(node_base):
     '''

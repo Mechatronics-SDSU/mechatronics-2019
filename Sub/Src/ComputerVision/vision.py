@@ -2,7 +2,7 @@
 Copyright 2019, Alexa Becerra, All rights reserved
 
 Authors:Alexa Becerra <alexa.becerra99@gmail.com>
-        Mohammad Shafi
+        Mohammad Shafi <ma.shafi99@gmail.com>
         Ramiz Hanan
         Christian Gould <christian.d.gould@gmail.com>
         David Pierce Walker-Howell <piercedhowell@gmail.com>
@@ -118,7 +118,7 @@ class Vision(node_base):
                     #Perform solve pnp calculations
                     self.distance_calculator.set_coordinates(r, i, x, y, w, h)
                     rotation, translation, distance = self.distance_calculator.calculate_distance()
-                    
+
                     print('Rotation: ', rotation)
                     print('Translation: ', translation)
                     print('Distance: ', distance)
