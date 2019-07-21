@@ -50,6 +50,9 @@ class Tabbed_Display(QWidget):
         self.tab_display_node = mechos.Node("GUI_TABS", configs["ip"])
         self.movement_mode_publisher = self.tab_display_node.create_publisher("MM", configs["pub_port"])
 
+        #Publisher to kill the sub when tabs are switched.
+        self.sub_killed_publisher = self.tab_display_node.create_publisher("KS", configs["pub_port"])
+
 
     def add_tab(self, widget, title):
         '''
@@ -98,6 +101,9 @@ class Tabbed_Display(QWidget):
         mode_serialized = struct.pack('b', mode)
         # Publish current index
         self.movement_mode_publisher.publish(mode_serialized)
+
+        #Kill the sub when a tab changes
+        self.sub_killed_publisher.publish(struct.pack('b', 1))
 
 
 if __name__ == "__main__":

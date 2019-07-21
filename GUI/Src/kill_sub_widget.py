@@ -68,7 +68,7 @@ class Kill_Button(QWidget):
 
         #Also create a killed button subscriber in case the sub kills it's self, so that way the
         #state changes in the GUI.
-        self.sub_killed_subscriber = self.sub_killed_node.create_subscriber("KS", configs["sub_port"], self._sub_killed_callback)
+        self.sub_killed_subscriber = self.sub_killed_node.create_subscriber("KS", self._sub_killed_callback, configs["sub_port"])
 
         #Set up a QTimer to update the PID errors
         self.sub_killed_subscriber_update_timer = QTimer()
