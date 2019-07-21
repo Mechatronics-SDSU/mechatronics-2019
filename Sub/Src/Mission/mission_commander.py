@@ -83,7 +83,7 @@ class Mission_Commander(threading.Thread):
 
         #Set up serial com to read the autonomous button
         com_port = self.param_serv.get_param("COM_Ports/auto")
-        #self.auto_serial = serial.Serial(com_port, 9600)
+        self.auto_serial = serial.Serial(com_port, 9600)
 
         #load the mission data
         self._update_mission_info_callback(None)
@@ -268,7 +268,7 @@ class Mission_Commander(threading.Thread):
                 #pressed.
 
                 if(self.mission_mode):
-                    """
+                    
                     if(self.auto_serial.in_waiting):
                         auto_pressed = (self.auto_serial.read(13)).decode()
                         self.auto_serial.read(2) #Read the excess two bytes
@@ -280,10 +280,11 @@ class Mission_Commander(threading.Thread):
                         elif(auto_pressed == "Auto Status:0"):
                             print("[INFO]: Mission is no longer Live.")
                             self.mission_live = False
-                    """
-                    self.mission_live = True
-                    print("[INFO]: Starting Mission")
+                    
+                    #self.mission_live = True
+                    #print("[INFO]: Starting Mission")
                     #When mission is live, run the mission
+
                     if(self.mission_live):
 
                         unkill_state = struct.pack('b', 0)
