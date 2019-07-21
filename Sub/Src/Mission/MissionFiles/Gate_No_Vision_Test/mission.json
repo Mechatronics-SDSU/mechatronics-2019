@@ -2,13 +2,13 @@
   "Task_1":{
     "type": "Gate_No_Vision",
     "name": "gate_no_vision_test",
-    "timeout":3, //minutes
-    "line_up_position":[180.4, 30.1, 5, 6.0], //yaw, north, east,depth
-    "position_buffer_zone":2.0,
+    "timeout":3,
+    "line_up_position":[74, 0, 0, 15],
+    "position_buffer_zone":1.9,
     "depth_buffer_zone":0.1,
-    "yaw_buffer_zone":5,
-    "stabilization_time": 10.5, //seconds
-    "move_forward_dist": 10,
-     "go_through_gate_backwards": false
+    "yaw_buffer_zone":11,
+    "stabilization_time": 10.5, 
+    "move_forward_dist": 15,
+     "go_through_gate_backwards": true
   }
 }

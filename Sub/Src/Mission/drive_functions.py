@@ -249,9 +249,6 @@ class Drive_Functions:
             index = orientation_keys[orientation_to_lock]
             desired_position[index] = desired_orientation[orientation_to_lock]
 
-        north_dist = north_position - current_position[3]
-        east_dist = east_position - current_position[4]
-
         self.send_desired_position(desired_position)
 
         #Begin the timeout timer.
@@ -270,7 +267,6 @@ class Drive_Functions:
             current_position = self.sensor_driver.sensor_data
             yaw_error = self.get_yaw_error(current_position[2], desired_yaw)
 
-        print("[INFO]: Move to face position succeeded. Facing coordinate: (%0.2fft, %0.2fft)" % (north_position, east_position))
         return True, desired_yaw
 
     def move_to_position_hold_orientation(self, north_position, east_position, buffer_zone=0.0, timeout=None, desired_orientation={}):
@@ -344,7 +340,10 @@ class Drive_Functions:
 
         #Calculate what the desired north and east positions are to make that
         #corresponds to how far to move forward.
-        current_yaw = math.radians(current_position[2])
+        if("yaw" in desired_orientation.keys()):
+            current_yaw = math.radians(desired_orientation["yaw"])
+        else:
+            current_yaw = math.radians(current_position[2])
         north_position = distance_x * math.cos(current_yaw) + current_position[3]
         east_position = distance_x * math.sin(current_yaw) + current_position[4]
 

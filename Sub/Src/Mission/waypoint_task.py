@@ -55,7 +55,7 @@ class Waypoint_Task(Task):
         #Unpack the information about the task
         self.name = self.task_dict["name"]
         self.type = "Waypoint"
-        self.timeout = self.task_dict["timeout"] * 60.0
+        self.timeout = float(self.task_dict["timeout"] * 60.0)
         self.waypoint_file = self.task_dict["waypoint_file"]
 
         #Buffer zone (bubble) for North/East positions to be considered in at correct coordinate
@@ -87,7 +87,7 @@ class Waypoint_Task(Task):
         print("[INFO]:Task Name:", self.name)
         print("\tTask Type:", self.type)
         print("\tLocation of Waypoint File:", self.waypoint_file)
-        print("\tTimeout Time for Task: %0.2f min" % self.timeout / 60.0)
+        print("\tTimeout Time for Task: %0.2f min" % (self.timeout / 60.0))
         print("\tBuffer Zone Distance for North/East Positions: %0.2fft" % self.position_buffer_zone)
         print("\tBuffer Zone Distance for Depth Positions: %0.2fft" % self.depth_buffer_zone)
         print("\tBuffer Zone Distance for Yaw Positions: %0.2fft" % self.yaw_buffer_zone)
@@ -132,7 +132,8 @@ class Waypoint_Task(Task):
         '''
         print("[INFO]: Starting Waypoint Task:", self.name)
 
-        self.print_task_info()
+        
+        #self.print_task_info()
 
         self.timeout_timer.restart_timer()
 

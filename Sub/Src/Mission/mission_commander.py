@@ -250,7 +250,7 @@ class Mission_Commander(threading.Thread):
             #Generate Gate with no vision task
             elif(task_type == "Gate_No_Vision"):
                 gate_no_vision = Gate_No_Vision_Task(self.mission_data[task], self.drive_functions)
-
+                self.mission_tasks.append(gate_no_vision)
 
     def run(self):
         '''

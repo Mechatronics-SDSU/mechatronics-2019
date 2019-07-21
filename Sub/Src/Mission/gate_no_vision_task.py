@@ -55,24 +55,27 @@ class Gate_No_Vision_Task(Task):
         self.timeout = self.task_dict["timeout"] * 60.0 #In Seconds now.
 
         #Timer to be used to keep track of how long the task has been going.
-        self.timeout_timer = util.Timer()
+        self.timeout_timer = util_timer.Timer()
 
         self.line_up_position = self.task_dict["line_up_position"]
         self.position_buffer_zone = self.task_dict["position_buffer_zone"]
         self.depth_buffer_zone = self.task_dict["depth_buffer_zone"]
         self.yaw_buffer_zone = self.task_dict["yaw_buffer_zone"]
-        self.stablization_time = self.task_dict["stabilization_time"]
+        self.stabilization_time = self.task_dict["stabilization_time"]
         self.move_forward_dist = self.task_dict["move_forward_dist"]
-
+        
+        self.drive_functions = drive_functions
         #If true, then the sub will attempt to go through the gate backwards
         self.go_through_gate_backwards = self.task_dict["go_through_gate_backwards"]
         if(self.go_through_gate_backwards):
             self.move_forward_dist *= -1 #Reverse the direction to go forward to go backwards
 
             desired_yaw = self.line_up_position[0] + 180 #Flip the yaw 180 deg to go backwards
-            if(desired_yaw > 360):
+            if(desired_yaw >= 360):
                 self.line_up_position[0] = 360 - desired_yaw
-
+                print(self.line_up_position[0])
+            else:
+                self.line_up_position[0] = desired_yaw
     def print_task_info(self):
         '''
         Print the task information
@@ -84,7 +87,7 @@ class Gate_No_Vision_Task(Task):
         '''
         print("[INFO]: Task Name:", self.name)
         print("\tTask Type:", self.type)
-        print("\tTimeout Time: %0.2f min" % self.timeout / 60.0)
+        print("\tTimeout Time: %0.2f min" % (self.timeout / 60.0))
         print("\tLine up Position for Gate: Yaw=%0.2fft, North=%0.2fft, East=%0.2fft, Depth=%0.2fft" % tuple(self.line_up_position))
         print("\tGo Through Gate Backwards:", bool(self.go_through_gate_backwards))
 
@@ -101,8 +104,10 @@ class Gate_No_Vision_Task(Task):
 
         #Dive to depth of the desired_line_up_position
         desired_yaw, desired_north, desired_east, desired_depth = self.line_up_position
+        print("Desired_Yaw,", desired_yaw)
+        
         remaining_task_time = self.timeout - self.timeout_timer.net_timer()
-        succeeded, _ = self.drive_functions.move_to_depth(desired_depth=depth_position,
+        succeeded, _ = self.drive_functions.move_to_depth(desired_depth=desired_depth,
                                                             buffer_zone=self.depth_buffer_zone,
                                                             timeout=remaining_task_time)
         if(not succeeded):
@@ -135,8 +140,8 @@ class Gate_No_Vision_Task(Task):
                                                         buffer_zone=self.yaw_buffer_zone,
                                                         timeout=remaining_task_time,
                                                         desired_orientation={"depth":desired_depth,
-                                                                            "north":desired_north,
-                                                                            "east":desired_east})
+                                                                            "north_pos":desired_north,
+                                                                            "east_pos":desired_east})
         return True
 
     def run(self):
@@ -151,7 +156,7 @@ class Gate_No_Vision_Task(Task):
             False: If the task reaches a timout.
         '''
         print("[INFO]: Starting Gate with No Visison Task:", self.name)
-        self.print_task_info()
+        #self.print_task_info()
 
         self.timeout_timer.restart_timer()
 
@@ -166,7 +171,9 @@ class Gate_No_Vision_Task(Task):
         remaining_task_time = self.timeout - self.timeout_timer.net_timer()
         self.drive_functions.move_x_direction(distance_x=self.move_forward_dist,
                                                 buffer_zone=self.position_buffer_zone,
-                                                timeout=remaining_task_time)
+                                                timeout=remaining_task_time,
+                                                desired_orientation={"depth":self.line_up_position[3],
+                                                    "yaw":self.line_up_position[0]})
 
         if(not succeeded):
             return False
