@@ -6,7 +6,7 @@ import time
 from PyQt5.QtWidgets import QWidget, QApplication, QGridLayout, QCheckBox, QLabel, QSlider, QPushButton
 from PyQt5.QtWidgets import QLineEdit, QVBoxLayout
 from PyQt5.QtGui import QColor, QIcon, QPixmap
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QTimer
 
 PARAM_PATH = os.path.join("..", "..", "Sub", "Src", "Params")
 sys.path.append(PARAM_PATH)
@@ -65,6 +65,41 @@ class Kill_Button(QWidget):
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
         self.sub_killed_node = mechos.Node("GUI_KILL_STATUS", configs["ip"])
         self.sub_killed_publisher = self.sub_killed_node.create_publisher("KS", configs["pub_port"])
+
+        #Also create a killed button subscriber in case the sub kills it's self, so that way the
+        #state changes in the GUI.
+        self.sub_killed_subscriber = self.sub_killed_node.create_subscriber("KS", configs["sub_port"], self._sub_killed_callback)
+
+        #Set up a QTimer to update the PID errors
+        self.sub_killed_subscriber_update_timer = QTimer()
+        self.sub_killed_subscriber_update_timer.timeout.connect( \
+                    lambda: self.sub_killed_node.spinOnce(self.sub_killed_subscriber))
+
+        #Start the timer to check if the subs killed state has changed (every 100ms)
+        self.sub_killed_subscriber_update_timer.start(100)
+
+    def _sub_killed_callback(self, killed_state):
+        '''
+        A callback function for the sub killed subscriber to listen if the sub has been killed.
+        For example the mission planner on the sub can kill the sub, so the state in the GUI
+        should change.
+
+        Parameters:
+            killed_state: A single byte signifying if the sub has been killed or not.
+        Returns:
+            N/A
+        '''
+        killed_state = struct.unpack('b', killed_state)[0]
+
+        if(killed_state):
+            self.KILL_STATUS = "killed"
+            self.pushButton.setStyleSheet("background-color: red")
+            self.pushButton.setText("Killed")
+
+        else:
+            self.KILL_STATUS = "operational"
+            self.pushButton.setStyleSheet("background-color: green")
+            self.pushButton.setText("Un-Killed")
 
 
     def _update_status(self):
