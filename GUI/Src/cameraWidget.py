@@ -1,3 +1,13 @@
+'''
+Copyright 2019, Ramiz Hanan, All rights reserved
+
+Authors:
+        Ramiz Hanan <ramizhanan@gmail.com>
+        
+Last Modified 07/21/2019
+
+Description: Video Recording Utility made with PyQt with option to choose save folder and video name. 
+'''
 import cv2
 import numpy as np
 import socket
@@ -19,7 +29,7 @@ class record_video_GUI(QWidget):
 
     def __init__(self):
         '''
-        Initialize the Desired Position GUI
+        Initialize the Video Recording GUI
 
         Parameters:
             N/A
@@ -32,8 +42,7 @@ class record_video_GUI(QWidget):
 
     def _file_picker(self):
         '''
-        Set up the layout grid for displaying AHRS orientation data such as
-        yaw, pitch, roll.
+        Set up the layout grid for displaying the video recorder.
 
         Parameters:
             N/A
@@ -121,10 +130,10 @@ class record_video_GUI(QWidget):
         fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
         #fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
         TimeStamp = str(datetime.now().strftime("%Y%m%d-%H%M%S"))
-        print(TimeStamp)
+        print("Video captured:" + TimeStamp)
         #video_writer = cv2.VideoWriter('output.avi', fourcc, 30.0, (800, 600))
         
-        fileName = TimeStamp if (self.fname_box.text() == '') else f"{self.fname_box.text()}-{TimeStamp}" 
+        fileName = TimeStamp if (self.fname_box.text() == '') else f"{self.fname_box.text()}-{TimeStamp}" #if no name given, use time as filename
         video_writer = cv2.VideoWriter((self.flocation_box.text() + '/' + fileName + self.vid_format), fourcc, 20.0, (800, 600))
 
         frame_rate = 30
@@ -135,7 +144,6 @@ class record_video_GUI(QWidget):
             (grabbed, frame) = camera.read()  # grab the current frame
             if time_elapsed > 1./frame_rate:
                     prev = time.time()
-                    #frame = cv2.resize(frame, (640,480), interpolation= cv2.INTER_AREA)
                 
                     cv2.imshow("Frame", frame)  # show the frame to our screen
 
