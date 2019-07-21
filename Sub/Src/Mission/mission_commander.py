@@ -62,6 +62,11 @@ class Mission_Commander(threading.Thread):
         #subscriber to listen if the mission informatin has changed.
         self.update_mission_info_subscriber = self.mission_commander_node.create_subscriber("MS", self._update_mission_info_callback, configs["sub_port"])
 
+        #subscriber to listen if object detection data is available
+        self.neural_net_subscriber = self.mission_commander_node.create_subscriber("NN", self._update_neural_net_callback, configs["sub_port"])
+        self.detection_data = [0.0, 0.0, 0.0, 0.0]
+        self.neural_net_data = None
+
         #Publisher to be able to kill the sub within the mission
         self.kill_sub_publisher = self.mission_commander_node.create_publisher("KS", configs["pub_port"])
 
@@ -70,6 +75,11 @@ class Mission_Commander(threading.Thread):
         self.command_listener_thread.daemon = True
         self.command_listener_thread_run = True
         self.command_listener_thread.start()
+
+        self.neural_net_listener_thread = threading.Thread(target=self._neural_net_listener)
+        self.nerual_net_listener_thread.daemon = True
+        self.neural_net_listener_thread_run = True
+        self.nerual_net_listener_thread.start()
 
         self.mission_tasks = [] #A list of the mission tasks
         self.mission_data = None #The .json file structure loaded into python dictionary
@@ -133,6 +143,12 @@ class Mission_Commander(threading.Thread):
         print("[INFO]: New Mission file set as %s", self.mission_file)
         #Parse the mission file
         self.parse_mission()
+
+    def _update_neural_net_callback(self):
+
+        self.detection_data = struct.unpack('sfffffffffff', self.neural_net_data)
+        print(self.detection_data)
+
     def _command_listener(self):
         '''
         The thread to run update requests from the GUI to tell the mission commander
@@ -152,70 +168,14 @@ class Mission_Commander(threading.Thread):
                 print("[ERROR]: Could not properly recieved messages in command listener. Error:", e)
             time.sleep(0.2)
 
-    def _update_movement_mode_callback(self, movement_mode):
-        '''
-        The callback function to select which navigation controller mode is being used.
-        If it is set to 3, then the navigation controller is ready for autonomous mode.
-        Parameters:
-            movement_mode: Raw byte of the mode.
-        Returns:
-            N/A
-        '''
-        movement_mode = struct.unpack('b', movement_mode)[0]
-        if(movement_mode == 3):
-            print("[INFO]: Mission Commander Ready to Run Missions. Sub Initially Killed")
-
-            #Initially have the sub killed when switched to mission commander mode
-            kill_state = struct.pack('b', 1)
-            self.kill_sub_publisher.publish(kill_state)
-
-            self.mission_mode = True
-
-        else:
-
-            if(self.mission_mode == True):
-                print("[INFO]: Exited Mission Command Mode.")
-
-            self.mission_mode = False
-            self.mission_live = False
-
-    def _update_mission_info_callback(self, misc):
-        '''
-        If the update mission info button is pressed in the mission planner widget,
-        update the mission info here. Note that the mission being live should go to
-        false.
-
-        Parameters:
-            misc: Nothing used.
-        Returns:
-            N/A
-        '''
-
-        #Get the new mission file from the parameter server.
-        self.mission_file = self.param_serv.get_param("Missions/mission_file")
-        self.mission_live = False
-
-        print("[INFO]: New Mission file set as %s", self.mission_file)
-        #Parse the mission file
-        self.parse_mission()
-    def _command_listener(self):
-        '''
-        The thread to run update requests from the GUI to tell the mission commander
-        when it is ready to run missions and what missions to do.
-
-        Parameters:
-            N/A
-        Returns:
-            N/A
-        '''
-        while self.command_listener_thread_run:
+    def _neural_net_listener(self):
+        while(self.neural_net_listener_thread):
             try:
-                #Recieve commands from the the GUI and/or Mission Commander
-                self.mission_commander_node.spinOnce(self.movement_mode_subscriber)
-
+                self.mission_commander_node.spinOnce(self.neural_net_subscriber)
             except Exception as e:
-                print("[ERROR]: Could not properly recieved messages in command listener. Error:", e)
+                print("[ERROR]: Neural net data not available. Error:", e)
             time.sleep(0.2)
+
 
     def parse_mission(self):
         '''
@@ -310,4 +270,5 @@ class Mission_Commander(threading.Thread):
 
 
 if __name__ == "__main__":
+
     mission_commander = Mission_Commander('MissionFiles/GateQual/mission.json', None)

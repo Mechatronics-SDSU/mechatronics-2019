@@ -53,6 +53,9 @@ class Vision(node_base):
         # IP and MEM RAM locations
         node_base.__init__(self, MEM, IP)
 
+
+        self.neural_network_node = mechos.Node("NEURAL_NETWORK", configs["ip"])
+        self.neural_net_publisher = self.neural_network_node.create_publisher("NN", configs["pub_port"])
         # Instantiations
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
@@ -118,15 +121,30 @@ class Vision(node_base):
                     #Perform solve pnp calculations
                     self.distance_calculator.set_coordinates(r, i, x, y, w, h)
                     rotation, translation, distance = self.distance_calculator.calculate_distance()
-
-                    print('Rotation: ', rotation)
-                    print('Translation: ', translation)
-                    print('Distance: ', distance)
                     xmin, ymin, xmax, ymax = convertBack(float(x), float(y), float(w), float(h))
                     pt1 = (xmin, ymin)
                     pt2 = (xmax, ymax)
                     cv2.rectangle(byte_frame, pt1, pt2, (0, 255, 0), 2)
-                    cv2.putText(byte_frame, i[0].decode() + " [" + str(round(i[1] * 100, 2)) + "]", (pt1[0], pt1[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 1, [0, 255, 0], 4)
+                    cv2.putText(byte_frame, i[0].decode() + " [" + str(round(i[1] * 100, 2)) + "]" + " [" + str(round(distance, 3)) + " ft]",
+                               (pt1[0], pt1[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 1, [0, 255, 0], 4)
+
+                    label = i[0].decode("utf-8")
+                    detection_data = struct.pack('sfffffffffff',
+                                                 label,
+                                                 i[1],
+                                                 i[2][0],
+                                                 i[2][1],
+                                                 i[2][2],
+                                                 i[2][3],
+                                                 rotation[0],
+                                                 rotation[1],
+                                                 rotation[2],
+                                                 translation[0],
+                                                 translation[1],
+                                                 translation[2])
+
+                    self.neural_net_publisher.publish(detection_data) #Send the detection data
+
                 # Get the Size of the image
                 image_size = sys.getsizeof(byte_frame)
 
@@ -174,11 +192,11 @@ if __name__=='__main__':
     RECV_SOCK   = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     # IP initialization
-    IP_ADDRESS  = ('192.168.1.1', 6969)
+    CAM_IP_ADDRESS  = ('127.0.0.101', 6969)
 
     IP ={'CAMERA':
             {
-            'address': IP_ADDRESS,
+            'address': CAM_IP_ADDRESS,
             'sockets': (CAMERA_SOCK, RECV_SOCK),
             'type': 'UDP'
             }
