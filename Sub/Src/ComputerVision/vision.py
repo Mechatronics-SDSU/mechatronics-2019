@@ -53,14 +53,14 @@ class Vision(node_base):
         # IP and MEM RAM locations
         node_base.__init__(self, MEM, IP)
 
-
-        self.neural_network_node = mechos.Node("NEURAL_NETWORK", configs["ip"])
-        self.neural_net_publisher = self.neural_network_node.create_publisher("NN", configs["pub_port"])
         # Instantiations
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
         self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
         self.param_serv.use_parameter_database(configs["param_server_path"])
+        
+        self.neural_network_node = mechos.Node("NEURAL_NETWORK", configs["ip"])
+        self.neural_net_publisher = self.neural_network_node.create_publisher("NN", configs["pub_port"])
 
         #--MESSAGING INFO--#
         self.MAX_UDP_PACKET_SIZE = 1500
@@ -130,7 +130,7 @@ class Vision(node_base):
 
                     label = i[0].decode("utf-8")
                     detection_data = struct.pack('sfffffffffff',
-                                                 label,
+                                                 label.encode("utf-8"),
                                                  i[1],
                                                  i[2][0],
                                                  i[2][1],
@@ -192,7 +192,7 @@ if __name__=='__main__':
     RECV_SOCK   = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     # IP initialization
-    CAM_IP_ADDRESS  = ('127.0.0.101', 6969)
+    CAM_IP_ADDRESS  = ('192.168.1.1', 6969)
 
     IP ={'CAMERA':
             {

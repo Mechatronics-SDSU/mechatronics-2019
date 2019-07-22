@@ -65,7 +65,7 @@ class Mission_Commander(threading.Thread):
         #subscriber to listen if object detection data is available
         self.neural_net_subscriber = self.mission_commander_node.create_subscriber("NN", self._update_neural_net_callback, configs["sub_port"])
         self.detection_data = [0.0, 0.0, 0.0, 0.0]
-        self.neural_net_data = None
+        self.neural_net_data = [0.0, 0.0, 0.0, 0.0]
 
         #Publisher to be able to kill the sub within the mission
         self.kill_sub_publisher = self.mission_commander_node.create_publisher("KS", configs["pub_port"])
@@ -77,9 +77,9 @@ class Mission_Commander(threading.Thread):
         self.command_listener_thread.start()
 
         self.neural_net_listener_thread = threading.Thread(target=self._neural_net_listener)
-        self.nerual_net_listener_thread.daemon = True
+        self.neural_net_listener_thread.daemon = True
         self.neural_net_listener_thread_run = True
-        self.nerual_net_listener_thread.start()
+        self.neural_net_listener_thread.start()
 
         self.mission_tasks = [] #A list of the mission tasks
         self.mission_data = None #The .json file structure loaded into python dictionary
@@ -144,9 +144,9 @@ class Mission_Commander(threading.Thread):
         #Parse the mission file
         self.parse_mission()
 
-    def _update_neural_net_callback(self):
+    def _update_neural_net_callback(self, neural_net_data):
 
-        self.detection_data = struct.unpack('sfffffffffff', self.neural_net_data)
+        self.detection_data = struct.unpack('sfffffffffff', neural_net_data)
         print(self.detection_data)
 
     def _command_listener(self):

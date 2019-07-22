@@ -169,11 +169,11 @@ class Distance_Calculator():
         '''
 
         if (self.three_dim_points is None or self.two_dim_points is None):
-            return [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]
+            return [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], 0.0
 
         else:
             working, rvec, tvec = cv2.solvePnP(self.three_dim_points,
                                                self.two_dim_points,
                                                self.camera_matrix,
                                                self.distortion_matrix)
-            return rvec, tvec, tvec[2]
+            return rvec, tvec, float(tvec[2])
