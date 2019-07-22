@@ -16,7 +16,7 @@ import sys
 import io
 import csv
 import time
-
+import cameraWidget
 from MechOS.message_passing.Nodes.node_base import node_base
 from datetime import datetime
 
@@ -25,7 +25,8 @@ class Receive_Video_Stream(node_base):
     '''
     Recv Node captures the image data, resizes the image, and displays it.
     '''
-    def __init__(self, MEM, IP):
+    def __init__(self, MEM, IP,full_path):
+        print(full_path)
         '''
         Sets the size of data packets, whether or not the image should be resized
         and if images should be saved.
@@ -38,9 +39,10 @@ class Receive_Video_Stream(node_base):
 
         node_base.__init__(self, MEM, IP)
 
+        self.full_path = full_path
+
         # Data Size Per Packet
         self.MAX_UDP_PACKET_SIZE = 1500
-
         # Resize image
         self.resize_image = True
         self.scale_percent = 250
@@ -84,7 +86,7 @@ class Receive_Video_Stream(node_base):
 
                         if self.save_image:
                             TimeStamp = str(datetime.now()).replace(' ', '_').replace(':','#')[:-7]
-                            cv2.imwrite("/home/piercedhowell/imgs_07_18_19_frame{}.jpg".format(TimeStamp), img_frame)
+                            cv2.imwrite(self.full_path, img_frame)
 
                         if self.resize_image:
                             # Frame Size (reversed in np.shape)
@@ -115,7 +117,7 @@ class Receive_Video_Stream(node_base):
 
 if __name__=='__main__':
     # Port Information
-    HOST    = '192.168.1.1'
+    HOST    = '127.0.0.101'
     PORT    = 6969
 
     CAMERA_SOCK = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

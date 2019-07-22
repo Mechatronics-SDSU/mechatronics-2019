@@ -7,6 +7,7 @@ import csv
 import time
 import tkinter
 import os
+import receive_video_stream
 
 from PyQt5.QtWidgets import QWidget, QApplication, QGridLayout, QLineEdit, QLabel, QVBoxLayout, QPushButton
 from PyQt5.QtGui import QColor
@@ -29,18 +30,12 @@ class record_video_GUI(QWidget):
         self.linking_layout = QVBoxLayout(self)
         self.setLayout(self.linking_layout)
         self._file_picker()
+        
+
+        
 
     def _file_picker(self):
-        '''
-        Set up the layout grid for displaying AHRS orientation data such as
-        yaw, pitch, roll.
-
-        Parameters:
-            N/A
-
-        Returns:
-            N/A
-        '''
+        
         self.vid_format = '.avi'
 
         orientation_txt = QLabel("<font color='black'>CAM FEED</font>")
@@ -104,54 +99,37 @@ class record_video_GUI(QWidget):
 
 
     def start_recording(self):
-        '''
-        starts video recording
-
-        Parameters:
-            N/A
-        Returns:
-            N/A
-        '''
-        camera = cv2.VideoCapture(1)
-
-        camera.set(cv2.CAP_PROP_FRAME_WIDTH, 800)
-        camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 600)
-
-        # Define the codec and create VideoWriter object to save the video
-        fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
-        #fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
-        TimeStamp = str(datetime.now().strftime("%Y%m%d-%H%M%S"))
-        print(TimeStamp)
-        #video_writer = cv2.VideoWriter('output.avi', fourcc, 30.0, (800, 600))
+        # Initialize Node Thread
+        timestamp = str(datetime.now().strftime("%Y%m%d-%H%M%S"))
+        print(timestamp)
         
-        fileName = TimeStamp if (self.fname_box.text() == '') else f"{self.fname_box.text()}-{TimeStamp}" 
-        video_writer = cv2.VideoWriter((self.flocation_box.text() + '/' + fileName + self.vid_format), fourcc, 20.0, (800, 600))
-
-        frame_rate = 30
-        prev = 0
-
-        while True:
-            time_elapsed = time.time() - prev
-            (grabbed, frame) = camera.read()  # grab the current frame
-            if time_elapsed > 1./frame_rate:
-                    prev = time.time()
-                    #frame = cv2.resize(frame, (640,480), interpolation= cv2.INTER_AREA)
-                
-                    cv2.imshow("Frame", frame)  # show the frame to our screen
-
-                    key = cv2.waitKey(33) & 0xFF  
-
-                    video_writer.write(frame)  # Write the video to the file system """ """
-                    if key==27:
-                        break
-        # cleanup the camera and close any open windows
-        camera.release()
-        video_writer.release()
-        cv2.destroyAllWindows()
+        file_name = timestamp if (self.fname_box.text() == '') else f"{self.fname_box.text()}-{timestamp}"
+        full_path = self.flocation_box.text() + '/' + file_name + self.vid_format
+        recv_node = receive_video_stream.Receive_Video_Stream(MEM, IP, full_path)
+        recv_node.start()
+        
     
 
 if __name__ == "__main__":
-    import sys
+    # Port Information
+    HOST    = '127.0.0.101'
+    PORT    = 6969
+
+    CAMERA_SOCK = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    RECV_SOCK   = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+    # IP initialization
+    IP_ADDRESS = (HOST, PORT)
+    RECV_SOCK.bind((IP_ADDRESS))
+
+    IP ={'CAMERA':
+            {
+            'address': IP_ADDRESS,
+            'sockets': (CAMERA_SOCK, RECV_SOCK),
+            'type': 'UDP'
+            }
+        }
+    MEM={'CAMERA':b''}
     app = QApplication([])
     set_pos_gui = record_video_GUI()
     set_pos_gui.show()
