@@ -16,7 +16,7 @@ import sys
 import io
 import csv
 import time
-import cameraWidget
+
 from MechOS.message_passing.Nodes.node_base import node_base
 from datetime import datetime
 
@@ -25,7 +25,7 @@ class Receive_Video_Stream(node_base):
     '''
     Recv Node captures the image data, resizes the image, and displays it.
     '''
-    def __init__(self, MEM, IP,full_path):
+    def __init__(self, MEM, IP, full_path):
         print(full_path)
         '''
         Sets the size of data packets, whether or not the image should be resized
@@ -114,7 +114,8 @@ class Receive_Video_Stream(node_base):
 
             else:
                 time.sleep(0)
-
+                
+""" 
 if __name__=='__main__':
     # Port Information
     HOST    = '127.0.0.101'
@@ -139,3 +140,4 @@ if __name__=='__main__':
     # Initialize Node Thread
     recv_node = Receive_Video_Stream(MEM, IP)
     recv_node.start()
+ """

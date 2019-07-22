@@ -1,13 +1,3 @@
-'''
-Copyright 2019, Ramiz Hanan, All rights reserved
-
-Authors:
-        Ramiz Hanan <ramizhanan@gmail.com>
-        
-Last Modified 07/21/2019
-
-Description: Video Recording Utility made with PyQt with option to choose save folder and video name. 
-'''
 import cv2
 import numpy as np
 import socket
@@ -30,7 +20,7 @@ class record_video_GUI(QWidget):
 
     def __init__(self):
         '''
-        Initialize the Video Recording GUI
+        Initialize the Desired Position GUI
 
         Parameters:
             N/A
@@ -42,16 +32,7 @@ class record_video_GUI(QWidget):
         self._file_picker()
         
 
-<<<<<<< HEAD
         
-=======
-    def _file_picker(self):
-        '''
-        Set up the layout grid for displaying the video recorder.
-
-        Parameters:
-            N/A
->>>>>>> 70260ec73166d8301c0e0229989ac7c8b61c991d
 
     def _file_picker(self):
         
@@ -118,7 +99,6 @@ class record_video_GUI(QWidget):
 
 
     def start_recording(self):
-<<<<<<< HEAD
         # Initialize Node Thread
         timestamp = str(datetime.now().strftime("%Y%m%d-%H%M%S"))
         print(timestamp)
@@ -128,51 +108,6 @@ class record_video_GUI(QWidget):
         recv_node = receive_video_stream.Receive_Video_Stream(MEM, IP, full_path)
         recv_node.start()
         
-=======
-        '''
-        starts video recording
-
-        Parameters:
-            N/A
-        Returns:
-            N/A
-        '''
-        camera = cv2.VideoCapture(1)
-
-        camera.set(cv2.CAP_PROP_FRAME_WIDTH, 800)
-        camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 600)
-
-        # Define the codec and create VideoWriter object to save the video
-        fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
-        #fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
-        TimeStamp = str(datetime.now().strftime("%Y%m%d-%H%M%S"))
-        print("Video captured:" + TimeStamp)
-        #video_writer = cv2.VideoWriter('output.avi', fourcc, 30.0, (800, 600))
-        
-        fileName = TimeStamp if (self.fname_box.text() == '') else f"{self.fname_box.text()}-{TimeStamp}" #if no name given, use time as filename
-        video_writer = cv2.VideoWriter((self.flocation_box.text() + '/' + fileName + self.vid_format), fourcc, 20.0, (800, 600))
-
-        frame_rate = 30
-        prev = 0
-
-        while True:
-            time_elapsed = time.time() - prev
-            (grabbed, frame) = camera.read()  # grab the current frame
-            if time_elapsed > 1./frame_rate:
-                    prev = time.time()
-                
-                    cv2.imshow("Frame", frame)  # show the frame to our screen
-
-                    key = cv2.waitKey(33) & 0xFF  
-
-                    video_writer.write(frame)  # Write the video to the file system """ """
-                    if key==27:
-                        break
-        # cleanup the camera and close any open windows
-        camera.release()
-        video_writer.release()
-        cv2.destroyAllWindows()
->>>>>>> 70260ec73166d8301c0e0229989ac7c8b61c991d
     
 
 if __name__ == "__main__":
