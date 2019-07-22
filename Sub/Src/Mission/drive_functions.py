@@ -51,6 +51,10 @@ class Drive_Functions:
         #Initialize the desired position proto
         self.desired_position_proto = desired_position_pb2.DESIRED_POS()
 
+        #A boolean to specifiy if the drive functions are availible to run
+        #This is used in case missions are canceled and does not want these functions to be able to use.
+        self.drive_functions_enabled = True
+
 
     def send_desired_position(self, desired_position, zero_pos=False):
         '''
@@ -153,6 +157,10 @@ class Drive_Functions:
 
         while(abs(desired_depth - current_position[5]) > buffer_zone):
 
+            if not self.drive_functions_enabled:
+                print("[WARNING]: Cannot Execute drive function because the drive functions are disabled.")
+                return False, desired_depth
+
             if(timeout != None):
                 if(self.timeout_timer.net_timer() > timeout):
                     print("[WARNING]: Move to depth timed out. Depth error", current_position[5] - desired_depth)
@@ -212,6 +220,10 @@ class Drive_Functions:
 
         while(abs(yaw_error) > buffer_zone):
 
+            if not self.drive_functions_enabled:
+                print("[WARNING]: Cannot Execute drive function because the drive functions are disabled.")
+                return False, desired_depth
+
             if(timeout != None):
                 if(self.timeout_timer.net_timer() > timeout):
                     print("[WARNING]: Move to face position timed out. Yaw Error:", yaw_error)
@@ -257,6 +269,10 @@ class Drive_Functions:
         yaw_error = self.get_yaw_error(current_position[2], desired_yaw)
 
         while(abs(yaw_error) > buffer_zone):
+
+            if not self.drive_functions_enabled:
+                print("[WARNING]: Cannot Execute drive function because the drive functions are disabled.")
+                return False, desired_depth
 
             if(timeout != None):
                 if(self.timeout_timer.net_timer() > timeout):
@@ -308,6 +324,10 @@ class Drive_Functions:
         distance_to_position = self.get_distance_to_position(current_position[3], current_position[4], north_position, east_position)
 
         while(abs(distance_to_position) > buffer_zone):
+
+            if not self.drive_functions_enabled:
+                print("[WARNING]: Cannot Execute drive function because the drive functions are disabled.")
+                return False, desired_depth
 
             if(timeout != None):
                 if(self.timeout_timer.net_timer() > timeout):

@@ -105,7 +105,7 @@ class Gate_No_Vision_Task(Task):
         #Dive to depth of the desired_line_up_position
         desired_yaw, desired_north, desired_east, desired_depth = self.line_up_position
         print("Desired_Yaw,", desired_yaw)
-        
+
         remaining_task_time = self.timeout - self.timeout_timer.net_timer()
         succeeded, _ = self.drive_functions.move_to_depth(desired_depth=desired_depth,
                                                             buffer_zone=self.depth_buffer_zone,
