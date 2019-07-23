@@ -192,7 +192,7 @@ if __name__=='__main__':
     RECV_SOCK   = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     # IP initialization
-    CAM_IP_ADDRESS  = ('192.168.1.1', 6969)
+    CAM_IP_ADDRESS  = ('192.168.1.2', 6969)
 
     IP ={'CAMERA':
             {
