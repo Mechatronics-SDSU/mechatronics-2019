@@ -3,8 +3,8 @@
         <maestro>/dev/ttyACM0</maestro>
         <AHRS>/dev/ttyUSB4</AHRS>
         <backplane>/dev/ttyUSB0</backplane>
-        <DVL>/dev/ttyUSB2</DVL>
-	<auto>/dev/ttyUSB1</auto>
+        <DVL>/dev/ttyUSB1</DVL>
+	<auto>/dev/ttyUSB3</auto>
     </COM_Ports>
     <Timing>
         <AHRS>0.05</AHRS>

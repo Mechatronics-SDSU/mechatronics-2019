@@ -223,12 +223,12 @@ class Mission_Commander(threading.Thread):
                     auto_pressed = (self.auto_serial.read(13)).decode()
                     self.auto_serial.read(2) #Read the excess two bytes
 
-                    if(auto_pressed == "Auto Status:1"):
+                    if(auto_pressed == "Auto Status:1" and self.mission_mode):
                         print("[INFO]: Mission Now Live")
                         self.mission_live = True
                         self.drive_functions.drive_functions_enabled = True
 
-                    elif(auto_pressed == "Auto Status:0"):
+                    elif(auto_pressed == "Auto Status:0" and self.mission_mode):
                         print("[INFO]: Mission is no longer Live.")
                         self.mission_live = False
                         self.drive_functions.drive_functions_enabled = False
