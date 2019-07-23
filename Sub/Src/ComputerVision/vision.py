@@ -127,9 +127,8 @@ class Vision(node_base):
                     pt1 = (xmin, ymin)
                     pt2 = (xmax, ymax)
                     cv2.rectangle(byte_frame, pt1, pt2, (0, 255, 0), 2)
-                    cv2.putText(byte_frame, i[0].decode() + " [" + str(round(i[1] * 100, 2)) + "]" + " [" + str(round(distance, 3)) + " ft]",
-                               (pt1[0], pt1[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 1, [0, 255, 0], 4)
-
+                    cv2.putText(byte_frame, i[0].decode() + " [" + str(round(i[1] * 100, 2)) + "]", (pt1[0], pt1[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 1, [0, 255, 0], 4)
+                    cv2.putText(byte_frame, "[" + str(round(distance, 2)) + "ft]", (pt2[0], pt1[1] + 40), cv2.FONT_HERSHEY_SIMPLEX, 1, [0,127, 127], 4)
                     label = i[0].decode("utf-8")
                     detection_data = struct.pack('sfffffffffff',
                                                  label.encode("utf-8"),
