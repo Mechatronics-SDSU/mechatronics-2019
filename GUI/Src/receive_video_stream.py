@@ -115,7 +115,7 @@ class Receive_Video_Stream(node_base):
 
 if __name__=='__main__':
     # Port Information
-    HOST    = '192.168.1.1'
+    HOST    = '192.168.1.2'
     PORT    = 6969
 
     CAMERA_SOCK = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
