@@ -177,7 +177,7 @@ if __name__=='__main__':
     RECV_SOCK   = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     # IP initialization
-    IP_ADDRESS  = (configs["video_ip"], configs["video_port"])
+    IP_ADDRESS  = (configs["video_ip"], int(configs["video_port"]))
 
     IP ={'CAMERA':
             {
