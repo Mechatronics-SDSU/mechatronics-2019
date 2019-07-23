@@ -18,6 +18,7 @@ import struct
 #Import all the tasks
 from drive_functions import Drive_Functions
 from waypoint_task import Waypoint_Task
+from gate_no_vision_task import Gate_No_Vision_Task
 
 class Mission_Commander(threading.Thread):
     '''
@@ -82,7 +83,7 @@ class Mission_Commander(threading.Thread):
 
         #Set up serial com to read the autonomous button
         com_port = self.param_serv.get_param("COM_Ports/auto")
-        #self.auto_serial = serial.Serial(com_port, 9600)
+        self.auto_serial = serial.Serial(com_port, 9600)
 
         #load the mission data
         self._update_mission_info_callback(None)
@@ -178,6 +179,7 @@ class Mission_Commander(threading.Thread):
 
             self.mission_mode = False
             self.mission_live = False
+            self.drive_functions.drive_functions_enabled = False
 
     def _update_mission_info_callback(self, misc):
         '''
@@ -195,9 +197,13 @@ class Mission_Commander(threading.Thread):
         self.mission_file = self.param_serv.get_param("Missions/mission_file")
         self.mission_live = False
 
+        #Disable drive function from running.
+        self.drive_functions.drive_functions_enabled = False
+
         print("[INFO]: New Mission file set as %s", self.mission_file)
         #Parse the mission file
         self.parse_mission()
+
     def _command_listener(self):
         '''
         The thread to run update requests from the GUI to tell the mission commander
@@ -212,6 +218,20 @@ class Mission_Commander(threading.Thread):
             try:
                 #Recieve commands from the the GUI and/or Mission Commander
                 self.mission_commander_node.spinOnce(self.movement_mode_subscriber)
+
+                if(self.auto_serial.in_waiting):
+                    auto_pressed = (self.auto_serial.read(13)).decode()
+                    self.auto_serial.read(2) #Read the excess two bytes
+
+                    if(auto_pressed == "Auto Status:1" and self.mission_mode):
+                        print("[INFO]: Mission Now Live")
+                        self.mission_live = True
+                        self.drive_functions.drive_functions_enabled = True
+
+                    elif(auto_pressed == "Auto Status:0" and self.mission_mode):
+                        print("[INFO]: Mission is no longer Live.")
+                        self.mission_live = False
+                        self.drive_functions.drive_functions_enabled = False
 
             except Exception as e:
                 print("[ERROR]: Could not properly recieved messages in command listener. Error:", e)
@@ -246,6 +266,11 @@ class Mission_Commander(threading.Thread):
                 waypoint_task = Waypoint_Task(self.mission_data[task], self.drive_functions)
                 self.mission_tasks.append(waypoint_task)
 
+            #Generate Gate with no vision task
+            elif(task_type == "Gate_No_Vision"):
+                gate_no_vision = Gate_No_Vision_Task(self.mission_data[task], self.drive_functions)
+                self.mission_tasks.append(gate_no_vision)
+
     def run(self):
         '''
         Run the mission tasks sequentially.
@@ -261,48 +286,38 @@ class Mission_Commander(threading.Thread):
                 #If in Mission mode, listen to see if the autonomous mode button is
                 #pressed.
 
-                if(self.mission_mode):
-                    """
-                    if(self.auto_serial.in_waiting):
-                        auto_pressed = (self.auto_serial.read(13)).decode()
-                        self.auto_serial.read(2) #Read the excess two bytes
+                if(self.mission_mode and self.mission_live):
 
-                        if(auto_pressed == "Auto Status:1"):
-                            print("[INFO]: Mission Now Live")
-                            self.mission_live = True
-
-                        elif(auto_pressed == "Auto Status:0"):
-                            print("[INFO]: Mission is no longer Live.")
-                            self.mission_live = False
-                    """
-                    self.mission_live = True
-                    print("[INFO]: Starting Mission")
+                    #self.mission_live = True
+                    #print("[INFO]: Starting Mission")
                     #When mission is live, run the mission
-                    if(self.mission_live):
 
-                        unkill_state = struct.pack('b', 0)
-                        self.kill_sub_publisher.publish(unkill_state)
+                    unkill_state = struct.pack('b', 0)
+                    self.kill_sub_publisher.publish(unkill_state)
 
-                        #Set the current position as origin
-                        self.sensor_driver.zero_pos()
+                    #Set the current position as origin
+                    self.sensor_driver.zero_pos()
 
-                        #Iterate through each task in the mission and run them
-                        for task_id, task in enumerate(self.mission_tasks):
-                            print("[INFO]: Starting Task %s: %s. Mission task %d/%d" %(task.type, task.name, task_id + 1, self.num_tasks))
-                            task_success = task.run()
+                    #Iterate through each task in the mission and run them
+                    for task_id, task in enumerate(self.mission_tasks):
+                        if((self.mission_live == False) or (self.mission_mode == False)):
+                            print("[WARNING]: Exiting mission because mission live status or mission mode status changed.")
+                            break
 
-                            if(task_success):
-                                print("[INFO]: Successfully completed task %s." % task.name)
-                                continue
-                            else:
-                                print("[INFO]: Failed to complete task %s." % task.name)
+                        print("[INFO]: Starting Task %s: %s. Mission task %d/%d" %(task.type, task.name, task_id + 1, self.num_tasks))
+                        task_success = task.run()
+                        if(task_success):
+                            print("[INFO]: Successfully completed task %s." % task.name)
+                            continue
+                        else:
+                            print("[INFO]: Failed to complete task %s." % task.name)
 
-                        print("[INFO]: Finished Mission. Killing the sub.")
-                        self.mission_live = False
+                    print("[INFO]: Finished Mission. Killing the sub.")
+                    self.mission_live = False
 
-                        #Kill the sub.
-                        kill_state = struct.pack('b', 1)
-                        self.kill_sub_publisher.publish(kill_state)
+                    #Kill the sub.
+                    kill_state = struct.pack('b', 1)
+                    self.kill_sub_publisher.publish(kill_state)
             except:
                 print("[ERROR]: Encountered an Error in Mission Commander. Error:", sys.exc_info()[0])
                 raise

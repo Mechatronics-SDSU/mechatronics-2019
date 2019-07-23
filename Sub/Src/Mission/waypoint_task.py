@@ -14,44 +14,59 @@ import time
 HELPER_PATH = os.path.join("..", "Helpers")
 sys.path.append(HELPER_PATH)
 import util_timer
-
-PARAM_PATH = os.path.join("..", "Params")
-sys.path.append(PARAM_PATH)
-MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
-from mechos_network_configs import MechOS_Network_Configs
-from MechOS import mechos
 import csv
 import numpy as np
 
-class Waypoint_Task:
+from task import Task
+
+class Waypoint_Task(Task):
     '''
     Given the waypoint task description dictionary, drive along the waypointed
     route. If the the task cannot be completed within the given timeout time,
     exit the mission and considerate it a failure.
     '''
-    def __init__(self, waypoint_task_dict, drive_functions):
+    def __init__(self, task_dict, drive_functions):
         '''
         Initialize the waypoint task given the waypoint dict.
 
         Parameters:
-            waypoint_task_dict: A python dictionary containing the parameters
-                                for the waitpoint mission.
+            task_dict: A python dictionary containing the parameters
+                                for the waitpoint task.
                             Dictionary Form:
                             -------------------
                             {
                                 "type": "Waypoint"
                                 "name": <task_name>
                                 "timeout": <timeout_time_minutes>
-                                "buffer_zone": <buffer zone for each (North, East) position (ft)>
+                                "position_buffer_zone": <buffer zone for each (North, East) position (ft)>
+                                "depth_buffer_zone": <buffer zone for depth moves (ft)>
+                                "yaw_buffer_zone": <buffer zone for yaw moves (deg)>
                                 "waypoint_file": <location of csv file containing waypoints>
                             }
             drive_functions: An already initialized object of drive_functions. This
                             class contains a variety of drive functions that are useful
                             to complete tasks.
         '''
-        self.waypoint_task_dict = waypoint_task_dict
-        self.name = self.waypoint_task_dict["name"]
+
+        Task.__init__(self)
+
+        self.task_dict = task_dict
+
+        #Unpack the information about the task
+        self.name = self.task_dict["name"]
         self.type = "Waypoint"
+        self.timeout = float(self.task_dict["timeout"] * 60.0)
+        self.waypoint_file = self.task_dict["waypoint_file"]
+
+        #Buffer zone (bubble) for North/East positions to be considered in at correct coordinate
+        self.position_buffer_zone = self.task_dict["position_buffer_zone"]
+
+        #The buffer zone used to be considered to make it to a certain depth when doing a depth dive
+        self.depth_buffer_zone = self.task_dict["depth_buffer_zone"]
+
+        #The buffer zone to be used for yaw to consider making it to a certain yaw position
+        self.yaw_buffer_zone = self.task_dict["yaw_buffer_zone"]
+
 
         self.drive_functions = drive_functions
 
@@ -69,11 +84,13 @@ class Waypoint_Task:
         Returns:
             N/A
         '''
-        print("[INFO]:Task Name:", self.waypoint_task_dict["name"])
-        print("\tTask Type:", self.waypoint_task_dict["type"])
-        print("\tLocation of Waypoint File:", self.waypoint_task_dict["waypoint_file"])
-        print("\tTimeout Time for Task: %0.2f min" % self.waypoint_task_dict["timeout"])
-        print("\tBuffer Zone Distance for Points: %s ft" % self.waypoint_task_dict["buffer_zone"])
+        print("[INFO]:Task Name:", self.name)
+        print("\tTask Type:", self.type)
+        print("\tLocation of Waypoint File:", self.waypoint_file)
+        print("\tTimeout Time for Task: %0.2f min" % (self.timeout / 60.0))
+        print("\tBuffer Zone Distance for North/East Positions: %0.2fft" % self.position_buffer_zone)
+        print("\tBuffer Zone Distance for Depth Positions: %0.2fft" % self.depth_buffer_zone)
+        print("\tBuffer Zone Distance for Yaw Positions: %0.2fft" % self.yaw_buffer_zone)
 
     def unpack_waypoints(self):
         '''
@@ -86,7 +103,7 @@ class Waypoint_Task:
         '''
         self.waypoints = None
 
-        with open(self.waypoint_task_dict["waypoint_file"]) as waypoint_file:
+        with open(self.task_dict["waypoint_file"]) as waypoint_file:
             csv_reader = csv.reader(waypoint_file, delimiter=',')
 
             for waypoint_id, waypoint in enumerate(csv_reader):
@@ -111,16 +128,16 @@ class Waypoint_Task:
         Returns:
             True: If the waypoint task was completed in its entirety without timing
                     out.
-            False: If the waypoint task reaches its timout but hasn't finished.
+            False: If the waypoint task reaches its timeout but hasn't finished.
         '''
         print("[INFO]: Starting Waypoint Task:", self.name)
 
-        self.print_task_info()
+        
+        #self.print_task_info()
 
         self.timeout_timer.restart_timer()
 
-        #Convert the timout to seconds
-        task_time = self.waypoint_task_dict["timeout"] * 60
+        task_time = self.timeout
 
         #Iterate through each waypoint. Only move onto the next waypoint after
         #you have made it the current one
@@ -136,7 +153,7 @@ class Waypoint_Task:
             #Dive to depth with allowable buffer zone of 0.1
             remaining_task_time = task_time - self.timeout_timer.net_timer()
             succeeded, _ = self.drive_functions.move_to_depth(desired_depth=depth_position,
-                                                buffer_zone=0.3,
+                                                buffer_zone=self.depth_buffer_zone,
                                                 timeout=remaining_task_time)
             if(not succeeded):
                 return False
@@ -145,7 +162,7 @@ class Waypoint_Task:
             remaining_task_time = task_time - self.timeout_timer.net_timer()
             succeeded, desired_yaw = self.drive_functions.move_to_face_position(north_position=north_position,
                                                             east_position=east_position,
-                                                            buffer_zone=11,
+                                                            buffer_zone=self.yaw_buffer_zone,
                                                             timeout=remaining_task_time,
                                                     desired_orientation={"depth":depth_position})
 
@@ -155,12 +172,12 @@ class Waypoint_Task:
             remaining_task_time = task_time - self.timeout_timer.net_timer()
             succedded, _, _ = self.drive_functions.move_to_position_hold_orientation(north_position=north_position,
                                                                           east_position=east_position,
-                                                                          buffer_zone=2,
+                                                                          buffer_zone=self.position_buffer_zone,
                                                                           timeout=remaining_task_time,
-                                                                desired_orientation={"depth":depth_position})
+                                                                desired_orientation={"depth":depth_position, "yaw":desired_yaw})
             if(not succeeded):
                 return False
 
             print("[INFO]: Waypoint Task %s: North=%0.2f, East=%0.2f, Depth=%0.2f successfully reached." \
-                                % (self.waypoint_task_dict["name"], north_position, east_position, depth_position))
+                                % (self.task_dict["name"], north_position, east_position, depth_position))
         return True
