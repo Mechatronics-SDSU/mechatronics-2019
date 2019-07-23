@@ -147,6 +147,7 @@ class Mission_Commander(threading.Thread):
     def _update_neural_net_callback(self, neural_net_data):
 
         self.detection_data = struct.unpack('sfffffffffff', neural_net_data)
+        #self.detection_data[0] = self.detection_data[0].decode("utf-8")
         print(self.detection_data)
 
     def _command_listener(self):
@@ -174,7 +175,7 @@ class Mission_Commander(threading.Thread):
                 self.mission_commander_node.spinOnce(self.neural_net_subscriber)
             except Exception as e:
                 print("[ERROR]: Neural net data not available. Error:", e)
-            time.sleep(0.2)
+            #time.sleep(0.2)
 
 
     def parse_mission(self):

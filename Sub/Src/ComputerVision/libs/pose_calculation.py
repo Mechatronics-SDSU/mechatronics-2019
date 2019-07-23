@@ -108,7 +108,7 @@ class Distance_Calculator():
                                             [(self.x_coordinate + (0.5 * self.width)), (self.y_coordinate + (0.5 * self.height))]])
 
 
-        if(label == b'Gate Arm'):
+        elif(label == b'Gate Arm'):
 
             self.center = float(self.param_serv.get_param("Vision/Coordinates/gate/center")) #0.0
             self.max = float(self.param_serv.get_param("Vision/Coordinates/gate/max")) #5
@@ -124,7 +124,7 @@ class Distance_Calculator():
 
             self.gate_top_points = np.array([ [self.mid_min, self.mid_min, self.center], #-2.5, -2.5, 0
                                               [self.center, self.mid_min, self.center], #0, -2.5, 0
-                                              [self.mid_max, self.mid_min, self.center]) #2.5, -2.5, 0
+                                              [self.mid_max, self.mid_min, self.center]]) #2.5, -2.5, 0
 
             self.gate_right_points = np.array([[self.max, self.quarter_min, self.center], #5, -1.25, 0
                                                [self.max, self.center, self.center], #5, 0, 0
@@ -210,9 +210,5 @@ class Distance_Calculator():
             return [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], 0.0
 
         else:
-            working, rvec, tvec, estimates = cv2.solvePnPRansac(self.three_dim_points,
-                                                                self.two_dim_points,
-                                                                self.camera_matrix,
-                                                                self.distortion_matrix,
-                                                                100, 6.0, 100)
+            working, rvec, tvec = cv2.solvePnP(self.three_dim_points, self.two_dim_points, self.camera_matrix,self.distortion_matrix)
             return rvec, tvec, float(tvec[2])

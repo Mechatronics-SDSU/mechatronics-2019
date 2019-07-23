@@ -122,6 +122,7 @@ class Vision(node_base):
                     #Perform solve pnp calculations
                     self.distance_calculator.set_coordinates(r, i, x, y, w, h)
                     rotation, translation, distance = self.distance_calculator.calculate_distance()
+                    #print(distance)
                     xmin, ymin, xmax, ymax = convertBack(float(x), float(y), float(w), float(h))
                     pt1 = (xmin, ymin)
                     pt2 = (xmax, ymax)
@@ -144,7 +145,7 @@ class Vision(node_base):
                                                  translation[1],
                                                  translation[2])
 
-                    if ((time.time() - start_time) >= 0.2):
+                    if ((time.time() - start_time) >= 0.5):
                         self.neural_net_publisher.publish(detection_data) #Send the detection data
                         start_time = time.time()
 
