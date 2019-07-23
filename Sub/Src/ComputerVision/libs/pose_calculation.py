@@ -107,7 +107,7 @@ class Distance_Calculator():
                                             [(self.x_coordinate), (self.y_coordinate + (0.5 * self.height))],
                                             [(self.x_coordinate + (0.5 * self.width)), (self.y_coordinate + (0.5 * self.height))]])
 
-        
+
         if(label == b'Gate Arm'):
 
             self.center = float(self.param_serv.get_param("Vision/Coordinates/gate/center")) #0.0
@@ -210,8 +210,9 @@ class Distance_Calculator():
             return [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], 0.0
 
         else:
-            working, rvec, tvec = cv2.solvePnP(self.three_dim_points,
-                                               self.two_dim_points,
-                                               self.camera_matrix,
-                                               self.distortion_matrix)
+            working, rvec, tvec, estimates = cv2.solvePnPRansac(self.three_dim_points,
+                                                                self.two_dim_points,
+                                                                self.camera_matrix,
+                                                                self.distortion_matrix,
+                                                                100, 6.0, 100)
             return rvec, tvec, float(tvec[2])

@@ -58,7 +58,7 @@ class Vision(node_base):
 
         self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
         self.param_serv.use_parameter_database(configs["param_server_path"])
-        
+
         self.neural_network_node = mechos.Node("NEURAL_NETWORK", configs["ip"])
         self.neural_net_publisher = self.neural_network_node.create_publisher("NN", configs["pub_port"])
 
@@ -101,6 +101,7 @@ class Vision(node_base):
         The run loop reads image data from the webcam, processes it through Yolo, and
         then encodes it into a byte stream and encapsulation frame to be sent over the socket.
         '''
+        start_time = time.time()
         while(True):
             # Capture frame-by-frame
             ret, byte_frame = self.capture.read()
@@ -143,7 +144,9 @@ class Vision(node_base):
                                                  translation[1],
                                                  translation[2])
 
-                    self.neural_net_publisher.publish(detection_data) #Send the detection data
+                    if ((time.time() - start_time) >= 0.2):
+                        self.neural_net_publisher.publish(detection_data) #Send the detection data
+                        start_time = time.time()
 
                 # Get the Size of the image
                 image_size = sys.getsizeof(byte_frame)
