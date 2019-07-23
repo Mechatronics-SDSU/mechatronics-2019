@@ -101,9 +101,9 @@
          <down_camera_index>2</down_camera_index>
 	 <yolo>
 	       <darknet_path>/home/nvidia/mechatronics-2019/Sub/Src/ComputerVision/libs/darknet</darknet_path>
-               <config_file>cfg/pool_test_7_16_19.cfg</config_file>
-	       <weights_file>weights/testing.weights</weights_file>
-               <metadata_file>data/pool_test_7_16_19.data</metadata_file>
+               <config_file>cfg/new_config.cfg</config_file>
+	       <weights_file>weights/new_config.weights</weights_file>
+               <metadata_file>data/new_config.data</metadata_file>
          </yolo>
          <solvePnP>
                <camera_matrix>

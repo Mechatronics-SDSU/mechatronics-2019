@@ -1,0 +1,5 @@
+classes= 3
+train  = /home/mechatronics/darknet_alex/7_22_19/train.txt
+valid = /home/mechatronics/darknet_alex/7_22_19/test.txt
+names = /home/nvidia/mechatronics-2019/Sub/Src/ComputerVision/libs/darknet/names/new_config.names
+backup = /home/mechatronics/darknet_alex/7_22_19/weights/
