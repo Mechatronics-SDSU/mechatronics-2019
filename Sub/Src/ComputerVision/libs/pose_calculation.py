@@ -211,4 +211,5 @@ class Distance_Calculator():
 
         else:
             working, rvec, tvec = cv2.solvePnP(self.three_dim_points, self.two_dim_points, self.camera_matrix,self.distortion_matrix)
-            return rvec, tvec, float(tvec[2])
+            inchvec = np.array([(float(tvec[0]/12.0)), float(tvec[1]/12.0), float(tvec[2]/12.0)])
+            return rvec, inchvec, inchvec[2]

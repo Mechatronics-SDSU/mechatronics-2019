@@ -122,15 +122,15 @@
          </solvePnP>
          <Coordinates>
             <gate>
-                 <max>5.0</max>
+                 <max>60.0</max>
                  <center>0.0</center>
-                 <mid>2.5</mid>
-                 <quarter>1.25</quarter>
+                 <mid>30.0</mid>
+                 <quarter>15.0</quarter>
             </gate>
             <dice>
-                <topleft>-0.375</topleft>
+                <topleft>-4.5</topleft>
                 <middle>0.0</middle>
-                <bottomright>0.375</bottomright>
+                <bottomright>4.5</bottomright>
             </dice>
          </Coordinates>
     </Vision>
