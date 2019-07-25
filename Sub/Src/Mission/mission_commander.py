@@ -227,7 +227,7 @@ class Mission_Commander(threading.Thread):
                         print("[INFO]: Mission Now Live")
                         self.mission_live = True
                         self.drive_functions.drive_functions_enabled = True
-
+                        
                     elif(auto_pressed == "Auto Status:0" and self.mission_mode):
                         print("[INFO]: Mission is no longer Live.")
                         self.mission_live = False

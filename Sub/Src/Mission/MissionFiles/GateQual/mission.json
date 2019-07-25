@@ -3,7 +3,7 @@
 	"type":"Gate_No_Vision",
 	"name":"gate_no_vision",
 	"timeout":2,
-	"line_up_position":[74, 0, 0, 15],
+	"line_up_position":[148, -20, 9, 5],
 	"position_buffer_zone":2.0,
 	"depth_buffer_zone":0.1,
 	"yaw_buffer_zone":5,
@@ -19,7 +19,7 @@
         "position_buffer_zone":2.0,
         "depth_buffer_zone":0.1,
         "yaw_buffer_zone":11,
-        "waypoint_file": "/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/GateQual/gate_1.csv"
+        "waypoint_file": "/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/GateQual/gate_2.csv"
     }
 
 }
