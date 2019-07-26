@@ -101,9 +101,9 @@
          <down_camera_index>2</down_camera_index>
 	 <yolo>
 	       <darknet_path>/home/nvidia/mechatronics-2019/Sub/Src/ComputerVision/libs/darknet</darknet_path>
-               <config_file>cfg/pool_test_7_16_19.cfg</config_file>
-	       <weights_file>weights/pool_test_7_16_19.weights</weights_file>
-	       <metadata_file>data/pool_test_7_16_19.data</metadata_file>
+               <config_file>cfg/aquaplex.cfg</config_file>
+	       <weights_file>weights/aquaplex.weights</weights_file>
+	       <metadata_file>data/aquaplex.data</metadata_file>
          </yolo>
          <solvePnP>
                <camera_matrix>
@@ -127,11 +127,11 @@
                  <mid>30.0</mid>
                  <quarter>15.0</quarter>
             </gate>
-            <dice>
+            <buoy>
                 <topleft>-4.5</topleft>
                 <middle>0.0</middle>
                 <bottomright>4.5</bottomright>
-            </dice>
+            </buoy>
          </Coordinates>
     </Vision>
     <Missions>
