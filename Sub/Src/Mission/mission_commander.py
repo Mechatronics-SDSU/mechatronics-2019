@@ -149,7 +149,7 @@ class Mission_Commander(threading.Thread):
 
         self.detection_data = struct.unpack('sfffffffffff', neural_net_data)
         #self.detection_data[0] = self.detection_data[0].decode("utf-8")
-        print(self.detection_data)
+        #print(self.detection_data)
 
     def _command_listener(self):
         '''
