@@ -117,6 +117,9 @@ class Distance_Calculator():
             self.min = -1.0 * self.max #-5
             self.mid_min = -1.0 * self.mid_max #-2.5
             self.quarter_min = -1.0 * self.quarter_max #-1.25
+            self.zero_pixel_error = float(self.param_serv.get_param("Vision/Coordinates/gate/pixel_error"))
+            self.top_pixel_error = float(self.param_serv.get_param("Vision/Coordinates/gate/top_pixel_error"))
+            self.arm_pixel_error = float(self.param_serv.get_param("Vision/Coordinates/gate/arm_pixel_error"))
 
             self.gate_shared_points = np.array([[self.center, self.center, self.center], #0, 0, 0
                                                 [self.min, self.mid_min, self.center], #-5, -2.5, 0
@@ -142,9 +145,9 @@ class Distance_Calculator():
 
                 if(second_det[0] == b'Gate Top'):
                     self.temp_three_dim_points = np.concatenate((self.gate_shared_points, self.gate_top_points), axis = 0)
-                    if(self.difference < 40.50 and self.difference > 0): #if pixel data is less than 10, data is bullshit
+                    if(self.difference < self.top_pixel_error and self.difference >= self.zero_pixel_error): #if pixel data is less than 10 percent of the image, data is bullshit
                         self.three_dim_points = np.concatenate((self.temp_three_dim_points, self.gate_left_points), axis = 0)
-                    elif(self.difference > -40.50 and self.difference < 0):
+                    elif(self.difference > (-1.0 *(self.top_pixel_error)) and self.difference =< self.zero_pixel_error):
                         self.three_dim_points = np.concatenate((self.temp_three_dim_points, self.gate_right_points), axis = 0)
 
                     self.two_dim_points = np.array([[self.second_x_coordinate, self.y_coordinate],
@@ -159,11 +162,11 @@ class Distance_Calculator():
                                                     [self.x_coordinate, self.y_coordinate + (0.5) * self.height]])
 
                 if(second_det[0] == b'Gate Arm'):
-                    if(abs(self.difference) < 81.00): #if distance between the arms is less than 30 pixels, data is bullshit
+                    if(abs(self.difference) < self.arm_pixel_error): #if distance between the arms is less than 81 pixels, a fifth of the image, data is bullshit
                         self.temp_three_dim_points = np.concatenate(self.gate_shared_points, self.gate_left_points)
                         self.three_dim_points = np.concatenate(self.temp_three_dim_points, self.gate_right_points)
 
-                        if(self.difference < 0 and self.difference > 81.00): #right arm was detected first
+                        if(self.difference <= self.zero_pixel_error and self.difference > self.arm_pixel_error): #right arm was detected first
                             self.two_dim_points = np.array([[self.x_coordinate - (self.difference * 0.5), self.y_coordinate],
                                                             [self.second_x_coordinate, self.second_y_coordinate - (0.5 * self.second_height)],
                                                             [self.x_coordinate, self.y_coordinate - (0.5 * self.height)],
@@ -176,7 +179,7 @@ class Distance_Calculator():
                                                             [self.x_coordinate, self.y_coordinate + (0.25 * self.hegiht)],
                                                             [self.x_coordinate, self.y_coordinate + (0.5 * self.height)]])
 
-                        if(self.difference > 0  and self.difference < -81.00): #left arm was detected first
+                        if(self.difference >= self.zero_pixel_error  and self.difference < (-1 * self.arm_pixel_error)): #left arm was detected first
                             self.two_dim_points = np.array([[self.x_coordinate + (self.difference * 0.5), self.y_coordinate],
                                                             [self.x_coordinate, self.y_coordinate - (0.5 * self.height)],
                                                             [self.second_x_coordinate, self.second_y_coordinate - (0.5 * self.second_height)],

@@ -11,6 +11,7 @@
         <backplane_response>0.025</backplane_response>
         <backplane_handler>0.025</backplane_handler>
         <nav_controller>0.025</nav_controller>
+        <neural_network>0.5</neural_network>
     </Timing>
     <Control>
         <max_thrust>60</max_thrust>
@@ -126,6 +127,9 @@
                  <center>0.0</center>
                  <mid>30.0</mid>
                  <quarter>15.0</quarter>
+                 <top_pixel_error>40.5</top_pixel_error>
+                 <arm_pixel_error>81.0</arm_pixel_error>
+                 <pixel_error>0.0</pixel_error>
             </gate>
             <buoy>
                 <topleft>-4.5</topleft>

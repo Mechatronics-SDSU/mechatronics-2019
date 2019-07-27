@@ -61,6 +61,7 @@ class Vision(node_base):
 
         self.neural_network_node = mechos.Node("NEURAL_NETWORK", configs["ip"])
         self.neural_net_publisher = self.neural_network_node.create_publisher("NN", configs["pub_port"])
+        self.neural_net_timer = float(self.param_serv.get_param("Timing/neural_network"))
 
         #--MESSAGING INFO--#
         self.MAX_UDP_PACKET_SIZE = 1500
@@ -144,7 +145,7 @@ class Vision(node_base):
                                                  translation[1],
                                                  translation[2])
 
-                    if ((time.time() - start_time) >= 0.5):
+                    if ((time.time() - start_time) >= self.neural_net_timer):
                         self.neural_net_publisher.publish(detection_data) #Send the detection data
                         start_time = time.time()
 
