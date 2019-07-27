@@ -44,8 +44,8 @@ class Navigation_GUI(QWidget):
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
         #MechOS node to receive data from the sub and display it
-        self.sensor_data_node = mechos.Node("SEN_DATA_WIDGET", configs["ip"])
-        self.nav_data_subscriber = self.sensor_data_node.create_subscriber("NAV", self._update_nav_data, configs["sub_port"])
+        self.sensor_data_node = mechos.Node("NAVIGATION_GUI", configs["ip"])
+        self.nav_data_subscriber = self.sensor_data_node.create_subscriber("NAV", self._update_nav_data, protocol="udp")
 
         #Initialize the nav data protobuf
         self.nav_data_proto = navigation_data_pb2.NAV_DATA()
