@@ -1,8 +1,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import sys
 import os
-from exVideoWidget import VideoWindow
-from webcam_thread import Webcam_Thread
 from PyQt5 import uic
 
 class MissionPlanner(QtWidgets.QWidget):
