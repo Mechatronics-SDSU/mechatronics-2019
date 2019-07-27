@@ -26,16 +26,15 @@ sys.path.append(PARAM_PATH)
 MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
 from mechos_network_configs import MechOS_Network_Configs
 
-PROTO_PATH = os.path.join("..", "..", "..", "Proto")
-sys.path.append(os.path.join(PROTO_PATH, "Src"))
-sys.path.append(PROTO_PATH)
-import desired_position_pb2
-import pid_errors_pb2
-import navigation_data_pb2
-import thrusters_pb2
+MESSAGE_TYPE_PATH = os.path.join("..", "..", "Message_Types")
+sys.path.append(MESSAGE_TYPE_PATH)
+from desired_poisition_message import Desired_Position_Message
+from thruster_message import Thruster_Message
 
 from movement_pid import Movement_PID
 from MechOS import mechos
+from MechOS.simple_messages.float_array import Float_Array
+from MechOS.simple_messages.bool import Bool
 import struct
 import threading
 
@@ -78,47 +77,32 @@ class Navigation_Controller(node_base):
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
         #MechOS node to connect movement controller to mechos network
-        self.navigation_controller_node = mechos.Node("MOV_CTRL", configs["ip"])
+        self.navigation_controller_node = mechos.Node("NAVIGATION_CONTROLLER", '192.168.1.14', '192.168.1.14')
 
         #Subscriber to change movement mode
-        self.movement_mode_subscriber = self.navigation_controller_node.create_subscriber("MM", self.__update_movement_mode_callback, configs["sub_port"])
+        self.movement_mode_subscriber = self.navigation_controller_node.create_subscriber("MM", Int(), self.__update_movement_mode_callback, protocol="tcp")
 
         #Update PID configurations button
-        self.pid_configs_subscriber = self.navigation_controller_node.create_subscriber("PID", self.__update_pid_configs_callback, configs["sub_port"])
+        self.pid_configs_subscriber = self.navigation_controller_node.create_subscriber("PID", Bool(), self.__update_pid_configs_callback, protocol="tcp")
 
         #Subscriber to get the desired position set by the user/mission controller.
-        self.desired_position_subscriber = self.navigation_controller_node.create_subscriber("DP", self.__unpack_desired_position_callback, configs["sub_port"])
+        self.desired_position_subscriber = self.navigation_controller_node.create_subscriber("DP", Desired_Position_Message(), self.__unpack_desired_position_callback, protocol="tcp")
 
         #Subscriber to see if waypoint recording is enabled
-        self.enable_waypoint_collection_subscriber = self.navigation_controller_node.create_subscriber("WYP", self.__update_enable_waypoint_collection, configs["sub_port"])
-
-        #TODO: Create a thread that publishes the errors
-        #Publisher that published the PID errors for each degree of freedom
-        self.pid_errors_proto = pid_errors_pb2.PID_ERRORS()
-        self.pid_errors_publisher = self.navigation_controller_node.create_publisher("PE", configs["pub_port"])
-        self.update_pid_errors = False
-        self.pid_values_update_freeze = True #Boolean to be used if the movement controller should check for updated PID values.
+        self.enable_waypoint_collection_subscriber = self.navigation_controller_node.create_subscriber("WYP", Bool(), self.__update_enable_waypoint_collection, protocol="tcp")
 
         #Subscriber to listen for thrust messages from the thruster test widget
-        self.thruster_test_subscriber = self.navigation_controller_node.create_subscriber("TT", self.__update_thruster_test_callback, configs["sub_port"])
-        self.thruster_test_proto = thrusters_pb2.Thrusters() #Thruster protobuf message
-
-        self._udp_received_message = None
+        self.thruster_test_subscriber = self.navigation_controller_node.create_subscriber("TT", Thruster_Message(), self.__update_thruster_test_callback, protocol="tcp")
 
         #Connect to parameters server
         self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
         self.param_serv.use_parameter_database(configs["param_server_path"])
 
-        #Initialize the sensor driver, which will run all the threads to recieve
-        #sensor data.
-        self.sensor_driver = sensor_driver
 
-        #Publisher to send the sensor data/current position/navigation data to the GUI and Mission Commander
-        self.nav_data_publisher = self.navigation_controller_node.create_publisher("NAV", configs["pub_port"])
-        self.nav_data_proto = navigation_data_pb2.NAV_DATA()
+        self.nav_data_subscriber = self.navigation_controler_node.create_subscriber("NAV", Float_Array(), self.__update_sensor_data, protocol="udp")
 
         #Subscriber to commands from the GUI and Mission commanderto listen if the sub is killed.
-        self.sub_killed_subscriber = self.navigation_controller_node.create_subscriber("KS", self._update_sub_killed_state, configs["sub_port"])
+        self.sub_killed_subscriber = self.navigation_controller_node.create_subscriber("KS", Bool(), self._update_sub_killed_state, protocol="tcp")
 
 
         #Get navigation controller timing
@@ -147,7 +131,6 @@ class Navigation_Controller(node_base):
 
         #Initialize desired position [roll, pitch, yaw, north_pos, east_pos, depth]
         self.desired_position = [0, 0, 0, 0, 0, 0]
-        self.desired_position_proto = desired_position_pb2.DESIRED_POS()
 
         #Set up a thread to listen to a requests from GUI/mission_commander.
         # This includes movement mode, desired_position, new PID values, and sub killed command.
@@ -186,7 +169,7 @@ class Navigation_Controller(node_base):
             N/A
         '''
 
-        self.sub_killed = struct.unpack('b', killed_state)[0]
+        self.sub_killed = killed_state
         print("[INFO]: Sub Killed:", bool(self.sub_killed))
 
     def __update_movement_mode_callback(self, movement_mode):
@@ -200,7 +183,7 @@ class Navigation_Controller(node_base):
             N/A
         '''
 
-        self.movement_mode = struct.unpack('b', movement_mode)[0]
+        self.movement_mode = movement_mode
         if(self.movement_mode == 0):
             print("[INFO]: Movement mode selected: PID Tuner Mode.")
             self.pid_values_update_freeze = False
@@ -278,7 +261,8 @@ class Navigation_Controller(node_base):
         Returns:
             N/A
         '''
-        self.enable_waypoint_collection = struct.unpack('b', enable_waypoint_collection)[0]
+        #self.enable_waypoint_collection = struct.unpack('b', enable_waypoint_collection)[0]
+        self.enable_waypoint_collection = enable_waypoint_collection
         waypoint_file = self.param_serv.get_param("Missions/waypoint_collect_file") #Get the waypoint save file
 
         if(self.enable_waypoint_collection):
@@ -308,17 +292,12 @@ class Navigation_Controller(node_base):
         while self.command_listener_thread_run:
             try:
                 #Recieve commands from the the GUI and/or Mission Commander
-                self.navigation_controller_node.spinOnce(self.movement_mode_subscriber)
-                self.navigation_controller_node.spinOnce(self.sub_killed_subscriber)
-                self.navigation_controller_node.spinOnce(self.desired_position_subscriber)
+                self.navigation_controller_node.spin_once()
 
-                self.navigation_controller_node.spinOnce(self.enable_waypoint_collection_subscriber)
-                #If pid values update is not frozen, then update the pid values from the parameter server.
-                if(self.pid_values_update_freeze == False):
-                    self.navigation_controller_node.spinOnce(self.pid_configs_subscriber)
             except Exception as e:
                 print("[ERROR]: Could not properly recieved messages in command listener. Error:", e)
-            time.sleep(0.2)
+
+            time.sleep(0.001)
 
     def _update_command(self):
         '''
@@ -331,35 +310,12 @@ class Navigation_Controller(node_base):
         '''
         while(self.update_command_thread_run):
             try:
-                #Package up the sensor data in protobuf to be published
-                self.nav_data_proto.roll = self.current_position[0]
-                self.nav_data_proto.pitch = self.current_position[1]
-                self.nav_data_proto.yaw = self.current_position[2]
-                #TODO:Uncomment to get x and y positions.
-                self.nav_data_proto.north_pos = self.current_position[3]
-                self.nav_data_proto.east_pos = self.current_position[4]
-                self.nav_data_proto.depth = self.current_position[5]
-
-                serialized_nav_data = self.nav_data_proto.SerializeToString()
-                self.nav_data_publisher.publish(serialized_nav_data) #Send the current position
-
-                #TODO: Uncomment if you would like to recieve the position errors.
-                if(self.update_pid_errors):
-                    #Package PID error protos
-                    #self.pid_errors_proto.roll_error = self.pos_error[0]
-                    #self.pid_errors_proto.pitch_error = self.pos_error[1]
-                    #self.pid_errors_proto.yaw_error = self.pos_error[2]
-                    #self.pid_errors_proto.north_pos_error = self.pos_error[3]
-                    #self.pid_errors_proto.east_pos_error = self.pos_error[4]
-                    #self.pid_errors_proto.z_pos_error = self.pos_error[5] #depth error
-
-                    serialzed_pid_errors_proto = self.pid_errors_proto.SerializeToString()
-                    self.pid_errors_publisher.publish(serialzed_pid_errors_proto)
+                pass
             except Exception as e:
                 print("[ERROR]: Could not correctly send data from navigation controller. Error:", e)
             time.sleep(0.1)
 
-    def __unpack_desired_position_callback(self, desired_position_proto):
+    def __unpack_desired_position_callback(self, desired_position):
         '''
         The callback function to unpack the desired position proto message received
         through MechOS.
@@ -368,16 +324,10 @@ class Navigation_Controller(node_base):
         Returns:
             N/A
         '''
-        self.desired_position_proto.ParseFromString(desired_position_proto)
-        self.desired_position[0] = self.desired_position_proto.roll
-        self.desired_position[1] = self.desired_position_proto.pitch
-        self.desired_position[2] = self.desired_position_proto.yaw
-        self.desired_position[3] = self.desired_position_proto.north_pos
-        self.desired_position[4] = self.desired_position_proto.east_pos
-        self.desired_position[5] = self.desired_position_proto.depth
+        self.desired_position = desired_position
 
-        if(self.desired_position_proto.zero_pos):
-            self.sensor_driver.zero_pos()
+        #if(self.desired_position_proto.zero_pos):
+        #    self.sensor_driver.zero_pos()
 
         print("\n\nNew Desire Position Recieved:")
         for index, dp in enumerate(self.desired_position):
@@ -385,7 +335,7 @@ class Navigation_Controller(node_base):
         print("")
 
 
-    def __update_thruster_test_callback(self, thruster_proto):
+    def __update_thruster_test_callback(self, thrusts):
         '''
         The callback function to unpack and write thrusts to each thruster for
         thruster test.
@@ -394,17 +344,6 @@ class Navigation_Controller(node_base):
         Returns:
             N/A
         '''
-        self.thruster_test_proto.ParseFromString(thruster_proto)
-
-        thrusts = [0, 0, 0, 0, 0, 0, 0, 0]
-        thrusts[0] = self.thruster_test_proto.thruster_1
-        thrusts[1] = self.thruster_test_proto.thruster_2
-        thrusts[2] = self.thruster_test_proto.thruster_3
-        thrusts[3] = self.thruster_test_proto.thruster_4
-        thrusts[4] = self.thruster_test_proto.thruster_5
-        thrusts[5] = self.thruster_test_proto.thruster_6
-        thrusts[6] = self.thruster_test_proto.thruster_7
-        thrusts[7] = self.thruster_test_proto.thruster_8
 
         print("\nTesting Thrusters")
         for index, value in enumerate(thrusts):
@@ -436,16 +375,12 @@ class Navigation_Controller(node_base):
                 self.nav_timer.restart_timer()
             else:
                 self.nav_timer.restart_timer()
-            #Get the current position form sensor driver
-            current_position = self.sensor_driver._get_sensor_data()
-            if(current_position != None):
-                self.current_position = current_position
 
             if(self.sub_killed == 1):
                 #Turn off all thrusters
                 self.pid_controller.simple_thrust([0, 0, 0, 0, 0, 0, 0, 0])
 
-
+            print(self.current_position)
             #PID Depth, pitch, roll Tunning Mode
             #In PID depth, pitch, roll tunning mode, only roll pitch and depth are used in
             #the control loop perfrom a simpe Depth PID move. north_pos, east_pos, and
