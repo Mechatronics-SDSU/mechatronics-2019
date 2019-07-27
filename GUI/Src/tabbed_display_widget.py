@@ -9,6 +9,8 @@ sys.path.append(PARAM_PATH)
 MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
 from mechos_network_configs import MechOS_Network_Configs
 from MechOS import mechos
+from MechOS.simple_messages.int import Int
+from MechOS.simple_messages.bool import Bool
 import struct
 
 
@@ -47,11 +49,11 @@ class Tabbed_Display(QWidget):
 
         # Create MechOS node
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
-        self.tab_display_node = mechos.Node("GUI_TABS", configs["ip"])
-        self.movement_mode_publisher = self.tab_display_node.create_publisher("MM", configs["pub_port"])
+        self.tab_display_node = mechos.Node("GUI_TABS", '192.168.1.2', '192.168.1.14')
+        self.movement_mode_publisher = self.tab_display_node.create_publisher("MM", Int(), protocol="tcp")
 
         #Publisher to kill the sub when tabs are switched.
-        self.sub_killed_publisher = self.tab_display_node.create_publisher("KS", configs["pub_port"])
+        self.sub_killed_publisher = self.tab_display_node.create_publisher("KS", Bool(), protocol="tcp")
 
 
     def add_tab(self, widget, title):
@@ -98,12 +100,11 @@ class Tabbed_Display(QWidget):
         # Get current index
         mode = self.tabs.currentIndex()
 
-        mode_serialized = struct.pack('b', mode)
         # Publish current index
-        self.movement_mode_publisher.publish(mode_serialized)
+        self.movement_mode_publisher.publish(mode)
 
         #Kill the sub when a tab changes
-        self.sub_killed_publisher.publish(struct.pack('b', 1))
+        self.sub_killed_publisher.publish(1)
 
 
 if __name__ == "__main__":

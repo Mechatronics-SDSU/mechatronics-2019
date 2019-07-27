@@ -18,12 +18,7 @@ from PyQt5 import uic
 from PyQt5.QtGui import QColor
 from PyQt5.QtCore import Qt, QTimer
 from MechOS import mechos
-
-PROTO_PATH = os.path.join("..", "..", "Proto")
-sys.path.append(os.path.join(PROTO_PATH, "Src"))
-sys.path.append(PROTO_PATH)
-import navigation_data_pb2
-
+from MechOS.simple_messages.bool import Bool
 import struct
 
 class Mission_Planner_Widget(QWidget):
@@ -51,8 +46,8 @@ class Mission_Planner_Widget(QWidget):
         #Call in the ui for mission select
         self.mission_select_widget = uic.loadUi("mission_select.ui", self)
 
-        self.mission_select_node = mechos.Node("Mission Select", configs["ip"])
-        self.update_mission_info_publisher = self.mission_select_node.create_publisher("MS", configs["pub_port"])
+        self.mission_select_node = mechos.Node("Mission Select", '192.168.1.2', '192.168.1.14')
+        self.update_mission_info_publisher = self.mission_select_node.create_publisher("MS", Bool(), protocol="tcp")
 
         #Connect the mission select button to update the mission in the parameter
         #server and tell the mission commander that the mission file has changed.
@@ -86,7 +81,7 @@ class Mission_Planner_Widget(QWidget):
         self.param_serv.set_param("Missions/mission_file", mission_file)
 
         #Tell the sub to update it's mission information
-        self.update_mission_info_publisher.publish(struct.pack('b', 1))
+        self.update_mission_info_publisher.publish(True)
 
 if __name__ == "__main__":
     main_app = QApplication([])
