@@ -183,41 +183,6 @@ class Main_GUI(QWidget):
             killed_state = struct.pack('b', 0)
             self.sub_killed_publisher.publish(killed_state)
 
-    def _change_movement_mode(self):
-        '''
-        Changes the movement (thrust) control mode of the sub.
-
-        Parameters:
-            N/A
-        '''
-        mode = self.mode_selection.currentIndex()
-
-        if mode == 0:
-            self.thruster_test.setEnabled(True)
-            self.pid_tuner.setEnabled(False)
-            self.waypoint_widget.setEnabled(False)
-            self.pid_tuner.pid_error_update_timer.stop()
-            self.waypoint_widget.waypoint_widget.waypoint_collection_checkbox.setChecked(False)
-        elif mode == 1:
-            self.thruster_test.setEnabled(False)
-            self.pid_tuner.setEnabled(True)
-            self.waypoint_widget.setEnabled(False)
-            self.pid_tuner.pid_error_update_timer.start()
-            self.waypoint_widget.waypoint_widget.waypoint_collection_checkbox.setChecked(False)
-
-        elif mode == 2:
-            self.thruster_test.setEnabled(False)
-            self.pid_tuner.setEnabled(False)
-            self.waypoint_widget.setEnabled(True)
-            self.pid_tuner.pid_error_update_timer.stop()
-            self.waypoint_widget.waypoint_widget.waypoint_collection_checkbox.setChecked(True)
-
-            #TODO: Location to start up thread to read controller inputs.
-
-
-        mode_serialized = struct.pack('b', mode)
-        self.movement_mode_publisher.publish(mode_serialized)
-
 
 
 if __name__ == "__main__":

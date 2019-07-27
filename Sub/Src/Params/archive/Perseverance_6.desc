@@ -1,0 +1,13 @@
+File Referencing in Archive: Perseverance_6.xml
+Save Date: 07/21/2019
+Description of Referenced File:
+    This file contains the best by yet PID values. The sub can reliably
+    move between positions and hold it's position given enough time to
+    settle. In this iteration, the thruster strengths were removed since
+    they seemed to be severly effecting the subs performance when doing movements
+    between positions.
+
+    We also found that it is important to set error maxs and mins for each axis
+    to ensure that the thruster don't max out from one of the DOF's being far
+    from the set point. If one DOF error (ex Y strafe) get's too high, then the
+    yaw cannot correct because the thrusters are fully maxed out.

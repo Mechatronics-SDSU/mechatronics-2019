@@ -123,7 +123,6 @@ class Vision(node_base):
                     #Perform solve pnp calculations
                     self.distance_calculator.set_coordinates(r, i, x, y, w, h)
                     rotation, translation, distance = self.distance_calculator.calculate_distance()
-                    #print(distance)
                     xmin, ymin, xmax, ymax = convertBack(float(x), float(y), float(w), float(h))
                     pt1 = (xmin, ymin)
                     pt2 = (xmax, ymax)
@@ -192,11 +191,14 @@ class Vision(node_base):
                 time.sleep(0)
 if __name__=='__main__':
 
+    # Get network configurations for MechOS.
+    configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
+
     CAMERA_SOCK = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     RECV_SOCK   = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     # IP initialization
-    CAM_IP_ADDRESS  = ('192.168.1.2', 6969)
+    IP_ADDRESS  = (configs["video_ip"], int(configs["video_port"]))
 
     IP ={'CAMERA':
             {

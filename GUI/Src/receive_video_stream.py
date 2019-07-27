@@ -13,9 +13,16 @@ import numpy as np
 import cv2
 import socket
 import sys
+import os
 import io
 import csv
 import time
+
+
+PARAM_PATH = os.path.join("..", "..", "Sub", "Src", "Params")
+sys.path.append(PARAM_PATH)
+MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
+from mechos_network_configs import MechOS_Network_Configs
 
 from MechOS.message_passing.Nodes.node_base import node_base
 from datetime import datetime
@@ -46,7 +53,7 @@ class Receive_Video_Stream(node_base):
         self.scale_percent = 250
 
         # Collect Images (Switch to False for speed)
-        self.save_image = True
+        self.save_image = False
 
         self.ramBuffer = b''
 
@@ -84,7 +91,7 @@ class Receive_Video_Stream(node_base):
 
                         if self.save_image:
                             TimeStamp = str(datetime.now()).replace(' ', '_').replace(':','#')[:-7]
-                            cv2.imwrite("/home/piercedhowell/imgs_07_18_19_frame{}.jpg".format(TimeStamp), img_frame)
+                            cv2.imwrite("/home/piercedhowell/imgs_07_23_19/frame{}.jpg".format(TimeStamp), img_frame)
 
                         if self.resize_image:
                             # Frame Size (reversed in np.shape)
@@ -114,15 +121,15 @@ class Receive_Video_Stream(node_base):
                 time.sleep(0)
 
 if __name__=='__main__':
-    # Port Information
-    HOST    = '192.168.1.2'
-    PORT    = 6969
+
+    # Get network configurations for MechOS.
+    configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
     CAMERA_SOCK = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     RECV_SOCK   = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     # IP initialization
-    IP_ADDRESS = (HOST, PORT)
+    IP_ADDRESS = (configs["video_ip"], int(configs["video_port"]))
     RECV_SOCK.bind((IP_ADDRESS))
 
     IP ={'CAMERA':

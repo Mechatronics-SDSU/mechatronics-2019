@@ -1,0 +1,26 @@
+{
+    "Task_1":{ //Waypoint task example
+        "type": "Waypoint",
+        "name": "<give task a name>",
+        "timeout":5,
+        "position_buffer_zone":2.0,
+        "depth_buffer_zone":0.1,
+        "yaw_buffer_zone":11,
+        "waypoint_file": "<full file path the waypoint csv file."
+    },
+
+    "Task_2":{
+      "type": "Gate_No_Vision",
+      "name": "<give task a name>",
+      "timeout":3, //minutes
+      "line_up_position":[180.4, 30.1, 5.3, 6.0], //yaw, north, east,depth
+      "position_buffer_zone":2.0,
+      "depth_buffer_zone":0.1,
+      "yaw_buffer_zone":5,
+      "stabilization_time": 10.5, //seconds
+      "move_forward_dist": 10,
+       "go_through_gate_backwards": false
+    }
+
+
+}
