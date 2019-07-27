@@ -174,7 +174,7 @@ class Mission_Commander(threading.Thread):
                         print("[INFO]: Mission Now Live")
                         self.mission_live = True
                         self.drive_functions.drive_functions_enabled = True
-                        
+
                     elif(auto_pressed == "Auto Status:0" and self.mission_mode):
                         print("[INFO]: Mission is no longer Live.")
                         self.mission_live = False
@@ -190,7 +190,7 @@ class Mission_Commander(threading.Thread):
                 self.mission_commander_node.spinOnce(self.neural_net_subscriber)
             except Exception as e:
                 print("[ERROR]: Neural net data not available. Error:", e)
-            #time.sleep(0.2)
+            time.sleep(0.000001)
 
 
     def parse_mission(self):
