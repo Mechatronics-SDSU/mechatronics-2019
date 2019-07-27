@@ -26,15 +26,16 @@ sys.path.append(PARAM_PATH)
 MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
 from mechos_network_configs import MechOS_Network_Configs
 
-MESSAGE_TYPE_PATH = os.path.join("..", "..", "Message_Types")
+MESSAGE_TYPE_PATH = os.path.join("..","..", "..", "Message_Types")
 sys.path.append(MESSAGE_TYPE_PATH)
-from desired_poisition_message import Desired_Position_Message
+from desired_position_message import Desired_Position_Message
 from thruster_message import Thruster_Message
 
 from movement_pid import Movement_PID
 from MechOS import mechos
 from MechOS.simple_messages.float_array import Float_Array
 from MechOS.simple_messages.bool import Bool
+from MechOS.simple_messages.int import Int
 import struct
 import threading
 
@@ -50,7 +51,7 @@ class Navigation_Controller(node_base):
     The second component is the movement controller components, which controls the movement
     pid control system. There is also a command_listener that listens for requests from the gui/mission commander.
     '''
-    def __init__(self, MEM, IP, sensor_driver):
+    def __init__(self, MEM, IP):
         '''
         Initialize the navigation controller. This includes getting parameters from the
         parameter server, initializing subscribers to listen for command messages, and
@@ -99,7 +100,7 @@ class Navigation_Controller(node_base):
         self.param_serv.use_parameter_database(configs["param_server_path"])
 
 
-        self.nav_data_subscriber = self.navigation_controler_node.create_subscriber("NAV", Float_Array(), self.__update_sensor_data, protocol="udp")
+        self.nav_data_subscriber = self.navigation_controller_node.create_subscriber("NAV", Float_Array(6), self.__update_sensor_data, protocol="udp")
 
         #Subscriber to commands from the GUI and Mission commanderto listen if the sub is killed.
         self.sub_killed_subscriber = self.navigation_controller_node.create_subscriber("KS", Bool(), self._update_sub_killed_state, protocol="tcp")
@@ -171,6 +172,11 @@ class Navigation_Controller(node_base):
 
         self.sub_killed = killed_state
         print("[INFO]: Sub Killed:", bool(self.sub_killed))
+
+    def __update_sensor_data(self, sensor_data):
+        '''
+        '''
+        self.current_position = sensor_data
 
     def __update_movement_mode_callback(self, movement_mode):
         '''
@@ -245,8 +251,8 @@ class Navigation_Controller(node_base):
                     self.current_waypoint_number += 1
 
                 #Zero position if the X button is pressed.
-                if(self.remote_commands[6]):
-                    self.sensor_driver.zero_pos()
+                #if(self.remote_commands[6]):
+                #    self.sensor_driver.zero_pos()
 
 
             else:
@@ -297,7 +303,7 @@ class Navigation_Controller(node_base):
             except Exception as e:
                 print("[ERROR]: Could not properly recieved messages in command listener. Error:", e)
 
-            time.sleep(0.001)
+            time.sleep(0.01)
 
     def _update_command(self):
         '''
@@ -310,7 +316,7 @@ class Navigation_Controller(node_base):
         '''
         while(self.update_command_thread_run):
             try:
-                pass
+                x = 1
             except Exception as e:
                 print("[ERROR]: Could not correctly send data from navigation controller. Error:", e)
             time.sleep(0.1)
@@ -366,8 +372,7 @@ class Navigation_Controller(node_base):
         current_position = [0, 0, 0, 0, 0, 0]
         self.nav_timer.restart_timer()
 
-        while(self.run_thread):
-
+        while(1):
             nav_time = self.nav_timer.net_timer()
 
             if(nav_time < self.nav_time_interval):
@@ -380,7 +385,6 @@ class Navigation_Controller(node_base):
                 #Turn off all thrusters
                 self.pid_controller.simple_thrust([0, 0, 0, 0, 0, 0, 0, 0])
 
-            print(self.current_position)
             #PID Depth, pitch, roll Tunning Mode
             #In PID depth, pitch, roll tunning mode, only roll pitch and depth are used in
             #the control loop perfrom a simpe Depth PID move. north_pos, east_pos, and
@@ -393,8 +397,7 @@ class Navigation_Controller(node_base):
             #THRUSTER test mode.
             elif self.movement_mode == 1:
 
-                self.navigation_controller_node.spinOnce(self.thruster_test_subscriber)
-
+                continue
             #Remote navigation (using PID controllers)
             elif self.movement_mode == 2: #SWITCHED MOVMENT MODES FOR TESTING CONTROLLER, REVERT BACK
 
@@ -421,7 +424,7 @@ if __name__ == "__main__":
         }
     MEM={'RC':b'irrelevant'}
 
-    sensor_driver = Sensor_Driver()
-    navigation_controller = Navigation_Controller(MEM, IP, sensor_driver)
-    sensor_driver.start()
-    navigation_controller.start()
+    #sensor_driver = Sensor_Driver()
+    navigation_controller = Navigation_Controller(MEM, IP)
+    #sensor_driver.start()
+    navigation_controller.run()
