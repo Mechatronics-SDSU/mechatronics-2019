@@ -18,6 +18,7 @@ from PyQt5.QtWidgets import QWidget, QApplication, QGridLayout, QLineEdit, QLabe
 from PyQt5.QtGui import QColor
 from PyQt5.QtCore import Qt, QTimer
 from MechOS import mechos
+from MechOS.simple_messages.float_array import Float_Array
 
 PROTO_PATH = os.path.join("..", "..", "Proto")
 sys.path.append(os.path.join(PROTO_PATH, "Src"))
@@ -44,8 +45,8 @@ class Navigation_GUI(QWidget):
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
         #MechOS node to receive data from the sub and display it
-        self.sensor_data_node = mechos.Node("NAVIGATION_GUI", configs["ip"])
-        self.nav_data_subscriber = self.sensor_data_node.create_subscriber("NAV", self._update_nav_data, protocol="udp")
+        self.sensor_data_node = mechos.Node("NAVIGATION_GUI", '192.168.1.2', '192.168.1.14')
+        self.nav_data_subscriber = self.sensor_data_node.create_subscriber("NAV", Float_Array(6), self._update_nav_data, protocol="udp")
 
         #Initialize the nav data protobuf
         self.nav_data_proto = navigation_data_pb2.NAV_DATA()
@@ -58,8 +59,8 @@ class Navigation_GUI(QWidget):
 
         #Create a timer to update the data
         self.update_nav_data_timer = QTimer()
-        self.update_nav_data_timer.timeout.connect(lambda: self.sensor_data_node.spinOnce(self.nav_data_subscriber))
-        self.update_nav_data_timer.start(75)
+        self.update_nav_data_timer.timeout.connect(lambda: self.sensor_data_node.spin_once())
+        self.update_nav_data_timer.start(1)
 
     def _orientation_layout_grid(self):
         '''
@@ -196,15 +197,15 @@ class Navigation_GUI(QWidget):
         Returns:
             N/A
         '''
-
-        self.nav_data_proto.ParseFromString(nav_data_proto)
-        roll = self.nav_data_proto.roll
-        pitch = self.nav_data_proto.pitch
-        yaw = self.nav_data_proto.yaw
-        depth = self.nav_data_proto.depth
-        x_pos = self.nav_data_proto.north_pos
-        y_pos = self.nav_data_proto.east_pos
-
+        #print(nav_data_proto, "\n\n")
+        #self.nav_data_proto.ParseFromString(nav_data_proto)
+        #roll = self.nav_data_proto.roll
+        #pitch = self.nav_data_proto.pitch
+        #yaw = self.nav_data_proto.yaw
+        #depth = self.nav_data_proto.depth
+        #x_pos = self.nav_data_proto.north_pos
+        #y_pos = self.nav_data_proto.east_pos
+        roll, pitch, yaw, depth, x_pos, y_pos = nav_data_proto
         degree_sym = u"\u00b0"
         self.yaw_box.setText('{:6.2f}{}'.format(yaw, degree_sym))
         self.pitch_box.setText('{:6.2f}{}'.format(pitch, degree_sym))
