@@ -1,7 +1,10 @@
 '''
 Copyright 2019, Mohammad Shafi, All rights reserved
-
 Author: Mohammad Shafi <ma.shafi99@gmail.com>
+Last Modified: July 25th, 2019
+Description: This script calculates poses of our detected objects we get from
+the neural network using OpenCV's solvePnP function. It gives us translation and
+rotation of these objects with respect to the camera
 '''
 import os
 import sys
@@ -67,11 +70,20 @@ class Distance_Calculator():
 
     def set_coordinates(self, detect_list, detection, x, y, w, h):
         '''
-        This function sets our three dimensional and two dimensional points depending on the detection
+        This function sets our three dimensional and two dimensional points depending on the detection.
+        The three dimensional points are set using the acutal dimensions of the object. For example, the gate is 10
+        feet wide, so the right side is set to (5,0) in real world space. Everything is calculated in terms of inches,
+        then converted to feet. The two dimensional coordinates are set using Yolo's bounding boxes. Corners of objects
+        in the real world are mapped to their respective corners when Yolo generates its bounding box for one of the objects
         Params:
-            N/A
-            N/A
+            detect_list: List of all detections currently available
+            detection: The detection in question that we are trying to solve for
+            x: The center of the bounding box drawn by Yolo. Horizontal pixel coordinate
+            y: THe center of the bounding box drawn by Yolo. Vertical pixel coordinate
+            w: The width of the bounding box. In pixels
+            h: The height of the bounding box. In pixels
         Returns:
+            N/A
         '''
         #print(self.distortion_matrix)
         self.detection = detection
@@ -162,7 +174,7 @@ class Distance_Calculator():
                                                     [self.x_coordinate, self.y_coordinate + (0.5) * self.height]])
 
                 if(second_det[0] == b'Gate Arm'):
-                    if(abs(self.difference) < self.arm_pixel_error): #if distance between the arms is less than 81 pixels, a fifth of the image, data is bullshit
+                    if(abs(self.difference) < self.arm_pixel_error): #if distance between the arms is less than a fifth of the image, data is bullshit
                         self.temp_three_dim_points = np.concatenate(self.gate_shared_points, self.gate_left_points)
                         self.three_dim_points = np.concatenate(self.temp_three_dim_points, self.gate_right_points)
 
@@ -200,7 +212,10 @@ class Distance_Calculator():
     def calculate_distance(self):
         '''
         This function takes the matrices set earlier, and then performs the necessary operations
-        to successfully judge the pose of the object from the camera
+        to successfully judge the pose of the object from the camera. The equation is as follows:
+        image points = (Cammatrix dot(rt matrix))dot world points. The rt matrix is a 3 by 4 rt transform
+        matrix that has a rotation component and a translation component. SolvePnP gives us these matrices
+        as individual rotation and translation vectors
         Params:
             N/A
         Returns:
