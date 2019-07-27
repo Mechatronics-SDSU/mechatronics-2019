@@ -26,6 +26,7 @@ from AHRS import AHRS
 from Backplane_Sensor_Data import Backplane_Handler
 from DVL import DVL_THREAD
 from MechOS import mechos
+from MechOS.simple_messages.float_array import Float_Array
 import serial
 import threading
 import time
@@ -56,8 +57,8 @@ class Sensor_Driver(threading.Thread):
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
         #Mechos nodes to send Sensor Data
-        self.sensor_driver_node = mechos.Node("SENSOR_DRIVER", ip=configs["ip"])
-        self.nav_data_publisher = self.sensor_driver_node.create_publisher("NAV", protocol="udp")
+        self.sensor_driver_node = mechos.Node("SENSOR_DRIVER", '192.168.1.14', '192.168.1.14')
+        self.nav_data_publisher = self.sensor_driver_node.create_publisher("NAV",Float_Array(6), protocol="udp")
 
         #MechOS node to receive zero position message (zero position message is sent in the DP topic)
         #self.zero_pos_sub = self.sensor_driver_node.create_subscriber("DP", self._zero_pos_callback, configs["sub_port"])
@@ -192,23 +193,24 @@ class Sensor_Driver(threading.Thread):
         while(self.run_thread):
             try:
                 self.sensor_data = self._get_sensor_data()
+                self.nav_data_publisher.publish(self.sensor_data)
 
                 #Package up the sensor data in protobuf to be published
-                self.nav_data_proto.roll = self.sensor_data[0]
-                self.nav_data_proto.pitch = self.sensor_data[1]
-                self.nav_data_proto.yaw = self.sensor_data[2]
+                #self.nav_data_proto.roll = self.sensor_data[0]
+                #self.nav_data_proto.pitch = self.sensor_data[1]
+                #self.nav_data_proto.yaw = self.sensor_data[2]
                 #TODO:Uncomment to get x and y positions.
-                self.nav_data_proto.north_pos = self.sensor_data[3]
-                self.nav_data_proto.east_pos = self.sensor_data[4]
-                self.nav_data_proto.depth = self.sensor_data[5]
+                #self.nav_data_proto.north_pos = self.sensor_data[3]
+                #self.nav_data_proto.east_pos = self.sensor_data[4]
+                #self.nav_data_proto.depth = self.sensor_data[5]
 
-                serialized_nav_data = self.nav_data_proto.SerializeToString()
-                self.nav_data_publisher.publish(serialized_nav_data) #Send the current position
+                #serialized_nav_data = self.nav_data_proto.SerializeToString()
+                #self.nav_data_publisher.publish(serialized_nav_data) #Send the current position
 
             except Exception as e:
                 print("[ERROR]: Sensor Driver could not correctly collect sensor data. Error:", e)
 
-            time.sleep(0.001)
+            time.sleep(0.01)
 
 
 
