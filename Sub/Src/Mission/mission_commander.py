@@ -40,10 +40,9 @@ class Mission_Commander(threading.Thread):
         threading.Thread.__init__(self)
 
         self.mission_file = None
-        self.sensor_driver = sensor_driver
 
         #Initialize the drive functions
-        self.drive_functions = Drive_Functions(self.sensor_driver)
+        self.drive_functions = Drive_Functions()
 
         #Get the mechos network parameters
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
@@ -53,10 +52,10 @@ class Mission_Commander(threading.Thread):
         self.param_serv.use_parameter_database(configs["param_server_path"])
 
         #MechOS node to connect the mission commander to the mechos network
-        self.mission_commander_node = mechos.Node("MISSION_COMMANDER", configs["ip"])
+        self.mission_commander_node = mechos.Node("MISSION_COMMANDER", '192.168.1.14', '192.168.1.14')
 
         #subscriber to listen if the movement mode is set to be autonomous mission mode
-        self.movement_mode_subscriber = self.mission_commander_node.create_subscriber("MM", self._update_movement_mode_callback, configs["sub_port"])
+        self.movement_mode_subscriber = self.mission_commander_node.create_subscriber("MM", Int(), self._update_movement_mode_callback, )
         #subscriber to listen if the mission informatin has changed.
         self.update_mission_info_subscriber = self.mission_commander_node.create_subscriber("MS", self._update_mission_info_callback, configs["sub_port"])
 
@@ -227,7 +226,7 @@ class Mission_Commander(threading.Thread):
                         print("[INFO]: Mission Now Live")
                         self.mission_live = True
                         self.drive_functions.drive_functions_enabled = True
-                        
+
                     elif(auto_pressed == "Auto Status:0" and self.mission_mode):
                         print("[INFO]: Mission is no longer Live.")
                         self.mission_live = False

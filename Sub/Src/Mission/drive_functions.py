@@ -23,15 +23,19 @@ sys.path.append(PARAM_PATH)
 MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
 from mechos_network_configs import MechOS_Network_Configs
 
+MESSAGE_TYPE_PATH = os.path.join("..", "..", "Message_Types")
+sys.path.append(MESSAGE_TYPE_PATH)
+from desired_poisition_message import Desired_Position_Message
 
 from MechOS import mechos
+
 
 class Drive_Functions:
     '''
     A class containing basic functions for movements of the sub.
     Helpful for constructing missions.
     '''
-    def __init__(self, sensor_driver):
+    def __init__(self):
         '''
         Parameters:
             sensor_driver: The sensor driver thread object so
@@ -39,22 +43,40 @@ class Drive_Functions:
         Returns:
             N/A
         '''
-        self.sensor_driver = sensor_driver
+
         self.timeout_timer = util_timer.Timer()
 
         #Get the mechos network parameters
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
         #Create mechos node
-        self.drive_functions_node = mechos.Node("DRIVE", configs["ip"])
-        self.desired_position_publisher = self.drive_functions_node.create_publisher("DP", configs["pub_port"])
-        #Initialize the desired position proto
-        self.desired_position_proto = desired_position_pb2.DESIRED_POS()
+        self.drive_functions_node = mechos.Node("DRIVE_FUNCTIONS", '192.168.1.14', '192.168.1.14')
+        self.desired_position_publisher = self.drive_functions_node.create_publisher("DP", Desired_Position_Message(), protocol="tcp")
+        self.nav_data_subscriber = self.driver_functions_node.create_subscriber("NAV", Float_Array(6), self.__update_sensor_data, protocol="udp")
+
+        self.sensor_data_thread = threading.Thread(target=self._update_sensor_data_thread, daemon=True)
+        self.sensor_data_thread.start()
 
         #A boolean to specifiy if the drive functions are availible to run
         #This is used in case missions are canceled and does not want these functions to be able to use.
         self.drive_functions_enabled = True
 
+    def _update_sensor_data_thread(self):
+        '''
+        '''
+        while(1):
+            self.drive_functions_node.spin_once()
+            time.sleep(0.001)
+    def __update_sensor_data(self,sensor_data):
+        '''
+        Update the sensor data
+
+        Parameters:
+            sensor_data: The sensor data from sensor_driver.
+        Returns:
+            n/a
+        '''
+        self.sensor_data = sensor_data
 
     def send_desired_position(self, desired_position, zero_pos=False):
         '''
@@ -66,17 +88,8 @@ class Drive_Functions:
         Returns:
             N/A
         '''
-        self.desired_position_proto.roll = desired_position[0]
-        self.desired_position_proto.pitch = desired_position[1]
-        self.desired_position_proto.yaw = desired_position[2]
-        self.desired_position_proto.depth = desired_position[5]
-        self.desired_position_proto.north_pos = desired_position[3]
-        self.desired_position_proto.east_pos = desired_position[4]
-        self.desired_position_proto.zero_pos = zero_pos
-
-        serialized_pos_proto = self.desired_position_proto.SerializeToString()
         print("[INFO]: Sending Position\n", self.desired_position_proto)
-        self.desired_position_publisher.publish(serialized_pos_proto)
+        self.desired_position_publisher.publish((desired_position + zero_pos))
 
     def get_yaw_error(self,current_yaw, desired_yaw):
         '''
@@ -139,7 +152,7 @@ class Drive_Functions:
                                 {"yaw":<val>, "north_pos":<val>, "east_pos":<val>}
         '''
 
-        current_position = self.sensor_driver.sensor_data
+        current_position = self.sensor_data
 
         desired_position = [0.0, 0.0] + current_position[2:5] + [desired_depth]
 
@@ -164,10 +177,10 @@ class Drive_Functions:
             if(timeout != None):
                 if(self.timeout_timer.net_timer() > timeout):
                     print("[WARNING]: Move to depth timed out. Depth error", current_position[5] - desired_depth)
-                    current_position = self.sensor_driver.sensor_data
+                    current_position = self.sensor_data
                     return False, desired_depth
 
-            current_position = self.sensor_driver.sensor_data
+            current_position = self.sensor_data
 
         print("[INFO]: Move to depth succeeded to getting to depth:", desired_depth)
         return True, desired_depth
@@ -192,7 +205,7 @@ class Drive_Functions:
                                 will orienting to face position.
         '''
 
-        current_position = self.sensor_driver.sensor_data
+        current_position = self.sensor_data
         desired_position = [0.0, 0.0, 0.0] + current_position[3:]
 
         #If any of these keys are in desired_orientation, then hold that position while yawing
@@ -227,10 +240,10 @@ class Drive_Functions:
             if(timeout != None):
                 if(self.timeout_timer.net_timer() > timeout):
                     print("[WARNING]: Move to face position timed out. Yaw Error:", yaw_error)
-                    current_position = self.sensor_driver.sensor_data
+                    current_position = self.sensor_data
                     return False, desired_yaw
 
-            current_position = self.sensor_driver.sensor_data
+            current_position = self.sensor_data
             yaw_error = self.get_yaw_error(current_position[2], desired_yaw)
 
         print("[INFO]: Move to face position succeeded. Facing coordinate: (%0.2fft, %0.2fft)" % (north_position, east_position))
@@ -251,7 +264,7 @@ class Drive_Functions:
                                 will orienting to face position.
         '''
 
-        current_position = self.sensor_driver.sensor_data
+        current_position = self.sensor_data
         desired_position = [0.0, 0.0, desired_yaw] + current_position[3:]
 
         #If any of these keys are in desired_orientation, then hold that position while yawing
@@ -277,10 +290,10 @@ class Drive_Functions:
             if(timeout != None):
                 if(self.timeout_timer.net_timer() > timeout):
                     print("[WARNING]: Move to face position timed out. Yaw Error:", yaw_error)
-                    current_position = self.sensor_driver.sensor_data
+                    current_position = self.sensor_data
                     return False, desired_yaw
 
-            current_position = self.sensor_driver.sensor_data
+            current_position = self.sensor_data
             yaw_error = self.get_yaw_error(current_position[2], desired_yaw)
 
         return True, desired_yaw
@@ -305,7 +318,7 @@ class Drive_Functions:
                                 {"depth":<val>, "yaw":<val>}
         '''
         #Get the current position
-        current_position = self.sensor_driver.sensor_data
+        current_position = self.sensor_data
 
         desired_position = [0.0, 0.0] + [current_position[2]] + [north_position, east_position] + [current_position[5]]
 
@@ -332,10 +345,10 @@ class Drive_Functions:
             if(timeout != None):
                 if(self.timeout_timer.net_timer() > timeout):
                     print("[WARNING]: Move to position while holding orientatio timed out. Distance to position:", distance_to_position)
-                    current_position = self.sensor_driver.sensor_data
+                    current_position = self.sensor_data
                     return False, north_position, east_position
             distance_to_position = self.get_distance_to_position(current_position[3], current_position[4], north_position, east_position)
-            current_position = self.sensor_driver.sensor_data
+            current_position = self.sensor_data
 
         print("[INFO]: Move to position while holding orientation succeeded. At position (%0.2fft, %0.2fft)" % (north_position, east_position))
         return True, north_position, east_position
@@ -354,7 +367,7 @@ class Drive_Functions:
                         will exit
         '''
 
-        current_position = self.sensor_driver.sensor_data
+        current_position = self.sensor_data
 
         #If any of these keys are in desired_orientation, then hold that position while yawing
 
@@ -383,7 +396,7 @@ class Drive_Functions:
                         will exit
         '''
 
-        current_position = self.sensor_driver.sensor_data
+        current_position = self.sensor_data
 
         #Calculate what the desired north and east positions are to make that
         #corresponds to how far to move forward.

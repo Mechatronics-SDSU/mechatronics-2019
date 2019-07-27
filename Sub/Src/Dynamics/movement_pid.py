@@ -40,7 +40,7 @@ class Movement_PID:
         Initialize the thrusters and PID controllers on Perseverance.
 
         Parameters:
-            error_publisher: A MechOS publisher to send the publish the current error
+            N/A
 
         Returns:
             N/A

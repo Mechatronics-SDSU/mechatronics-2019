@@ -107,7 +107,7 @@ class Thruster():
 
             #write thrust to maestro
             self.maestro_serial_obj.write(bytearray([0xFF, self.thruster_id, thrust]))
-
+"""
 class Thruster_Controller:
     '''
     This is a controller that will receive thrust values through a MechOS subscriber
@@ -186,3 +186,4 @@ if __name__ == "__main__":
     maestro_serial_obj = serial.Serial('COM29', 9600)
     thruster_controller = Thruster_Controller(maestro_serial_obj, 80)
     thruster_controller.run()
+"""
