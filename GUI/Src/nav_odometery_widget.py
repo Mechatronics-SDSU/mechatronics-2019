@@ -20,10 +20,6 @@ from PyQt5.QtCore import Qt, QTimer
 from MechOS import mechos
 from MechOS.simple_messages.float_array import Float_Array
 
-PROTO_PATH = os.path.join("..", "..", "Proto")
-sys.path.append(os.path.join(PROTO_PATH, "Src"))
-sys.path.append(PROTO_PATH)
-import navigation_data_pb2
 
 class Navigation_GUI(QWidget):
 
@@ -48,8 +44,6 @@ class Navigation_GUI(QWidget):
         self.sensor_data_node = mechos.Node("NAVIGATION_ODOMETRY_GUI", '192.168.1.2', '192.168.1.14')
         self.nav_data_subscriber = self.sensor_data_node.create_subscriber("SENSOR_DATA", Float_Array(6), self._update_nav_data, protocol="udp", queue_size=1)
 
-        #Initialize the nav data protobuf
-        self.nav_data_proto = navigation_data_pb2.NAV_DATA()
 
         self.linking_layout = QVBoxLayout(self)
         self.setLayout(self.linking_layout)

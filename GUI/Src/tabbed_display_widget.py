@@ -53,7 +53,7 @@ class Tabbed_Display(QWidget):
         self.movement_mode_publisher = self.tab_display_node.create_publisher("MOVEMENT_MODE", Int(), protocol="tcp")
 
         #Publisher to kill the sub when tabs are switched.
-        self.sub_killed_publisher = self.tab_display_node.create_publisher("Kill_SUB", Bool(), protocol="tcp")
+        self.sub_killed_publisher = self.tab_display_node.create_publisher("KILL_SUB", Bool(), protocol="tcp")
 
 
     def add_tab(self, widget, title):

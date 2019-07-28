@@ -5,22 +5,27 @@ Last modified: 06/24/2019
 Description: This module sends Xbox inputs over socket to the movement
              controller
 '''
-
+import os
+import sys
 import pygame
 import socket
 import struct
 import numpy as np
 import time
-from message_passing.Nodes.node_base_udp import node_base
 
-class remote_control_node(node_base):
+MESSAGE_TYPE_PATH = os.path.join("..", "..", "Message_Types")
+sys.path.append(MESSAGE_TYPE_PATH)
+from remote_command_message import Remote_Command_Message
+from MechOS import mechos
+
+class remote_control_node:
     '''
     This class will listen to Xbox inputs, and only four values: Left stick
     horizontal movement for x, left stick vertical for y, right stick horizontal
     for yaw, and either the left or right trigger for depth
     '''
 
-    def __init__(self, IP, MEM):
+    def __init__(self):
         '''
         Initialize the input axes and the node, prepare for message sending
 
@@ -32,7 +37,10 @@ class remote_control_node(node_base):
         Returns:
             N/A
         '''
-        node_base.__init__(self, MEM, IP)
+
+        self.remote_control_send_node = mechos.Node("REMOTE_CONTROL_SEND", '192.168.1.2', '192.168.1.14')
+        self.remote_control_publisher = self.remote_control_send_node.create_publisher('REMOTE_CONTROL_COMMAND',
+                                                            Remote_Command_Message(), protocol="udp", queue_size=1)
 
         #Disgusting pygame stuff
         pygame.init()
@@ -41,8 +49,6 @@ class remote_control_node(node_base):
         self._joystick.init()
 
         self._axes = [0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0]
-        self._memory = MEM
-        self._ip_route = IP
         self._remote_depth_hold = False
         self._record_waypoint = False
         self._zero_waypoint = False
@@ -81,14 +87,7 @@ class remote_control_node(node_base):
         elif axis_array[4] > 0:
             depth = (axis_array[4] + 1)/2
 
-        byte_axis_array = struct.pack('ffff???',
-                                            axis_array[3],
-                                            axis_array[1],
-                                            axis_array[0],
-                                            depth,
-                                            axis_array[5],
-                                            axis_array[6],
-                                            axis_array[7])
+        byte_axis_array = [axis_array[3], axxis_array[1], axis_array[0], depth, axis_array[5], axis_array[6], axis_array[7]]
 
         return byte_axis_array
 
@@ -133,7 +132,7 @@ class remote_control_node(node_base):
                 self._axes[5] = self._remote_depth_hold
                 self._axes[6] = self._record_waypoint
                 self._axes[7] = self._zero_waypoint
-                self._send(msg=(self._control(self._axes)), register = 'RC', local = False, foreign = True)
+                self.remote_control_publisher.publish(self._control(self._axes))
                 self._record_waypoint = False
                 self._zero_waypoint = False
 
