@@ -1,7 +1,7 @@
 <Perseverance>
     <COM_Ports>
         <maestro>/dev/ttyACM0</maestro>
-        <AHRS>/dev/ttyUSB3</AHRS>
+        <AHRS>/dev/ttyUSB4</AHRS>
         <backplane>/dev/ttyUSB0</backplane>
         <DVL>/dev/ttyUSB1</DVL>
 	<auto>/dev/ttyUSB6</auto>
@@ -58,14 +58,14 @@
                 <max_error>40</max_error>
             </yaw_pid>
             <x_pid>
-                <p>10.0</p>
+                <p>0.0</p>
                 <i>0.0</i>
                 <d>0.0</d>
                 <min_error>-3</min_error>
                 <max_error>3</max_error>
             </x_pid>
             <y_pid>
-                <p>8.0</p>
+                <p>0.0</p>
                 <i>0.0</i>
                 <d>0.0</d>
 		<min_error>-3</min_error>

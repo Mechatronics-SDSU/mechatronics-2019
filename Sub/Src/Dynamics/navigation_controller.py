@@ -81,7 +81,7 @@ class Navigation_Controller(node_base):
         self.navigation_controller_node = mechos.Node("NAVIGATION_CONTROLLER", '192.168.1.14', '192.168.1.14')
 
         #Subscriber to change movement mode
-        self.movement_mode_subscriber = self.navigation_controller_node.create_subscriber("MM", Bool(), self.__update_movement_mode_callback, protocol="tcp")
+        self.movement_mode_subscriber = self.navigation_controller_node.create_subscriber("MM", Int(), self.__update_movement_mode_callback, protocol="tcp")
 
         #Update PID configurations button
         self.pid_configs_subscriber = self.navigation_controller_node.create_subscriber("PID", Bool(), self.__update_pid_configs_callback, protocol="tcp")
@@ -100,7 +100,7 @@ class Navigation_Controller(node_base):
         self.param_serv.use_parameter_database(configs["param_server_path"])
 
 
-        self.nav_data_subscriber = self.navigation_controller_node.create_subscriber("NAV", Float_Array(6), self.__update_sensor_data, protocol="udp")
+        self.nav_data_subscriber = self.navigation_controller_node.create_subscriber("NAV", Float_Array(6), self.__update_sensor_data, protocol="udp", queue_size=1)
 
         #Subscriber to commands from the GUI and Mission commanderto listen if the sub is killed.
         self.sub_killed_subscriber = self.navigation_controller_node.create_subscriber("KS", Bool(), self._update_sub_killed_state, protocol="tcp")
@@ -177,7 +177,6 @@ class Navigation_Controller(node_base):
         '''
         '''
         self.current_position = sensor_data
-        print("hh")
 
     def __update_movement_mode_callback(self, movement_mode):
         '''
