@@ -81,7 +81,7 @@ class Navigation_Controller(node_base):
         self.navigation_controller_node = mechos.Node("NAVIGATION_CONTROLLER", '192.168.1.14', '192.168.1.14')
 
         #Subscriber to change movement mode
-        self.movement_mode_subscriber = self.navigation_controller_node.create_subscriber("MM", Int(), self.__update_movement_mode_callback, protocol="tcp")
+        self.movement_mode_subscriber = self.navigation_controller_node.create_subscriber("MM", Bool(), self.__update_movement_mode_callback, protocol="tcp")
 
         #Update PID configurations button
         self.pid_configs_subscriber = self.navigation_controller_node.create_subscriber("PID", Bool(), self.__update_pid_configs_callback, protocol="tcp")
@@ -177,6 +177,7 @@ class Navigation_Controller(node_base):
         '''
         '''
         self.current_position = sensor_data
+        print("hh")
 
     def __update_movement_mode_callback(self, movement_mode):
         '''
@@ -188,7 +189,7 @@ class Navigation_Controller(node_base):
         Returns:
             N/A
         '''
-
+        print("hellolo")
         self.movement_mode = movement_mode
         if(self.movement_mode == 0):
             print("[INFO]: Movement mode selected: PID Tuner Mode.")
@@ -330,7 +331,7 @@ class Navigation_Controller(node_base):
         Returns:
             N/A
         '''
-        self.desired_position = desired_position
+        self.desired_position = desired_position[:-1]
 
         #if(self.desired_position_proto.zero_pos):
         #    self.sensor_driver.zero_pos()
