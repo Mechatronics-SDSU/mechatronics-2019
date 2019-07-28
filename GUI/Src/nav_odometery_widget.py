@@ -46,7 +46,7 @@ class Navigation_GUI(QWidget):
 
         #MechOS node to receive data from the sub and display it
         self.sensor_data_node = mechos.Node("NAVIGATION_GUI", '192.168.1.2', '192.168.1.14')
-        self.nav_data_subscriber = self.sensor_data_node.create_subscriber("NAV", Float_Array(6), self._update_nav_data, protocol="udp")
+        self.nav_data_subscriber = self.sensor_data_node.create_subscriber("NAV", Float_Array(6), self._update_nav_data, protocol="udp", queue_size=1)
 
         #Initialize the nav data protobuf
         self.nav_data_proto = navigation_data_pb2.NAV_DATA()
@@ -205,7 +205,7 @@ class Navigation_GUI(QWidget):
         #depth = self.nav_data_proto.depth
         #x_pos = self.nav_data_proto.north_pos
         #y_pos = self.nav_data_proto.east_pos
-        roll, pitch, yaw, depth, x_pos, y_pos = nav_data_proto
+        roll, pitch, yaw, x_pos, y_pos, depth = nav_data_proto
         degree_sym = u"\u00b0"
         self.yaw_box.setText('{:6.2f}{}'.format(yaw, degree_sym))
         self.pitch_box.setText('{:6.2f}{}'.format(pitch, degree_sym))

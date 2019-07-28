@@ -13,6 +13,7 @@ sys.path.append(PARAM_PATH)
 MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
 from mechos_network_configs import MechOS_Network_Configs
 from MechOS import mechos
+from MechOS.simple_messages.bool import Bool
 import struct
 
 class Kill_Button(QWidget):
@@ -112,13 +113,13 @@ class Kill_Button(QWidget):
         '''
         if(self.KILL_STATUS == "operational"):
 
-            self.sub_killed_publisher.publish(killed_state)
+            self.sub_killed_publisher.publish(True)
             self.pushButton.setStyleSheet("background-color: red")
             self.pushButton.setText("Killed")
             self.KILL_STATUS = "killed"
         else:
-            
-            self.sub_killed_publisher.publish(killed_state)
+
+            self.sub_killed_publisher.publish(False)
             self.pushButton.setStyleSheet("background-color: green")
             self.pushButton.setText("Un-Killed")
             self.KILL_STATUS = "operational"

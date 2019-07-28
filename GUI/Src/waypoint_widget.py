@@ -19,6 +19,7 @@ from PyQt5 import uic
 from PyQt5.QtGui import QColor
 from PyQt5.QtCore import Qt, QTimer
 from MechOS import mechos
+from MechOS.simple_messages.bool import Bool
 
 import struct
 

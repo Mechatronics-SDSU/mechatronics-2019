@@ -15,7 +15,7 @@ from mechos_network_configs import MechOS_Network_Configs
 
 MESSAGE_TYPE_PATH = os.path.join("..", "..", "Message_Types")
 sys.path.append(MESSAGE_TYPE_PATH)
-from desired_poisition_message import Desired_Position_Message
+from desired_position_message import Desired_Position_Message
 
 from PyQt5.QtWidgets import QWidget, QApplication, QGridLayout, QLineEdit, QLabel, QVBoxLayout, QPushButton
 from PyQt5.QtGui import QColor
@@ -50,7 +50,7 @@ class Set_Desired_Position_GUI(QWidget):
         self.setLayout(self.linking_layout)
         self._desired_position_inputs()
 
-        self.desired_position = [0, 0, 0, 0, 0, 0]
+        self.desired_position = [0, 0, 0, 0, 0, 0, False]
 
     def _desired_position_inputs(self):
         '''
@@ -138,9 +138,9 @@ class Set_Desired_Position_GUI(QWidget):
         self.desired_position[0] = float(self.roll_box.text())
         self.desired_position[1] = float(self.pitch_box.text())
         self.desired_position[2] = float(self.yaw_box.text())
-        self.desired_position[3] = float(self.depth_box.text())
-        self.desired_position[4] = float(self.x_box.text())
-        self.desired_position[5] = float(self.y_box.text())
+        self.desired_position[3] = float(self.x_box.text())
+        self.desired_position[4] = float(self.y_box.text())
+        self.desired_position[5] = float(self.depth_box.text())
         self.desired_position[6] = False
 
         print("[INFO]: Sending Position\n", self.desired_position)
