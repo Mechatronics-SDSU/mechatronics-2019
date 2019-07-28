@@ -100,7 +100,7 @@ class Navigation_Controller(node_base):
         self.param_serv.use_parameter_database(configs["param_server_path"])
 
 
-        self.nav_data_subscriber = self.navigation_controller_node.create_subscriber("NAV", Float_Array(6), self.__update_sensor_data, protocol="udp")
+        self.nav_data_subscriber = self.navigation_controller_node.create_subscriber("NAV", Float_Array(6), self.__update_sensor_data, protocol="udp", queue_size=1)
 
         #Subscriber to commands from the GUI and Mission commanderto listen if the sub is killed.
         self.sub_killed_subscriber = self.navigation_controller_node.create_subscriber("KS", Bool(), self._update_sub_killed_state, protocol="tcp")
@@ -188,7 +188,7 @@ class Navigation_Controller(node_base):
         Returns:
             N/A
         '''
-
+        print("hellolo")
         self.movement_mode = movement_mode
         if(self.movement_mode == 0):
             print("[INFO]: Movement mode selected: PID Tuner Mode.")
@@ -330,7 +330,7 @@ class Navigation_Controller(node_base):
         Returns:
             N/A
         '''
-        self.desired_position = desired_position
+        self.desired_position = desired_position[:-1]
 
         #if(self.desired_position_proto.zero_pos):
         #    self.sensor_driver.zero_pos()

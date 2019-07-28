@@ -58,7 +58,7 @@ class Sensor_Driver(threading.Thread):
 
         #Mechos nodes to send Sensor Data
         self.sensor_driver_node = mechos.Node("SENSOR_DRIVER", '192.168.1.14', '192.168.1.14')
-        self.nav_data_publisher = self.sensor_driver_node.create_publisher("NAV",Float_Array(6), protocol="udp")
+        self.nav_data_publisher = self.sensor_driver_node.create_publisher("NAV",Float_Array(6), protocol="udp", queue_size=1)
 
         #MechOS node to receive zero position message (zero position message is sent in the DP topic)
         #self.zero_pos_sub = self.sensor_driver_node.create_subscriber("DP", self._zero_pos_callback, configs["sub_port"])
@@ -189,8 +189,9 @@ class Sensor_Driver(threading.Thread):
         Returns:
             N/A
         '''
-
+        self.zero_pos()
         while(self.run_thread):
+            
             try:
                 self.sensor_data = self._get_sensor_data()
                 self.nav_data_publisher.publish(self.sensor_data)
@@ -217,4 +218,5 @@ class Sensor_Driver(threading.Thread):
 if __name__ == "__main__":
 
     sensor_driver = Sensor_Driver()
+    sensor_driver.zero_pos()
     sensor_driver.run()
