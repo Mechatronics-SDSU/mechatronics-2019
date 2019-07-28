@@ -11,6 +11,8 @@ import sys
 from PyQt5.QtWidgets import QWidget, QApplication, QGridLayout, QLineEdit, QLabel, QVBoxLayout, QPushButton
 from PyQt5.QtGui import QColor
 from PyQt5.QtCore import Qt, QTimer
+import waypoint_mission_widget
+
 
 
 class mission_planner_main_GUI(QWidget):
@@ -29,6 +31,7 @@ class mission_planner_main_GUI(QWidget):
         self.main_menu()
 
     def main_menu(self):
+
         '''
         Set up the layout grid for displaying mission planner main menu
 
@@ -38,7 +41,7 @@ class mission_planner_main_GUI(QWidget):
         Returns:
             N/A
         '''
-        orientation_txt = QLabel("<font color='black'>MISSION PLANNER</font>")
+        orientation_txt = QLabel("<font color='black'>WELCOME TO MECHAMISSION PLANNER</font>")
         orientation_txt.setAlignment(Qt.AlignCenter)
         self.linking_layout.addWidget(orientation_txt, 0)
         self.orientation_layout = QGridLayout()
@@ -49,7 +52,7 @@ class mission_planner_main_GUI(QWidget):
         self.select_new_button = QPushButton("New Mission")
         self.select_new_button.setStyleSheet("background-color:#2A7E43; color:#E8FFE8")
         #self.select_load_button.clicked.connect(self.mission_editor("load")) #connect here
-        #self.select_new_button.clicked.connect(self.mission_editor("new")) #connect here
+        #self.select_new_button.clicked.connect()#self.mission_editor("new")) #connect here
 
 
         #Add text boxs and line edit displays to layout
