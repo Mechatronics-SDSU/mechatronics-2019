@@ -123,19 +123,26 @@
          </solvePnP>
          <Coordinates>
             <gate>
-                 <max>60.0</max>
+                 <max>120.0</max>
                  <center>0.0</center>
-                 <mid>30.0</mid>
-                 <quarter>15.0</quarter>
+                 <mid>60.0</mid>
+                 <quarter>30.0</quarter>
                  <top_pixel_error>40.5</top_pixel_error>
                  <arm_pixel_error>81.0</arm_pixel_error>
                  <pixel_error>0.0</pixel_error>
-            </gate>
-            <buoy>
+	    </gate>
+	    <buoy>
+		 <top>-24.0</top>
+		 <left>-12.0</left>
+		 <center>0.0</center>
+		 <bottom>24.0</bottom>
+		 <right>12.0</right>
+	    </buoy>
+            <dice>
                 <topleft>-4.5</topleft>
                 <middle>0.0</middle>
                 <bottomright>4.5</bottomright>
-            </buoy>
+            </dice>
          </Coordinates>
     </Vision>
     <Missions>

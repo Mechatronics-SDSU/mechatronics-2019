@@ -94,10 +94,10 @@ class Distance_Calculator():
 
         label = self.detection[0]
 
-        if(label == b'Buoy'):
-            self.min_coordinate = float(self.param_serv.get_param("Vision/Coordinates/buoy/topleft"))
-            self.center_coordinate = float(self.param_serv.get_param("Vision/Coordinates/buoy/middle"))
-            self.max_coordinate = float(self.param_serv.get_param("Vision/Coordinates/buoy/bottomright"))
+        if(label == b'Dice'):
+            self.min_coordinate = float(self.param_serv.get_param("Vision/Coordinates/dice/topleft"))
+            self.center_coordinate = float(self.param_serv.get_param("Vision/Coordinates/dice/middle"))
+            self.max_coordinate = float(self.param_serv.get_param("Vision/Coordinates/dice/bottomright"))
 
             self.three_dim_points = np.array([[self.min_coordinate, self.min_coordinate, self.center_coordinate],
                                               [self.center_coordinate, self.min_coordinate, self.center_coordinate],
