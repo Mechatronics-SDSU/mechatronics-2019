@@ -41,10 +41,10 @@ class PID_Tuner_Widget(QWidget):
 
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
-        self.pid_gui_node = mechos.Node("PID_GUI", '192.168.1.2', '192.168.1.14')
+        self.pid_gui_node = mechos.Node("PID_TUNER_GUI", '192.168.1.2', '192.168.1.14')
 
         #Publisher to tell the navigation/movement controller when new PID values are saved.
-        self.pid_configs_update_publisher = self.pid_gui_node.create_publisher("PID", Bool(), protocol="tcp")
+        self.pid_configs_update_publisher = self.pid_gui_node.create_publisher("UPDATE_PID_CONFIGS", Bool(), protocol="tcp")
 
         #Subscriber to get PID ERRORS
         #self.pid_errors_subscriber = self.pid_gui_node.create_subscriber("PE", self._update_error_plot, configs["sub_port"])

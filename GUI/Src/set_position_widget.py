@@ -21,6 +21,7 @@ from PyQt5.QtWidgets import QWidget, QApplication, QGridLayout, QLineEdit, QLabe
 from PyQt5.QtGui import QColor
 from PyQt5.QtCore import Qt, QTimer
 from MechOS import mechos
+from MechOS.simple_messages.bool import Bool
 
 
 class Set_Desired_Position_GUI(QWidget):
@@ -43,14 +44,15 @@ class Set_Desired_Position_GUI(QWidget):
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
         #MechOS node to receive data from the sub and display it
-        self.set_position_node = mechos.Node("SET_POS_GUI", '192.168.1.2', '192.168.1.14')
-        self.set_position_pub = self.set_position_node.create_publisher("DP", Desired_Position_Message(), protocol="tcp")
+        self.set_position_node = mechos.Node("SET_POSITION_GUI", '192.168.1.2', '192.168.1.14')
+        self.set_position_pub = self.set_position_node.create_publisher("DESIRED_POSITION", Desired_Position_Message(), protocol="tcp")
+        self.zero_position_pub = self.set_position_node.create_publisher("ZERO_POSITION", Bool(), protocol="tcp")
 
         self.linking_layout = QVBoxLayout(self)
         self.setLayout(self.linking_layout)
         self._desired_position_inputs()
 
-        self.desired_position = [0, 0, 0, 0, 0, 0, False]
+        self.desired_position = [0, 0, 0, 0, 0, 0]
 
     def _desired_position_inputs(self):
         '''
@@ -141,7 +143,6 @@ class Set_Desired_Position_GUI(QWidget):
         self.desired_position[3] = float(self.x_box.text())
         self.desired_position[4] = float(self.y_box.text())
         self.desired_position[5] = float(self.depth_box.text())
-        self.desired_position[6] = False
 
         print("[INFO]: Sending Position\n", self.desired_position)
         self.set_position_pub.publish(self.desired_position)
@@ -156,7 +157,6 @@ class Set_Desired_Position_GUI(QWidget):
         Returns:
             N/A
         '''
-        self.desired_position[6] = True
         #Zero roll, pitch, x, and y to stabilize the sub at origin.
 
         self.roll_box.setText("0.0")
@@ -169,6 +169,7 @@ class Set_Desired_Position_GUI(QWidget):
         self.desired_position[2] = 0.0
         self.desired_position[3] = 0.0
         self.set_position_pub.publish(self.desired_position)
+        self.zero_position_pub.publish(True)
         print("[INFO]: Zeroing Position\n", self.desired_position)
 
 if __name__ == "__main__":

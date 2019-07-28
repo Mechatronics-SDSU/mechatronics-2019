@@ -49,8 +49,8 @@ class Waypoint_GUI(QWidget):
         self.waypoint_widget.enable_waypoint_collection_checkbox.setChecked(False)
         #Create a mechos network publisher to publish the enable state of the
         #waypoints
-        self.waypoint_node = mechos.Node("Waypoint Node", '192.168.1.2', '192.168.1.14')
-        self.waypoint_control_publisher = self.waypoint_node.create_publisher("WYP", Bool(), protocol="tcp")
+        self.waypoint_node = mechos.Node("WAYPOINT_COLLECTION_GUI", '192.168.1.2', '192.168.1.14')
+        self.waypoint_control_publisher = self.waypoint_node.create_publisher("ENABLE_WAYPOINT_COLLECTION", Bool(), protocol="tcp")
 
         #Connect button to save button to the parameter server.
         self.waypoint_widget.save_waypoint_file_btn.clicked.connect(self._update_save_waypoint_file)

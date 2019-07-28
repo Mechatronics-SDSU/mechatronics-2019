@@ -19,10 +19,6 @@ sys.path.append(PARAM_PATH)
 MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
 from mechos_network_configs import MechOS_Network_Configs
 
-PROTO_PATH = os.path.join("..", "..", "..", "Proto")
-sys.path.append(os.path.join(PROTO_PATH, "Src"))
-sys.path.append(PROTO_PATH)
-
 from thruster import Thruster
 from pid_controller import PID_Controller
 from MechOS import mechos

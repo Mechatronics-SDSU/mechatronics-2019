@@ -59,8 +59,8 @@ class Thruster_Test(QWidget):
 
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
         #MechOS publisher to send thrust test messages to thruster controller
-        self.thruster_test_node = mechos.Node("THRUSTER_TEST", '192.168.1.2', '192.168.1.14')
-        self.publisher = self.thruster_test_node.create_publisher("TT", Thruster_Message(), protocol="tcp")
+        self.thruster_test_node = mechos.Node("THRUSTER_TEST_GUI", '192.168.1.2', '192.168.1.14')
+        self.publisher = self.thruster_test_node.create_publisher("THRUSTS", Thruster_Message(), protocol="tcp")
 
         self.thrusts = [0, 0, 0, 0, 0, 0, 0, 0]
 

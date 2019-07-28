@@ -46,8 +46,8 @@ class Mission_Planner_Widget(QWidget):
         #Call in the ui for mission select
         self.mission_select_widget = uic.loadUi("mission_select.ui", self)
 
-        self.mission_select_node = mechos.Node("Mission Select", '192.168.1.2', '192.168.1.14')
-        self.update_mission_info_publisher = self.mission_select_node.create_publisher("MS", Bool(), protocol="tcp")
+        self.mission_select_node = mechos.Node("MISSION_SELECT_GUI", '192.168.1.2', '192.168.1.14')
+        self.update_mission_info_publisher = self.mission_select_node.create_publisher("MISSON_SELECT", Bool(), protocol="tcp")
 
         #Connect the mission select button to update the mission in the parameter
         #server and tell the mission commander that the mission file has changed.

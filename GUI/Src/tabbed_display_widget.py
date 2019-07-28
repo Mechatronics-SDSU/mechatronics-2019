@@ -49,11 +49,11 @@ class Tabbed_Display(QWidget):
 
         # Create MechOS node
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
-        self.tab_display_node = mechos.Node("GUI_TABS", '192.168.1.2', '192.168.1.14')
-        self.movement_mode_publisher = self.tab_display_node.create_publisher("MM", Int(), protocol="tcp")
+        self.tab_display_node = mechos.Node("MOVEMENT_MODE_TABS_GUI", '192.168.1.2', '192.168.1.14')
+        self.movement_mode_publisher = self.tab_display_node.create_publisher("MOVEMENT_MODE", Int(), protocol="tcp")
 
         #Publisher to kill the sub when tabs are switched.
-        self.sub_killed_publisher = self.tab_display_node.create_publisher("KS", Bool(), protocol="tcp")
+        self.sub_killed_publisher = self.tab_display_node.create_publisher("Kill_SUB", Bool(), protocol="tcp")
 
 
     def add_tab(self, widget, title):

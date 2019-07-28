@@ -64,12 +64,12 @@ class Kill_Button(QWidget):
 
         #Create MechOS node
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
-        self.sub_killed_node = mechos.Node("GUI_KILL_STATUS", '192.168.1.2', '192.168.1.14')
-        self.sub_killed_publisher = self.sub_killed_node.create_publisher("KS", Bool(), protocol="tcp")
+        self.sub_killed_node = mechos.Node("KILL_SUB_GUI", '192.168.1.2', '192.168.1.14')
+        self.sub_killed_publisher = self.sub_killed_node.create_publisher("KILL_SUB", Bool(), protocol="tcp")
 
         #Also create a killed button subscriber in case the sub kills it's self, so that way the
         #state changes in the GUI.
-        self.sub_killed_subscriber = self.sub_killed_node.create_subscriber("KS", Bool(), self._sub_killed_callback, protocol="tcp")
+        self.sub_killed_subscriber = self.sub_killed_node.create_subscriber("KILL_SUB", Bool(), self._sub_killed_callback, protocol="tcp")
 
         #Set up a QTimer to update the PID errors
         self.sub_killed_subscriber_update_timer = QTimer()

@@ -20,10 +20,6 @@ NAV_CONT_PATH = os.path.join("..", "Dynamics")
 sys.path.append(NAV_CONT_PATH)
 from navigation_controller import Navigation_Controller
 
-SENSOR_HUB_PATH = os.path.join("..", "SensorHub")
-sys.path.append(SENSOR_HUB_PATH)
-from sensor_driver import Sensor_Driver
-
 from message_passing.Nodes.node_base_udp import node_base
 import time
 import socket

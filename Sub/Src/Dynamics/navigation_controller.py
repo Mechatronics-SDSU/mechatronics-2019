@@ -17,10 +17,6 @@ HELPER_PATH = os.path.join("..", "Helpers")
 sys.path.append(HELPER_PATH)
 import util_timer
 
-SENSOR_HUB_PATH = os.path.join("..", "SensorHub")
-sys.path.append(SENSOR_HUB_PATH)
-from sensor_driver import Sensor_Driver
-
 PARAM_PATH = os.path.join("..", "Params")
 sys.path.append(PARAM_PATH)
 MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
@@ -81,30 +77,32 @@ class Navigation_Controller(node_base):
         self.navigation_controller_node = mechos.Node("NAVIGATION_CONTROLLER", '192.168.1.14', '192.168.1.14')
 
         #Subscriber to change movement mode
-        self.movement_mode_subscriber = self.navigation_controller_node.create_subscriber("MM", Int(), self.__update_movement_mode_callback, protocol="tcp")
+        self.movement_mode_subscriber = self.navigation_controller_node.create_subscriber("MOVEMENT_MODE", Int(), self.__update_movement_mode_callback, protocol="tcp")
 
         #Update PID configurations button
-        self.pid_configs_subscriber = self.navigation_controller_node.create_subscriber("PID", Bool(), self.__update_pid_configs_callback, protocol="tcp")
+        self.pid_configs_subscriber = self.navigation_controller_node.create_subscriber("UPDATE_PID_CONFIGS", Bool(), self.__update_pid_configs_callback, protocol="tcp")
 
         #Subscriber to get the desired position set by the user/mission controller.
-        self.desired_position_subscriber = self.navigation_controller_node.create_subscriber("DP", Desired_Position_Message(), self.__unpack_desired_position_callback, protocol="tcp")
+        self.desired_position_subscriber = self.navigation_controller_node.create_subscriber("DESIRED_POSITION", Desired_Position_Message(), self.__unpack_desired_position_callback, protocol="tcp")
 
         #Subscriber to see if waypoint recording is enabled
-        self.enable_waypoint_collection_subscriber = self.navigation_controller_node.create_subscriber("WYP", Bool(), self.__update_enable_waypoint_collection, protocol="tcp")
+        self.enable_waypoint_collection_subscriber = self.navigation_controller_node.create_subscriber("ENABLE_WAYPOINT_COLLECTION", Bool(), self.__update_enable_waypoint_collection, protocol="tcp")
 
         #Subscriber to listen for thrust messages from the thruster test widget
-        self.thruster_test_subscriber = self.navigation_controller_node.create_subscriber("TT", Thruster_Message(), self.__update_thruster_test_callback, protocol="tcp")
+        self.thruster_test_subscriber = self.navigation_controller_node.create_subscriber("THRUSTS", Thruster_Message(), self.__update_thruster_test_callback, protocol="tcp")
 
         #Connect to parameters server
         self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
         self.param_serv.use_parameter_database(configs["param_server_path"])
 
-
-        self.nav_data_subscriber = self.navigation_controller_node.create_subscriber("NAV", Float_Array(6), self.__update_sensor_data, protocol="udp", queue_size=1)
+        #Subscriber to receive sensor data from the sensor driver node.
+        self.nav_data_subscriber = self.navigation_controller_node.create_subscriber("SENSOR_DATA", Float_Array(6), self.__update_sensor_data, protocol="udp", queue_size=1)
 
         #Subscriber to commands from the GUI and Mission commanderto listen if the sub is killed.
-        self.sub_killed_subscriber = self.navigation_controller_node.create_subscriber("KS", Bool(), self._update_sub_killed_state, protocol="tcp")
+        self.sub_killed_subscriber = self.navigation_controller_node.create_subscriber("KILL_SUB", Bool(), self._update_sub_killed_state, protocol="tcp")
 
+        #Publisher to zero the NORTH/EAST position of the sub.
+        self.zero_position_publisher = self.navigation_controller_node.create_publisher("ZERO_POSITION", Bool(), protocol="tcp")
 
         #Get navigation controller timing
         self.nav_time_interval = float(self.param_serv.get_param("Timing/nav_controller"))
@@ -251,8 +249,8 @@ class Navigation_Controller(node_base):
                     self.current_waypoint_number += 1
 
                 #Zero position if the X button is pressed.
-                #if(self.remote_commands[6]):
-                #    self.sensor_driver.zero_pos()
+                if(self.remote_commands[6]):
+                    self.zero_position_publisher.publish(True)
 
 
             else:
@@ -330,10 +328,7 @@ class Navigation_Controller(node_base):
         Returns:
             N/A
         '''
-        self.desired_position = desired_position[:-1]
-
-        #if(self.desired_position_proto.zero_pos):
-        #    self.sensor_driver.zero_pos()
+        self.desired_position = desired_position
 
         print("\n\nNew Desire Position Recieved:")
         for index, dp in enumerate(self.desired_position):

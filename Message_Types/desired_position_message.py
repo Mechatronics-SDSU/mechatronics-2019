@@ -10,10 +10,9 @@ class Desired_Position_Message:
         '''
         #construct the message format
         #6 floats for roll, pitch, yaw, North, East, Depth
-        #One boolean for zeroing position
-        self.message_constructor = 'ffffff?'
+        self.message_constructor = 'ffffff'
         #number of bytes for this message
-        self.size = 25
+        self.size = 24
 
     def _pack(self, message):
         '''

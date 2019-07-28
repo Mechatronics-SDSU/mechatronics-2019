@@ -13,11 +13,6 @@ HELPER_PATH = os.path.join("..", "Helpers")
 sys.path.append(HELPER_PATH)
 import util_timer
 
-PROTO_PATH = os.path.join("..", "..", "..", "Proto")
-sys.path.append(os.path.join(PROTO_PATH, "Src"))
-sys.path.append(PROTO_PATH)
-import desired_position_pb2
-
 PARAM_PATH = os.path.join("..", "Params")
 sys.path.append(PARAM_PATH)
 MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
@@ -28,6 +23,7 @@ sys.path.append(MESSAGE_TYPE_PATH)
 from desired_poisition_message import Desired_Position_Message
 
 from MechOS import mechos
+from MechOS.simple_messages.float_array import Float_Array
 
 
 class Drive_Functions:
@@ -35,11 +31,10 @@ class Drive_Functions:
     A class containing basic functions for movements of the sub.
     Helpful for constructing missions.
     '''
-    def __init__(self):
+    def __init__(self, mission_commander_obj):
         '''
         Parameters:
-            sensor_driver: The sensor driver thread object so
-            the drive functions have access to the sensor data.
+            N/A
         Returns:
             N/A
         '''
@@ -51,9 +46,10 @@ class Drive_Functions:
 
         #Create mechos node
         self.drive_functions_node = mechos.Node("DRIVE_FUNCTIONS", '192.168.1.14', '192.168.1.14')
-        self.desired_position_publisher = self.drive_functions_node.create_publisher("DP", Desired_Position_Message(), protocol="tcp")
-        self.nav_data_subscriber = self.driver_functions_node.create_subscriber("NAV", Float_Array(6), self.__update_sensor_data, protocol="udp")
+        self.desired_position_publisher = self.drive_functions_node.create_publisher("DESIRED_POSITION", Desired_Position_Message(), protocol="tcp")
+        self.nav_data_subscriber = self.driver_functions_node.create_subscriber("SENSOR_DATA", Float_Array(6), self.__update_sensor_data, protocol="udp", queue_size=1)
 
+        #Start a thread to listen for sensor data.
         self.sensor_data_thread = threading.Thread(target=self._update_sensor_data_thread, daemon=True)
         self.sensor_data_thread.start()
 
@@ -63,10 +59,17 @@ class Drive_Functions:
 
     def _update_sensor_data_thread(self):
         '''
+        Update the sensor data that this drive functions node subscribes to.
+
+        Parameters:
+            N/A
+        Returns:
+            N/A
         '''
         while(1):
             self.drive_functions_node.spin_once()
             time.sleep(0.001)
+
     def __update_sensor_data(self,sensor_data):
         '''
         Update the sensor data
@@ -78,18 +81,18 @@ class Drive_Functions:
         '''
         self.sensor_data = sensor_data
 
-    def send_desired_position(self, desired_position, zero_pos=False):
+    def send_desired_position(self, desired_position):
         '''
         Publish the desired position of the sub using the desired position publisher.
 
         Parameters:
             desired_parameters: The desired position [roll, pitch, yaw, North Pos., East Pos.]
-            zero_pos: Zero out the North and East position (set new origin). Default False.
+
         Returns:
             N/A
         '''
-        print("[INFO]: Sending Position\n", self.desired_position_proto)
-        self.desired_position_publisher.publish((desired_position + zero_pos))
+        print("[INFO]: Sending Position\n", desired_position)
+        self.desired_position_publisher.publish(desired_position)
 
     def get_yaw_error(self,current_yaw, desired_yaw):
         '''
