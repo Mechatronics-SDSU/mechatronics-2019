@@ -44,10 +44,6 @@ class Sensor_Driver(threading.Thread):
         '''
 
         threading.Thread.__init__(self)
-
-        #proto buff packaging
-        self.nav_data_proto = navigation_data_pb2.NAV_DATA()
-
         #Get the mechos network parameters
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
@@ -101,7 +97,7 @@ class Sensor_Driver(threading.Thread):
         self.run_thread = True
         self.daemon = True
 
-    def zero_pos(self):
+    def _update_zero_position(self, misc):
         '''
         Zero the position of the sub in the x and y coordinates
 
@@ -110,6 +106,7 @@ class Sensor_Driver(threading.Thread):
         Returns:
             N/A
         '''
+
         self.current_north_pos = 0
         self.current_east_pos = 0
 
@@ -193,6 +190,7 @@ class Sensor_Driver(threading.Thread):
         while(self.run_thread):
 
             try:
+                self.sensor_driver_node.spin_once()
                 self.sensor_data = self._get_sensor_data()
                 self.nav_data_publisher.publish(self.sensor_data)
 
