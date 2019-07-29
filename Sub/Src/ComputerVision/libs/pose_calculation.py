@@ -119,6 +119,33 @@ class Distance_Calculator():
                                             [(self.x_coordinate), (self.y_coordinate + (0.5 * self.height))],
                                             [(self.x_coordinate + (0.5 * self.width)), (self.y_coordinate + (0.5 * self.height))]])
 
+        elif(label == b'Buoy'):
+
+            self.center_boordinate = float(self.param_serv.get_param("Vision/Coordinates/buoy/center"))
+            self.left_boordinate = float(self.param_serv.get_param("Vision/Coordinates/buoy/left"))
+            self.right_boordinate = float(self.param_serv.get_param("Vision/Coordinates/buoy/right"))
+            self.top_boordinate = float(self.param_serv.get_param("Vision/Coordinates/buoy/top"))
+            self.bottom_boordinate = float(self.param_serv.get_param("Vision/Coordinates/buoy/bottom"))
+
+            self.three_dim_points = np.array([[self.left_boordinate, self.top_boordinate, self.center_boordinate],
+                                              [self.center_boordinate, self.top_boordinate, self.center_boordinate],
+                                              [self.right_boordinate, self.top_boordinate, self.center_boordinate],
+                                              [self.left_boordinate, self.center_boordinate, self.center_boordinate],
+                                              [self.center_boordinate, self.center_boordinate, self.center_boordinate],
+                                              [self.right_boordinate, self.center_boordinate, self.center_boordinate],
+                                              [self.left_boordinate, self.bottom_boordinate, self.center_boordinate],
+                                              [self.center_boordinate, self.bottom_boordinate, self.center_boordinate],
+                                              [self.right_boordinate, self.bottom_boordinate, self.center_boordinate]])
+
+            self.two_dim_points = np.array([[(self.x_coordinate - (0.5 * self.width)), (self.y_coordinate - (0.5 * self.height))],
+                                            [(self.x_coordinate), (self.y_coordinate - (0.5 * self.height))],
+                                            [(self.x_coordinate + (0.5 * self.width)), (self.y_coordinate - (0.5 * self.height))],
+                                            [(self.x_coordinate - (0.5 * self.width)), (self.y_coordinate)],
+                                            [(self.x_coordinate), (self.y_coordinate)],
+                                            [(self.x_coordinate + (0.5 * self.width)), (self.y_coordinate)],
+                                            [(self.x_coordinate - (0.5 * self.width)), (self.y_coordinate + (0.5 * self.height))],
+                                            [(self.x_coordinate), (self.y_coordinate + (0.5 * self.height))],
+                                            [(self.x_coordinate + (0.5 * self.width)), (self.y_coordinate + (0.5 * self.height))]])
 
         elif(label == b'Gate Arm'):
 
