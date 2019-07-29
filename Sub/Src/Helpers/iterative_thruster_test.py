@@ -17,7 +17,7 @@ from mechos_network_configs import MechOS_Network_Configs
 
 MESSAGE_TYPE_PATH = os.path.join("..","..", "..", "Message_Types")
 sys.path.append(MESSAGE_TYPE_PATH)
-from thruster_message impor Thruster_Message
+from thruster_message import Thruster_Message
 
 import numpy as np
 from MechOS import mechos
@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
     configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
     #MechOS publisher to send thrust test messages to thruster controller
-    thruster_test_node = mechos.Node("THRUSTER_TEST_HELPER", '192.168.1.2', '192.168.1.14')
+    thruster_test_node = mechos.Node("THRUSTER_TEST_HELPER", '192.168.1.14', '192.168.1.14')
     publisher = thruster_test_node.create_publisher("THRUSTS", Thruster_Message(), protocol="tcp")
 
     time.sleep(1)
