@@ -28,7 +28,7 @@ class Mission_Commander(threading.Thread):
     '.json'.
     '''
 
-    def __init__(self, sensor_driver):
+    def __init__(self):
         '''
         Initialize the mission given the mission .json file.
         Parameters:
@@ -66,6 +66,10 @@ class Mission_Commander(threading.Thread):
         #Publisher to zero the position of the sub.
         self.zero_position_publisher = self.mission_commander_node.create_publisher("ZERO_POSITION", Bool(), protocol="tcp")
 
+        #Set up serial com to read the autonomous button
+        com_port = self.param_serv.get_param("COM_Ports/auto")
+        self.auto_serial = serial.Serial(com_port, 9600)
+
         #Set up a thread to listen to request from the GUI
         self.command_listener_thread = threading.Thread(target=self._command_listener)
         self.command_listener_thread.daemon = True
@@ -84,9 +88,6 @@ class Mission_Commander(threading.Thread):
         #Variable to keep the current sensor data(position) of the sub.
         self.current_position = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
-        #Set up serial com to read the autonomous button
-        com_port = self.param_serv.get_param("COM_Ports/auto")
-        self.auto_serial = serial.Serial(com_port, 9600)
 
         #load the mission data
         self._update_mission_info_callback(None)
@@ -107,7 +108,7 @@ class Mission_Commander(threading.Thread):
         self.mission_file = self.param_serv.get_param("Missions/mission_file")
         self.mission_live = False
 
-        print("[INFO]: New Mission file set as %s", self.mission_file)
+        print("[INFO]: New Mission file set as %s" % self.mission_file)
         #Parse the mission file
         self.parse_mission()
 
@@ -256,4 +257,5 @@ class Mission_Commander(threading.Thread):
 
 
 if __name__ == "__main__":
-    mission_commander = Mission_Commander('MissionFiles/GateQual/mission.json', None)
+    mission_commander = Mission_Commander()
+    mission_commander.run()

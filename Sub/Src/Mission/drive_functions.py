@@ -18,20 +18,20 @@ sys.path.append(PARAM_PATH)
 MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
 from mechos_network_configs import MechOS_Network_Configs
 
-MESSAGE_TYPE_PATH = os.path.join("..", "..", "Message_Types")
+MESSAGE_TYPE_PATH = os.path.join("..","..", "..", "Message_Types")
 sys.path.append(MESSAGE_TYPE_PATH)
-from desired_poisition_message import Desired_Position_Message
+from desired_position_message import Desired_Position_Message
 
 from MechOS import mechos
 from MechOS.simple_messages.float_array import Float_Array
-
+import threading
 
 class Drive_Functions:
     '''
     A class containing basic functions for movements of the sub.
     Helpful for constructing missions.
     '''
-    def __init__(self, mission_commander_obj):
+    def __init__(self):
         '''
         Parameters:
             N/A
@@ -47,7 +47,7 @@ class Drive_Functions:
         #Create mechos node
         self.drive_functions_node = mechos.Node("DRIVE_FUNCTIONS", '192.168.1.14', '192.168.1.14')
         self.desired_position_publisher = self.drive_functions_node.create_publisher("DESIRED_POSITION", Desired_Position_Message(), protocol="tcp")
-        self.nav_data_subscriber = self.driver_functions_node.create_subscriber("SENSOR_DATA", Float_Array(6), self.__update_sensor_data, protocol="udp", queue_size=1)
+        self.nav_data_subscriber = self.drive_functions_node.create_subscriber("SENSOR_DATA", Float_Array(6), self.__update_sensor_data, protocol="udp", queue_size=1)
 
         #Start a thread to listen for sensor data.
         self.sensor_data_thread = threading.Thread(target=self._update_sensor_data_thread, daemon=True)
@@ -56,6 +56,8 @@ class Drive_Functions:
         #A boolean to specifiy if the drive functions are availible to run
         #This is used in case missions are canceled and does not want these functions to be able to use.
         self.drive_functions_enabled = True
+
+        self.sensor_data = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
     def _update_sensor_data_thread(self):
         '''
@@ -79,7 +81,7 @@ class Drive_Functions:
         Returns:
             n/a
         '''
-        self.sensor_data = sensor_data
+        self.sensor_data = list(sensor_data)
 
     def send_desired_position(self, desired_position):
         '''
