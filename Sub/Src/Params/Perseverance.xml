@@ -58,7 +58,7 @@
                 <max_error>40</max_error>
             </yaw_pid>
             <x_pid>
-                <p>0.0</p>
+                <p>10.0</p>
                 <i>0.0</i>
                 <d>0.0</d>
                 <min_error>-3</min_error>

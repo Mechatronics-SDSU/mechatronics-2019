@@ -72,7 +72,7 @@ class Navigation_Controller(threading.Thread):
         self.navigation_controller_node = mechos.Node("NAVIGATION_CONTROLLER", '192.168.1.14', '192.168.1.14')
 
         #Subscribe to remote commands
-        self.remote_control_subscriber = self.navigation_controller.create_subscriber("REMOTE_CONTROL_COMMAND", Remote_Command_Message(), self._read_remote_control, protocol="udp", queue_size=1)
+        self.remote_control_subscriber = self.navigation_controller_node.create_subscriber("REMOTE_CONTROL_COMMAND", Remote_Command_Message(), self._read_remote_control, protocol="udp", queue_size=1)
 
         #Subscriber to change movement mode
         self.movement_mode_subscriber = self.navigation_controller_node.create_subscriber("MOVEMENT_MODE", Int(), self.__update_movement_mode_callback, protocol="tcp")
@@ -143,11 +143,7 @@ class Navigation_Controller(threading.Thread):
         self.update_command_thread_run = True
         self.update_command_thread.start()
 
-        self.remote_thread= threading.Thread(target=self._read_remote_control)
         self.remote_commands = [0.0, 0.0, 0.0, 0.0, 0]
-        self.remote_thread.daemon = True
-        self.remote_control_listen = False
-        self.remote_thread.start()
         self.waypoint_file = None
         self.enable_waypoint_collection = False
 
@@ -184,7 +180,6 @@ class Navigation_Controller(threading.Thread):
         Returns:
             N/A
         '''
-        print("hellolo")
         self.movement_mode = movement_mode
         if(self.movement_mode == 0):
             print("[INFO]: Movement mode selected: PID Tuner Mode.")
@@ -230,11 +225,8 @@ class Navigation_Controller(threading.Thread):
         remote control mode.
         '''
 
-        self._udp_received_message = self._recv('RC', local = False)
-
         #Remote commands [yaw, x, y, depth, hold_depth?, record_waypoint?]
         self.remote_commands = remote_commands
-
         #Record a waypoint if waypoint collection is enabeled and the A button on
         #remote is pressed.
         if(self.enable_waypoint_collection and self.remote_commands[5]):
