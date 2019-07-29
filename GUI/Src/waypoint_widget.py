@@ -22,6 +22,8 @@ from MechOS import mechos
 from MechOS.simple_messages.bool import Bool
 
 import struct
+from remote_control_input import Remote_Control_Input
+import threading
 
 class Waypoint_GUI(QWidget):
     '''
@@ -66,7 +68,10 @@ class Waypoint_GUI(QWidget):
 
         self.setMinimumSize(449, 330)
 
-
+        #Start the remote control thread
+        #Note: You MUST have the logitech plugged in.
+        self.remote_control = Remote_Control_Input()
+        self.remote_control.start()
 
     def _update_waypoint_enable(self):
         '''

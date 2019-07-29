@@ -17,8 +17,9 @@ MESSAGE_TYPE_PATH = os.path.join("..", "..", "Message_Types")
 sys.path.append(MESSAGE_TYPE_PATH)
 from remote_command_message import Remote_Command_Message
 from MechOS import mechos
+import threading
 
-class remote_control_node:
+class Remote_Control_Input(threading.Thread):
     '''
     This class will listen to Xbox inputs, and only four values: Left stick
     horizontal movement for x, left stick vertical for y, right stick horizontal
@@ -37,6 +38,9 @@ class remote_control_node:
         Returns:
             N/A
         '''
+
+        threading.Thread.__init__(self)
+        self.daemon = True
 
         self.remote_control_send_node = mechos.Node("REMOTE_CONTROL_SEND", '192.168.1.2', '192.168.1.14')
         self.remote_control_publisher = self.remote_control_send_node.create_publisher('REMOTE_CONTROL_COMMAND',
@@ -142,17 +146,5 @@ class remote_control_node:
 
 if __name__ == '__main__':
 
-    rc_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    thrust_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    ip_address = ('192.168.1.14', 6312)
-
-    IP={'RC':
-            {
-            'address': ip_address,
-            'sockets': (rc_socket, thrust_socket),
-            'type': 'UDP'
-            }
-        }
-    MEM={'RC':b'cleaners'}
-    remote_node = remote_control_node(IP, MEM)
+    remote_node = Remote_Control_Input()
     remote_node.start()

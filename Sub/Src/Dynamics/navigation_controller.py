@@ -26,6 +26,7 @@ MESSAGE_TYPE_PATH = os.path.join("..","..", "..", "Message_Types")
 sys.path.append(MESSAGE_TYPE_PATH)
 from desired_position_message import Desired_Position_Message
 from thruster_message import Thruster_Message
+from remote_command_message import Remote_Command_Message
 
 from movement_pid import Movement_PID
 from MechOS import mechos
@@ -35,19 +36,18 @@ from MechOS.simple_messages.int import Int
 import struct
 import threading
 
-from message_passing.Nodes.node_base_udp import node_base
 import socket
 
 MOVEMENT_AXIS = ["Roll", "Pitch", "Yaw", "X Pos.", "Y Pos.", "Depth"]
 
-class Navigation_Controller(node_base):
+class Navigation_Controller(threading.Thread):
     '''
     This main Navigation controller for the sub. It is made up of two main components.
     This first main is the sensor driver, which provides navigation data from the sensor.
     The second component is the movement controller components, which controls the movement
     pid control system. There is also a command_listener that listens for requests from the gui/mission commander.
     '''
-    def __init__(self, MEM, IP):
+    def __init__(self):
         '''
         Initialize the navigation controller. This includes getting parameters from the
         parameter server, initializing subscribers to listen for command messages, and
@@ -62,19 +62,17 @@ class Navigation_Controller(node_base):
             N/A
         '''
 
-        #Node base initialized stuff, necessary for socket communication
-        node_base.__init__(self, MEM, IP)
-        self._memory = MEM
-        self._ip_route = IP
-
-        #Initialize the parent class of
-        super(Navigation_Controller, self).__init__(MEM, IP)
+        threading.Thread.__init__(self)
+        self.daemon = True
 
         #Get the mechos network parameters
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
         #MechOS node to connect movement controller to mechos network
         self.navigation_controller_node = mechos.Node("NAVIGATION_CONTROLLER", '192.168.1.14', '192.168.1.14')
+
+        #Subscribe to remote commands
+        self.remote_control_subscriber = self.navigation_controller.create_subscriber("REMOTE_CONTROL_COMMAND", Remote_Command_Message(), self._read_remote_control, protocol="udp", queue_size=1)
 
         #Subscriber to change movement mode
         self.movement_mode_subscriber = self.navigation_controller_node.create_subscriber("MOVEMENT_MODE", Int(), self.__update_movement_mode_callback, protocol="tcp")
@@ -226,35 +224,30 @@ class Navigation_Controller(node_base):
         '''
         self.pid_controller.set_up_PID_controllers()
 
-    def _read_remote_control(self):
+    def _read_remote_control(self, remote_commands):
         '''
         The thread to continuosly read data from the Xbox controller when in
         remote control mode.
         '''
-        #Recieve commands via socket from remote controller
-        while True:
-            if self.remote_control_listen:
-                self._udp_received_message = self._recv('RC', local = False)
 
-                #Remote commands [yaw, x, y, depth, hold_depth?, record_waypoint?]
-                self.remote_commands = struct.unpack('ffff???', self._udp_received_message)
+        self._udp_received_message = self._recv('RC', local = False)
 
-                #Record a waypoint if waypoint collection is enabeled and the A button on
-                #remote is pressed.
-                if(self.enable_waypoint_collection and self.remote_commands[5]):
-                    [north_pos, east_pos, depth] = self.current_position[3:]
-                    print("[INFO]: Saving waypoint: Num %d, North Pos: %0.2fft, East Pos: %0.2fft, Depth: %0.2fft" \
-                            % (self.current_waypoint_number, north_pos, east_pos, depth))
-                    self.waypoint_csv_writer.writerow([self.current_waypoint_number, north_pos, east_pos, depth])
-                    self.current_waypoint_number += 1
+        #Remote commands [yaw, x, y, depth, hold_depth?, record_waypoint?]
+        self.remote_commands = remote_commands
 
-                #Zero position if the X button is pressed.
-                if(self.remote_commands[6]):
-                    self.zero_position_publisher.publish(True)
+        #Record a waypoint if waypoint collection is enabeled and the A button on
+        #remote is pressed.
+        if(self.enable_waypoint_collection and self.remote_commands[5]):
+            [north_pos, east_pos, depth] = self.current_position[3:]
+            print("[INFO]: Saving waypoint: Num %d, North Pos: %0.2fft, East Pos: %0.2fft, Depth: %0.2fft" \
+                    % (self.current_waypoint_number, north_pos, east_pos, depth))
+            self.waypoint_csv_writer.writerow([self.current_waypoint_number, north_pos, east_pos, depth])
+            self.current_waypoint_number += 1
 
+        #Zero position if the X button is pressed.
+        if(self.remote_commands[6]):
+            self.zero_position_publisher.publish(True)
 
-            else:
-                time.sleep(0.01)
 
     def __update_enable_waypoint_collection(self, enable_waypoint_collection):
         '''
@@ -405,21 +398,7 @@ class Navigation_Controller(node_base):
 
 if __name__ == "__main__":
 
-    rc_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    thrust_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    ip_address = ('192.168.1.14', 6312)
-    thrust_socket.bind((ip_address))
-
-    IP={'RC':
-            {
-            'address': ip_address,
-            'sockets': (rc_socket, thrust_socket),
-            'type': 'UDP'
-            }
-        }
-    MEM={'RC':b'irrelevant'}
-
     #sensor_driver = Sensor_Driver()
-    navigation_controller = Navigation_Controller(MEM, IP)
+    navigation_controller = Navigation_Controller()
     #sensor_driver.start()
     navigation_controller.run()
