@@ -91,7 +91,7 @@ class Remote_Control_Input(threading.Thread):
         elif axis_array[4] > 0:
             depth = (axis_array[4] + 1)/2
 
-        byte_axis_array = [axis_array[3], axxis_array[1], axis_array[0], depth, axis_array[5], axis_array[6], axis_array[7]]
+        byte_axis_array = [axis_array[3], axis_array[1], axis_array[0], depth, axis_array[5], axis_array[6], axis_array[7]]
 
         return byte_axis_array
 
