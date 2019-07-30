@@ -1,10 +1,10 @@
 <Perseverance>
     <COM_Ports>
         <maestro>/dev/ttyACM0</maestro>
-        <AHRS>/dev/ttyUSB4</AHRS>
+        <AHRS>/dev/ttyUSB3</AHRS>
         <backplane>/dev/ttyUSB0</backplane>
         <DVL>/dev/ttyUSB1</DVL>
-	<auto>/dev/ttyUSB3</auto>
+	<auto>/dev/ttyUSB6</auto>
     </COM_Ports>
     <Timing>
         <AHRS>0.05</AHRS>
@@ -136,6 +136,6 @@
     </Vision>
     <Missions>
       <waypoint_collect_file>/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/GateQual/gate_2.csv</waypoint_collect_file>
-      <mission_file>/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/Auto_Test/mission.json</mission_file>
+      <mission_file>/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/Comp_Qual/mission.json</mission_file>
     </Missions>
 </Perseverance>

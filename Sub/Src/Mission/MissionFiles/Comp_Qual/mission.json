@@ -2,7 +2,7 @@
   "Task_1":{
     "type":"Initial_Dive",
     "name":"start_dive",
-    "timeout":0.0833,
+    "timeout":0.0833
 
   },
   "Task_2":{

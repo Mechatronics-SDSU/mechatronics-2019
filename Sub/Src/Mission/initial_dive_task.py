@@ -54,12 +54,13 @@ class Initial_Dive_Task(Task):
         print("[INFO]: Starting Initial Dive.")
 
         set_dive_depth = 3.0
+        offset = .3
         start_time = time.time()
         constant_offset = time.sleep
-        offsets = np.arange(0,3.3,.3)
+        offsets = np.arange(0, set_dive_depth + offset, offset)
 
-        offset_depths = 3**((offsets)/3)
+        offset_depths = set_dive_depth**((offsets)/set_dive_depth)
         for depth in offset_depths:
             #Send depth
-            self.driver_functions.move_to_depth(depth, buffer_zone=0.01, timeout=0.0, )
+            self.drive_functions.move_to_depth(depth, buffer_zone=0.01, timeout=0.0, )
             constant_offset(.5)
