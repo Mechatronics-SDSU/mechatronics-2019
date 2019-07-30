@@ -14,7 +14,7 @@ class MissionPlanner(QtWidgets.QWidget):
         self.username = username
         self.password = password
         self.server_connection = pysftp.Connection(host=self.host, username=self.username, password=self.password)
-        self.foreign_filepath = "mechatronics-2019/Sub/Src/Mission/MissionFiles/"
+        self.foreign_filepath = "mechatronics-2019/Sub/Src/Mission/MissionFiles/tests/"
         self.local_filepath = None
         self.file_list = None
 
@@ -47,9 +47,9 @@ class MissionPlanner(QtWidgets.QWidget):
         self.local_filepath = str(self.task_selector_widget.findFileEditor.text())
 
     def send_file(self):
-        index = self.mission_file.rfind('/')
+        index = self.local_filepath.rfind('/')
         try:
-            self.server_connection.put(self.mission_file, self.foreign_filepath + (self.mission_file[index::]))
+            self.server_connection.put(self.local_filepath, self.foreign_filepath + (self.local_filepath[index::]))
         except Exception as e:
             print("[ERROR]: File not found!!!", e)
 
