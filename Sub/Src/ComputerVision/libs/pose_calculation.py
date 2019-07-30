@@ -1,7 +1,10 @@
 '''
 Copyright 2019, Mohammad Shafi, All rights reserved
-
 Author: Mohammad Shafi <ma.shafi99@gmail.com>
+Last Modified: July 25th, 2019
+Description: This script calculates poses of our detected objects we get from
+the neural network using OpenCV's solvePnP function. It gives us translation and
+rotation of these objects with respect to the camera
 '''
 import os
 import sys
@@ -37,6 +40,8 @@ class Distance_Calculator():
         self.second_width = None
         self.height = None
         self.second_height = None
+        self.difference = None
+        self.threshold = None
 
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
@@ -65,11 +70,20 @@ class Distance_Calculator():
 
     def set_coordinates(self, detect_list, detection, x, y, w, h):
         '''
-        This function sets our three dimensional and two dimensional points depending on the detection
+        This function sets our three dimensional and two dimensional points depending on the detection.
+        The three dimensional points are set using the acutal dimensions of the object. For example, the gate is 10
+        feet wide, so the right side is set to (5,0) in real world space. Everything is calculated in terms of inches,
+        then converted to feet. The two dimensional coordinates are set using Yolo's bounding boxes. Corners of objects
+        in the real world are mapped to their respective corners when Yolo generates its bounding box for one of the objects
         Params:
-            N/A
-            N/A
+            detect_list: List of all detections currently available
+            detection: The detection in question that we are trying to solve for
+            x: The center of the bounding box drawn by Yolo. Horizontal pixel coordinate
+            y: THe center of the bounding box drawn by Yolo. Vertical pixel coordinate
+            w: The width of the bounding box. In pixels
+            h: The height of the bounding box. In pixels
         Returns:
+            N/A
         '''
         #print(self.distortion_matrix)
         self.detection = detection
@@ -105,7 +119,35 @@ class Distance_Calculator():
                                             [(self.x_coordinate), (self.y_coordinate + (0.5 * self.height))],
                                             [(self.x_coordinate + (0.5 * self.width)), (self.y_coordinate + (0.5 * self.height))]])
 
-        if(label == b'Gate Top'):
+        elif(label == b'Buoy'):
+
+            self.center_boordinate = float(self.param_serv.get_param("Vision/Coordinates/buoy/center"))
+            self.left_boordinate = float(self.param_serv.get_param("Vision/Coordinates/buoy/left"))
+            self.right_boordinate = float(self.param_serv.get_param("Vision/Coordinates/buoy/right"))
+            self.top_boordinate = float(self.param_serv.get_param("Vision/Coordinates/buoy/top"))
+            self.bottom_boordinate = float(self.param_serv.get_param("Vision/Coordinates/buoy/bottom"))
+
+            self.three_dim_points = np.array([[self.left_boordinate, self.top_boordinate, self.center_boordinate],
+                                              [self.center_boordinate, self.top_boordinate, self.center_boordinate],
+                                              [self.right_boordinate, self.top_boordinate, self.center_boordinate],
+                                              [self.left_boordinate, self.center_boordinate, self.center_boordinate],
+                                              [self.center_boordinate, self.center_boordinate, self.center_boordinate],
+                                              [self.right_boordinate, self.center_boordinate, self.center_boordinate],
+                                              [self.left_boordinate, self.bottom_boordinate, self.center_boordinate],
+                                              [self.center_boordinate, self.bottom_boordinate, self.center_boordinate],
+                                              [self.right_boordinate, self.bottom_boordinate, self.center_boordinate]])
+
+            self.two_dim_points = np.array([[(self.x_coordinate - (0.5 * self.width)), (self.y_coordinate - (0.5 * self.height))],
+                                            [(self.x_coordinate), (self.y_coordinate - (0.5 * self.height))],
+                                            [(self.x_coordinate + (0.5 * self.width)), (self.y_coordinate - (0.5 * self.height))],
+                                            [(self.x_coordinate - (0.5 * self.width)), (self.y_coordinate)],
+                                            [(self.x_coordinate), (self.y_coordinate)],
+                                            [(self.x_coordinate + (0.5 * self.width)), (self.y_coordinate)],
+                                            [(self.x_coordinate - (0.5 * self.width)), (self.y_coordinate + (0.5 * self.height))],
+                                            [(self.x_coordinate), (self.y_coordinate + (0.5 * self.height))],
+                                            [(self.x_coordinate + (0.5 * self.width)), (self.y_coordinate + (0.5 * self.height))]])
+
+        elif(label == b'Gate Arm'):
 
             self.center = float(self.param_serv.get_param("Vision/Coordinates/gate/center")) #0.0
             self.max = float(self.param_serv.get_param("Vision/Coordinates/gate/max")) #5
@@ -114,43 +156,81 @@ class Distance_Calculator():
             self.min = -1.0 * self.max #-5
             self.mid_min = -1.0 * self.mid_max #-2.5
             self.quarter_min = -1.0 * self.quarter_max #-1.25
+            self.zero_pixel_error = float(self.param_serv.get_param("Vision/Coordinates/gate/pixel_error"))
+            self.top_pixel_error = float(self.param_serv.get_param("Vision/Coordinates/gate/top_pixel_error"))
+            self.arm_pixel_error = float(self.param_serv.get_param("Vision/Coordinates/gate/arm_pixel_error"))
 
-            self.gate_top_points = np.array([[self.center, self.center, self.center], #0, 0, 0
-                                              [self.min, self.mid_min, self.center], #-5, -2.5, 0
-                                              [self.mid_min, self.mid_min, self.center], #-2.5, -2.5, 0
+            self.gate_shared_points = np.array([[self.center, self.center, self.center], #0, 0, 0
+                                                [self.min, self.mid_min, self.center], #-5, -2.5, 0
+                                                [self.max, self.mid_min, self.center]]) #5, -2.5, 0
+
+            self.gate_top_points = np.array([ [self.mid_min, self.mid_min, self.center], #-2.5, -2.5, 0
                                               [self.center, self.mid_min, self.center], #0, -2.5, 0
-                                              [self.mid_max, self.mid_min, self.center], #2.5, -2.5, 0
-                                              [self.max, self.mid_min, self.center]]) #5, -2.5, 0
+                                              [self.mid_max, self.mid_min, self.center]]) #2.5, -2.5, 0
 
-            self.gate_right_points = np.array([[self.max, self.quarter_min, self.center],
-                                               [self.max, self.center, self.center],
-                                               [self.max, self.quarter_max, self.center],
-                                               [self.max, self.mid_max, self.center]])
+            self.gate_right_points = np.array([[self.max, self.quarter_min, self.center], #5, -1.25, 0
+                                               [self.max, self.center, self.center], #5, 0, 0
+                                               [self.max, self.quarter_max, self.center], #5, 1.25, 0
+                                               [self.max, self.mid_max, self.center]]) #5, 2.5, 0
 
-            self.gate_left_points = np.array([[self.min, self.quarter_min, self.center],
-                                              [self.min, self.center, self.center],
-                                              [self.min, self.quarter_max, self.center],
-                                              [self.min, self.mid_max, self.center]])
+            self.gate_left_points = np.array([[self.min, self.quarter_min, self.center], #-5, -1.25, 0
+                                              [self.min, self.center, self.center], #-5, 0, 0
+                                              [self.min, self.quarter_max, self.center], #5, 1.25, 0
+                                              [self.min, self.mid_max, self.center]]) #5, 2.5, 0
 
             for second_det in detect_list:
-                if (second_det[0] == b'Gate Arm'):
-                    self.second_x_coordinate, self.second_y_coordinate, self.second_width, self.second_height = second_det[2][0], second_det[2][1], second_det[2][2], second_det[2][3]
-                    difference = self.second_x_coordinate - self.x_coordinate
-                    if(difference > 0):
-                        self.three_dim_points = np.concatenate((self.gate_top_points, self.gate_right_points), axis = 0)
-                    else:
-                        self.three_dim_points = np.concatenate((self.gate_top_points, self.gate_left_points), axis = 0)
+                self.second_x_coordinate, self.second_y_coordinate, self.second_width, self.second_height = second_det[2][0], second_det[2][1], second_det[2][2], second_det[2][3]
+                self.difference = self.second_x_coordinate - self.x_coordinate
 
-                    self.two_dim_points = np.array([[self.x_coordinate, self.y_coordinate + (self.second_y_coordinate - (0.5 * self.second_height))],
-                                                    [self.x_coordinate - (0.5 * self.width), self.y_coordinate],
-                                                    [self.x_coordinate - (0.25 * self.width), self.y_coordinate],
-                                                    [self.x_coordinate, self.y_coordinate],
-                                                    [self.x_coordinate + (0.25 * self.width), self.y_coordinate],
-                                                    [self.x_coordinate + (0.5 * self.width), self.y_coordinate],
-                                                    [self.second_x_coordinate, self.second_y_coordinate - (0.25 * self.second_height)],
+                if(second_det[0] == b'Gate Top'):
+                    self.temp_three_dim_points = np.concatenate((self.gate_shared_points, self.gate_top_points), axis = 0)
+                    if(self.difference < self.top_pixel_error and self.difference >= self.zero_pixel_error): #if pixel data is less than 10 percent of the image, data is bullshit
+                        self.three_dim_points = np.concatenate((self.temp_three_dim_points, self.gate_left_points), axis = 0)
+                    elif(self.difference > (-1.0 *(self.top_pixel_error)) and self.difference =< self.zero_pixel_error):
+                        self.three_dim_points = np.concatenate((self.temp_three_dim_points, self.gate_right_points), axis = 0)
+
+                    self.two_dim_points = np.array([[self.second_x_coordinate, self.y_coordinate],
+                                                    [self.second_x_coordinate - (0.5 * self.second_width), self.second_y_coordinate],
+                                                    [self.second_x_coordinate + (0.5 * self.second_width), self.second_y_coordinate],
+                                                    [self.second_x_coordinate - (0.25 * self.second_width), self.second_y_coordinate],
                                                     [self.second_x_coordinate, self.second_y_coordinate],
-                                                    [self.second_x_coordinate, self.second_y_coordinate + (0.25 * self.second_height)],
-                                                    [self.second_x_coordinate, self.second_y_coordinate + (0.5 * self.second_height)]])
+                                                    [self.second_x_coordinate + (0.25 * self.second_width), self.second_y_coordinate],
+                                                    [self.x_coordinate, self.y_coordinate - (0.25 * self.height)],
+                                                    [self.x_coordinate, self.y_coordinate],
+                                                    [self.x_coordinate, self.y_coordinate + (0.25 * self.hegiht)],
+                                                    [self.x_coordinate, self.y_coordinate + (0.5) * self.height]])
+
+                if(second_det[0] == b'Gate Arm'):
+                    if(abs(self.difference) < self.arm_pixel_error): #if distance between the arms is less than a fifth of the image, data is bullshit
+                        self.temp_three_dim_points = np.concatenate(self.gate_shared_points, self.gate_left_points)
+                        self.three_dim_points = np.concatenate(self.temp_three_dim_points, self.gate_right_points)
+
+                        if(self.difference <= self.zero_pixel_error and self.difference > self.arm_pixel_error): #right arm was detected first
+                            self.two_dim_points = np.array([[self.x_coordinate - (self.difference * 0.5), self.y_coordinate],
+                                                            [self.second_x_coordinate, self.second_y_coordinate - (0.5 * self.second_height)],
+                                                            [self.x_coordinate, self.y_coordinate - (0.5 * self.height)],
+                                                            [self.second_x_coordinate, self.second_y_coordinate - (0.25 * self.second_height)],
+                                                            [self.second_x_coordinate, self.second_y_coordinate],
+                                                            [self.second_x_coordinate, self.second_y_coordinate + (0.25 * self.second_height)],
+                                                            [self.second_x_coordinate, self.second_y_coordinate + (0.5 * self.second_height)],
+                                                            [self.x_coordinate, self.y_coordinate - (0.25 * self.height)],
+                                                            [self.x_coordinate, self.y_coordinate],
+                                                            [self.x_coordinate, self.y_coordinate + (0.25 * self.hegiht)],
+                                                            [self.x_coordinate, self.y_coordinate + (0.5 * self.height)]])
+
+                        if(self.difference >= self.zero_pixel_error  and self.difference < (-1 * self.arm_pixel_error)): #left arm was detected first
+                            self.two_dim_points = np.array([[self.x_coordinate + (self.difference * 0.5), self.y_coordinate],
+                                                            [self.x_coordinate, self.y_coordinate - (0.5 * self.height)],
+                                                            [self.second_x_coordinate, self.second_y_coordinate - (0.5 * self.second_height)],
+                                                            [self.x_coordinate, self.y_coordinate - (0.25 * self.height)],
+                                                            [self.x_coordinate, self.y_coordinate],
+                                                            [self.x_coordinate, self.y_coordinate + (0.25 * self.height)],
+                                                            [self.x_coordinate, self.y_coordinate + (0.5 * self.hegiht)],
+                                                            [self.second_x_coordinate, self.second_y_coordinate - (0.25 * self.second_height)],
+                                                            [self.second_x_coordinate, self.second_y_coordinate],
+                                                            [self.second_x_coordinate, self.second_y_coordinate + (0.25 * self.second_height)],
+                                                            [self.second_x_coordinate, self.second_y_coordinate + (0.5 * self.second_height)]])
+
 
 
         else:
@@ -159,7 +239,10 @@ class Distance_Calculator():
     def calculate_distance(self):
         '''
         This function takes the matrices set earlier, and then performs the necessary operations
-        to successfully judge the pose of the object from the camera
+        to successfully judge the pose of the object from the camera. The equation is as follows:
+        image points = (Cammatrix dot(rt matrix))dot world points. The rt matrix is a 3 by 4 rt transform
+        matrix that has a rotation component and a translation component. SolvePnP gives us these matrices
+        as individual rotation and translation vectors
         Params:
             N/A
         Returns:
@@ -169,11 +252,9 @@ class Distance_Calculator():
         '''
 
         if (self.three_dim_points is None or self.two_dim_points is None):
-            return [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]
+            return [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], 0.0
 
         else:
-            working, rvec, tvec = cv2.solvePnP(self.three_dim_points,
-                                               self.two_dim_points,
-                                               self.camera_matrix,
-                                               self.distortion_matrix)
-            return rvec, tvec, tvec[2]
+            working, rvec, tvec = cv2.solvePnP(self.three_dim_points, self.two_dim_points, self.camera_matrix,self.distortion_matrix)
+            inchvec = np.array([(float(tvec[0]/12.0)), float(tvec[1]/12.0), float(tvec[2]/12.0)])
+            return rvec, inchvec, inchvec[2]

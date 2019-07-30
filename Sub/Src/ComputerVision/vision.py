@@ -1,13 +1,11 @@
 '''
 Copyright 2019, Alexa Becerra, All rights reserved
-
 Authors:Alexa Becerra <alexa.becerra99@gmail.com>
-        Mohammad Shafi
+        Mohammad Shafi <ma.shafi99@gmail.com>
         Ramiz Hanan
         Christian Gould <christian.d.gould@gmail.com>
         David Pierce Walker-Howell <piercedhowell@gmail.com>
 Last Modified 07/13/2019
-
 Description: Vision (Cam Node) utilizes the neural network and Yolo for object
 detection of captured images, that are then sent over a socket to be captured by Recv Node.
 '''
@@ -34,6 +32,10 @@ sys.path.append(PARAM_PATH)
 MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
 from mechos_network_configs import MechOS_Network_Configs
 
+MESSAGE_TYPES_PATH = os.path.join("..", "..", "..", "Message_Types")
+sys.path.append(Message_Types)
+from neural_network_message import Neural_Network_Message
+
 class Vision(node_base):
     '''
     Vision captures from the webcam, runs the neural network/cv algorithms,  and streams the processed images.
@@ -43,7 +45,6 @@ class Vision(node_base):
         '''
         Initializes values for encoded image streaming, begins webcam capture and
         loads in the neural network.
-
         Parameters:
             MEM: Dictionary containing Node name and the desired local memory location.
             IP: Dictionary containing Node name and desired streaming settings: The IP address, send
@@ -58,6 +59,11 @@ class Vision(node_base):
 
         self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
         self.param_serv.use_parameter_database(configs["param_server_path"])
+
+        self.vision_node= mechos.Node("VISION", "192.168.1.14", "192.168.1.14")
+        self.neural_net_publisher = self.vision_node.create_publisher("NEURAL_NET", Neural_Network_Message(), protocol="tcp")
+        #self.neural_net_publisher = self.neural_network_node.create_publisher("NN", configs["pub_port"])
+        self.neural_net_timer = float(self.param_serv.get_param("Timing/neural_network"))
 
         #--MESSAGING INFO--#
         self.MAX_UDP_PACKET_SIZE = 1500
@@ -98,6 +104,7 @@ class Vision(node_base):
         The run loop reads image data from the webcam, processes it through Yolo, and
         then encodes it into a byte stream and encapsulation frame to be sent over the socket.
         '''
+        start_time = time.time()
         while(True):
             # Capture frame-by-frame
             ret, byte_frame = self.capture.read()
@@ -118,15 +125,30 @@ class Vision(node_base):
                     #Perform solve pnp calculations
                     self.distance_calculator.set_coordinates(r, i, x, y, w, h)
                     rotation, translation, distance = self.distance_calculator.calculate_distance()
-
-                    print('Rotation: ', rotation)
-                    print('Translation: ', translation)
-                    print('Distance: ', distance)
                     xmin, ymin, xmax, ymax = convertBack(float(x), float(y), float(w), float(h))
                     pt1 = (xmin, ymin)
                     pt2 = (xmax, ymax)
                     cv2.rectangle(byte_frame, pt1, pt2, (0, 255, 0), 2)
                     cv2.putText(byte_frame, i[0].decode() + " [" + str(round(i[1] * 100, 2)) + "]", (pt1[0], pt1[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 1, [0, 255, 0], 4)
+                    cv2.putText(byte_frame, "[" + str(round(distance, 2)) + "ft]", (pt2[0], pt1[1] + 40), cv2.FONT_HERSHEY_SIMPLEX, 1, [0,127, 127], 4)
+                    label = i[0].decode("utf-8")
+                    detection_data = [label.encode("utf-8"),
+                                                 i[1],
+                                                 i[2][0],
+                                                 i[2][1],
+                                                 i[2][2],
+                                                 i[2][3],
+                                                 rotation[0],
+                                                 rotation[1],
+                                                 rotation[2],
+                                                 translation[0],
+                                                 translation[1],
+                                                 translation[2]]
+
+                    if ((time.time() - start_time) >= self.neural_net_timer):
+                        self.neural_net_publisher.publish(detection_data) #Send the detection data
+                        start_time = time.time()
+
                 # Get the Size of the image
                 image_size = sys.getsizeof(byte_frame)
 
@@ -181,7 +203,7 @@ if __name__=='__main__':
 
     IP ={'CAMERA':
             {
-            'address': IP_ADDRESS,
+            'address': CAM_IP_ADDRESS,
             'sockets': (CAMERA_SOCK, RECV_SOCK),
             'type': 'UDP'
             }

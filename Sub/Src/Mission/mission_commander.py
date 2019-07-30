@@ -6,6 +6,10 @@ sys.path.append(PARAM_PATH)
 MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
 from mechos_network_configs import MechOS_Network_Configs
 
+MESSAGE_TYPES_PATH = os.path.join("..", "..", "..", "Message_Types")
+sys.path.append(MESSAGE_TYPES_PATH)
+from neural_network_message import Neural_Network_Message
+
 from MechOS import mechos
 from MechOS.simple_messages.int import Int
 from MechOS.simple_messages.bool import Bool
@@ -60,6 +64,10 @@ class Mission_Commander(threading.Thread):
         self.movement_mode_subscriber = self.mission_commander_node.create_subscriber("MOVEMENT_MODE", Int(), self._update_movement_mode_callback, protocol="tcp")
         #subscriber to listen if the mission informatin has changed.
         self.update_mission_info_subscriber = self.mission_commander_node.create_subscriber("MISSON_SELECT", Bool(), self._update_mission_info_callback, protocol="tcp")
+        #subscriber to listen if neural network data is available
+        self.neural_network_subscriber = self.mission_commander_node.create_subscriber("NEURAL_NET", Neural_Network_Message(), self._update_neural_net_callback, protocol="tcp")
+
+        self.neural_net_data = [0, 0, 0, 0, 0, 0]
 
         #Publisher to be able to kill the sub within the mission
         self.kill_sub_publisher = self.mission_commander_node.create_publisher("KILL_SUB", Bool(), protocol="tcp")
@@ -138,6 +146,10 @@ class Mission_Commander(threading.Thread):
             self.mission_mode = False
             self.mission_live = False
             self.drive_functions.drive_functions_enabled = False
+
+    def _update_neural_net_callback(self, neural_net_data):
+        self.neural_net_data = neural_net_data
+        print(self.neural_net_data)
 
     def _command_listener(self):
         '''

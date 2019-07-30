@@ -11,6 +11,7 @@
         <backplane_response>0.025</backplane_response>
         <backplane_handler>0.025</backplane_handler>
         <nav_controller>0.025</nav_controller>
+        <neural_network>0.5</neural_network>
     </Timing>
     <Control>
         <max_thrust>60</max_thrust>
@@ -65,7 +66,7 @@
                 <max_error>3</max_error>
             </x_pid>
             <y_pid>
-                <p>10.0</p>
+                <p>8.0</p>
                 <i>0.0</i>
                 <d>0.0</d>
 		<min_error>-3</min_error>
@@ -101,9 +102,9 @@
          <down_camera_index>2</down_camera_index>
 	 <yolo>
 	       <darknet_path>/home/nvidia/mechatronics-2019/Sub/Src/ComputerVision/libs/darknet</darknet_path>
-               <config_file>cfg/pool_test_7_16_19.cfg</config_file>
-	       <weights_file>weights/testing.weights</weights_file>
-               <metadata_file>data/pool_test_7_16_19.data</metadata_file>
+               <config_file>cfg/aquaplex.cfg</config_file>
+	       <weights_file>weights/aquaplex.weights</weights_file>
+	       <metadata_file>data/aquaplex.data</metadata_file>
          </yolo>
          <solvePnP>
                <camera_matrix>
@@ -122,20 +123,30 @@
          </solvePnP>
          <Coordinates>
             <gate>
-                 <max>5.0</max>
+                 <max>120.0</max>
                  <center>0.0</center>
-                 <mid>2.5</mid>
-                 <quarter>1.25</quarter>
-            </gate>
+                 <mid>60.0</mid>
+                 <quarter>30.0</quarter>
+                 <top_pixel_error>40.5</top_pixel_error>
+                 <arm_pixel_error>81.0</arm_pixel_error>
+                 <pixel_error>0.0</pixel_error>
+	    </gate>
+	    <buoy>
+		 <top>-24.0</top>
+		 <left>-12.0</left>
+		 <center>0.0</center>
+		 <bottom>24.0</bottom>
+		 <right>12.0</right>
+	    </buoy>
             <dice>
-                <topleft>-0.375</topleft>
+                <topleft>-4.5</topleft>
                 <middle>0.0</middle>
-                <bottomright>0.375</bottomright>
+                <bottomright>4.5</bottomright>
             </dice>
          </Coordinates>
     </Vision>
     <Missions>
       <waypoint_collect_file>/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/GateQual/gate_2.csv</waypoint_collect_file>
-      <mission_file>/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/Comp_Qual/mission.json</mission_file>
+      <mission_file>/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/Auto_Test/mission.json</mission_file>
     </Missions>
 </Perseverance>
