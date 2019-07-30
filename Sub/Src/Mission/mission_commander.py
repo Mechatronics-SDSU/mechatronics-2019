@@ -180,7 +180,7 @@ class Mission_Commander(threading.Thread):
         Returns:
             N/A
         '''
-
+        self.mission_tasks = [] #Reset the mission tasks
         with open(self.mission_file, 'r') as f:
             self.mission_data = json.load(f)
 
@@ -204,7 +204,7 @@ class Mission_Commander(threading.Thread):
             elif(task_type == "Gate_No_Vision"):
                 gate_no_vision = Gate_No_Vision_Task(self.mission_data[task], self.drive_functions)
                 self.mission_tasks.append(gate_no_vision)
-
+                print(self.mission_tasks)
     def run(self):
         '''
         Run the mission tasks sequentially.
@@ -230,7 +230,7 @@ class Mission_Commander(threading.Thread):
 
                     #Zero position of the sensors
                     self.zero_position_publisher.publish(True)
-
+                    time.sleep(0.1) #wait for the messae to make it
                     #Iterate through each task in the mission and run them
                     for task_id, task in enumerate(self.mission_tasks):
                         if((self.mission_live == False) or (self.mission_mode == False)):
