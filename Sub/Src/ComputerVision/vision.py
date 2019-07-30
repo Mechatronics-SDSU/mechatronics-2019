@@ -33,7 +33,7 @@ MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
 from mechos_network_configs import MechOS_Network_Configs
 
 MESSAGE_TYPES_PATH = os.path.join("..", "..", "..", "Message_Types")
-sys.path.append(Message_Types)
+sys.path.append(MESSAGE_TYPES_PATH)
 from neural_network_message import Neural_Network_Message
 
 class Vision(node_base):
@@ -203,7 +203,7 @@ if __name__=='__main__':
 
     IP ={'CAMERA':
             {
-            'address': CAM_IP_ADDRESS,
+            'address': IP_ADDRESS,
             'sockets': (CAMERA_SOCK, RECV_SOCK),
             'type': 'UDP'
             }

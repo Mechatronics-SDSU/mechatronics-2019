@@ -186,7 +186,7 @@ class Distance_Calculator():
                     self.temp_three_dim_points = np.concatenate((self.gate_shared_points, self.gate_top_points), axis = 0)
                     if(self.difference < self.top_pixel_error and self.difference >= self.zero_pixel_error): #if pixel data is less than 10 percent of the image, data is bullshit
                         self.three_dim_points = np.concatenate((self.temp_three_dim_points, self.gate_left_points), axis = 0)
-                    elif(self.difference > (-1.0 *(self.top_pixel_error)) and self.difference =< self.zero_pixel_error):
+                    elif(self.difference > (-1.0 *(self.top_pixel_error)) and self.difference <= self.zero_pixel_error):
                         self.three_dim_points = np.concatenate((self.temp_three_dim_points, self.gate_right_points), axis = 0)
 
                     self.two_dim_points = np.array([[self.second_x_coordinate, self.y_coordinate],
