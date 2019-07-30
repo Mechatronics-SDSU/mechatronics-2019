@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <widget class="QComboBox" name="comboBox">
+  <widget class="QComboBox" name="selectorBox">
    <property name="geometry">
     <rect>
      <x>40</x>
@@ -43,7 +43,7 @@
     </property>
    </item>
   </widget>
-  <widget class="QListView" name="listView">
+  <widget class="QListView" name="taskList">
    <property name="geometry">
     <rect>
      <x>50</x>
@@ -53,20 +53,20 @@
     </rect>
    </property>
   </widget>
-  <widget class="QLabel" name="label">
+  <widget class="QLabel" name="listLabel">
    <property name="geometry">
     <rect>
-     <x>40</x>
-     <y>400</y>
-     <width>141</width>
-     <height>31</height>
+     <x>130</x>
+     <y>370</y>
+     <width>81</width>
+     <height>21</height>
     </rect>
    </property>
    <property name="text">
     <string>Task List</string>
    </property>
   </widget>
-  <widget class="QScrollBar" name="verticalScrollBar">
+  <widget class="QScrollBar" name="taskListScrollBar">
    <property name="geometry">
     <rect>
      <x>330</x>
@@ -79,11 +79,11 @@
     <enum>Qt::Vertical</enum>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton">
+  <widget class="QPushButton" name="saveButton">
    <property name="geometry">
     <rect>
-     <x>40</x>
-     <y>450</y>
+     <x>20</x>
+     <y>410</y>
      <width>141</width>
      <height>41</height>
     </rect>
@@ -92,11 +92,11 @@
     <string>Save Mission</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_2">
+  <widget class="QPushButton" name="receiveButton">
    <property name="geometry">
     <rect>
-     <x>190</x>
-     <y>450</y>
+     <x>180</x>
+     <y>410</y>
      <width>171</width>
      <height>41</height>
     </rect>
@@ -105,11 +105,11 @@
     <string>Receive Missions</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_3">
+  <widget class="QPushButton" name="sendButton">
    <property name="geometry">
     <rect>
      <x>370</x>
-     <y>450</y>
+     <y>410</y>
      <width>141</width>
      <height>41</height>
     </rect>
@@ -118,7 +118,7 @@
     <string>Send Mission</string>
    </property>
   </widget>
-  <widget class="QLineEdit" name="lineEdit">
+  <widget class="QLineEdit" name="findFileEditor">
    <property name="geometry">
     <rect>
      <x>190</x>
@@ -128,7 +128,7 @@
     </rect>
    </property>
   </widget>
-  <widget class="QLabel" name="label_2">
+  <widget class="QLabel" name="findFileLabel">
    <property name="geometry">
     <rect>
      <x>16</x>
@@ -141,7 +141,7 @@
     <string>Mission File Path</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="findFile">
+  <widget class="QPushButton" name="findFileButton">
    <property name="geometry">
     <rect>
      <x>450</x>
