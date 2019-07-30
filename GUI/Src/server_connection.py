@@ -15,7 +15,7 @@ class File_Transfer():
     def receive_file(self, remote_file, local_file):
 
         try:
-            self.connection.get(remotepath=remote_file, localpath=None)
+            self.connection.get(remotepath=remote_file, localpath=local_file)
         except Exception as e:
             print("[ERROR]: Couldn't find your file dumbass!!!", e)
 
