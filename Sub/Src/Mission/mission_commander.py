@@ -20,6 +20,7 @@ import struct
 from drive_functions import Drive_Functions
 from waypoint_task import Waypoint_Task
 from gate_no_vision_task import Gate_No_Vision_Task
+from initial_dive_task import Initial_Dive_Task
 
 class Mission_Commander(threading.Thread):
     '''
@@ -195,8 +196,12 @@ class Mission_Commander(threading.Thread):
             #Get the task type and name
             task_type = self.mission_data[task]["type"]
 
+            if(task_type == "Initial_Dive"):
+                initial_dive_task = Initial_Dive_Task(self.mission_data[task], self.drive_functions)
+                self.mission_tasks.append(initial_dive_task)
+
             #generate waypoint task
-            if(task_type == "Waypoint"):
+            elif(task_type == "Waypoint"):
                 waypoint_task = Waypoint_Task(self.mission_data[task], self.drive_functions)
                 self.mission_tasks.append(waypoint_task)
 
@@ -204,7 +209,8 @@ class Mission_Commander(threading.Thread):
             elif(task_type == "Gate_No_Vision"):
                 gate_no_vision = Gate_No_Vision_Task(self.mission_data[task], self.drive_functions)
                 self.mission_tasks.append(gate_no_vision)
-                print(self.mission_tasks)
+
+
     def run(self):
         '''
         Run the mission tasks sequentially.
