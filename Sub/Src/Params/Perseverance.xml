@@ -148,5 +148,6 @@
     <Missions>
       <waypoint_collect_file>/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/GateQual/gate_2.csv</waypoint_collect_file>
       <mission_file>/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/GateQual/mission.json</mission_file>
+
     </Missions>
 </Perseverance>

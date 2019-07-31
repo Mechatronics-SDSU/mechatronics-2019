@@ -345,7 +345,7 @@ class Drive_Functions:
 
             if not self.drive_functions_enabled:
                 print("[WARNING]: Cannot Execute drive function because the drive functions are disabled.")
-                return False, desired_depth
+                return False, 0
 
             if(timeout != None):
                 if(self.timeout_timer.net_timer() > timeout):

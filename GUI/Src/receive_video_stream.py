@@ -50,10 +50,10 @@ class Receive_Video_Stream(node_base):
 
         # Resize image
         self.resize_image = True
-        self.scale_percent = 250
+        self.scale_percent = 100
 
         # Collect Images (Switch to False for speed)
-        self.save_image = False
+        self.save_image = True
 
         self.ramBuffer = b''
 
@@ -91,11 +91,10 @@ class Receive_Video_Stream(node_base):
 
                         if self.save_image:
                             TimeStamp = str(datetime.now()).replace(' ', '_').replace(':','#')[:-7]
-                            cv2.imwrite("/home/piercedhowell/imgs_07_23_19/frame{}.jpg".format(TimeStamp), img_frame)
+                            cv2.imwrite("/home/piercedhowell/imgs_07_31_19/frame{}.jpg".format(TimeStamp), img_frame)
 
                         if self.resize_image:
                             # Frame Size (reversed in np.shape)
-                            self.scale_percent = 250 # percent of original size
 
                             width = int(img_frame.shape[1] * self.scale_percent / 100)
                             height = int(img_frame.shape[0] * self.scale_percent / 100)
