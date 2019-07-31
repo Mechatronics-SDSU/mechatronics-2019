@@ -11,6 +11,7 @@ detection of captured images, that are then sent over a socket to be captured by
 '''
 
 import numpy as np
+import PyCapture2
 import cv2
 import math
 import random
@@ -35,6 +36,22 @@ from mechos_network_configs import MechOS_Network_Configs
 MESSAGE_TYPES_PATH = os.path.join("..", "..", "..", "Message_Types")
 sys.path.append(MESSAGE_TYPES_PATH)
 from neural_network_message import Neural_Network_Message
+
+class Camera:
+	def __init__(self):
+		bus = PyCapture2.BusManager()
+		cam = bus.getCameraFromIndex(0)
+		self._cam = PyCapture2.Camera()
+		self._cam.connect(cam)
+		self._cam.startCapture()
+
+	def __deinit__(self):
+		self._cam.stopCapture()
+		self._cam.disconnect()
+
+	def get_image(self):
+		image = self._cam.retrieveBuffer()
+		return image
 
 class Vision(node_base):
     '''
@@ -76,11 +93,11 @@ class Vision(node_base):
 
         #--CAMERA INSTANCE--#
         front_camera_index = int(self.param_serv.get_param("Vision/front_camera_index"))
-        self.capture = cv2.VideoCapture(front_camera_index)
+        self.capture = Camera()
 
         # Maximum image size the Tegra allows without timeout
-        self.capture.set(3, 450)
-        self.capture.set(4, 450)
+        #self.capture.set(3, 450)
+        #self.capture.set(4, 450)
 
         # Neural Network Loaded from instance in darknet module
         darknet_path = self.param_serv.get_param("Vision/yolo/darknet_path")
@@ -104,6 +121,10 @@ class Vision(node_base):
         The run loop reads image data from the webcam, processes it through Yolo, and
         then encodes it into a byte stream and encapsulation frame to be sent over the socket.
         '''
+        byte_frame = self.capture.get_image()
+        byte_frame = np.array(byte_frame.getData(), dtype="uint8").reshape(byte_frame.getRows(), byte_frame.getCols())
+        colored_byte_frame =  cv2.cvtColor(byte_frame, cv2.COLOR_BAYER_BG2BGR)
+
         start_time = time.time()
         while(True):
             # Capture frame-by-frame
@@ -150,10 +171,10 @@ class Vision(node_base):
                         start_time = time.time()
 
                 # Get the Size of the image
-                image_size = sys.getsizeof(byte_frame)
+                image_size = sys.getsizeof(colored_byte_frame)
 
             # Capture Bytes
-            ret, byte_frame = cv2.imencode( '.jpg', byte_frame )
+            ret, byte_frame = cv2.imencode( '.jpg', colored_byte_frame )
 
             # Sending The Frame
             if ret:
