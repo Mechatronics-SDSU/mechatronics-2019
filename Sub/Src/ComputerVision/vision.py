@@ -11,7 +11,6 @@ detection of captured images, that are then sent over a socket to be captured by
 '''
 
 import numpy as np
-import PyCapture2
 import cv2
 import math
 import random
@@ -27,6 +26,7 @@ from libs.darknet import *
 from MechOS.message_passing.Nodes.node_base import node_base
 from MechOS import mechos
 from libs.pose_calculation import Distance_Calculator
+import pyzed.sl as sl
 
 PARAM_PATH = os.path.join("..", "Params")
 sys.path.append(PARAM_PATH)
@@ -37,21 +37,6 @@ MESSAGE_TYPES_PATH = os.path.join("..", "..", "..", "Message_Types")
 sys.path.append(MESSAGE_TYPES_PATH)
 from neural_network_message import Neural_Network_Message
 
-class Camera:
-	def __init__(self):
-		bus = PyCapture2.BusManager()
-		cam = bus.getCameraFromIndex(0)
-		self._cam = PyCapture2.Camera()
-		self._cam.connect(cam)
-		self._cam.startCapture()
-
-	def __deinit__(self):
-		self._cam.stopCapture()
-		self._cam.disconnect()
-
-	def get_image(self):
-		image = self._cam.retrieveBuffer()
-		return image
 
 class Vision(node_base):
     '''
@@ -91,9 +76,18 @@ class Vision(node_base):
         # the Max Packet Size the Port will accept
         self.MAX_PACKET_SIZE = 1500
 
-        #--CAMERA INSTANCE--#
-        front_camera_index = int(self.param_serv.get_param("Vision/front_camera_index"))
-        self.capture = Camera()
+        #--CAMERA INSTANCE--(using the zed camera)#
+        #front_camera_index = int(self.param_serv.get_param("Vision/front_camera_index"))
+        
+        #Create a zed camera object
+        self.zed = sl.Camera()
+        self.zed_init_params = sl.InitParameters()
+        self.zed_init_params.camera_fps = 30 #set fps at 30
+
+        #Open the zed camera
+        err = self.zed.open(self.zed_init_params)
+        if(err != sl.ERROR_CODE.SUCCESS):
+            exit(1)
 
         # Maximum image size the Tegra allows without timeout
         #self.capture.set(3, 450)
@@ -121,93 +115,101 @@ class Vision(node_base):
         The run loop reads image data from the webcam, processes it through Yolo, and
         then encodes it into a byte stream and encapsulation frame to be sent over the socket.
         '''
-        byte_frame = self.capture.get_image()
-        byte_frame = np.array(byte_frame.getData(), dtype="uint8").reshape(byte_frame.getRows(), byte_frame.getCols())
-        colored_byte_frame =  cv2.cvtColor(byte_frame, cv2.COLOR_BAYER_BG2BGR)
-
         start_time = time.time()
+
+        #Capture the images in the byte frame
+        zed_image = sl.Mat()
+
+        zed_runtime_parameters = sl.RuntimeParameters()
+
         while(True):
             # Capture frame-by-frame
-            ret, byte_frame = self.capture.read()
+            if self.zed.grab(zed_runtime_parameters) == sl.ERROR_CODE.SUCCESS:
 
-            # Operations on the frame
-            '''
-            Yolo: Operations on Frame For Yolo
-            '''
-            if ret:
-                r = detect(self.net, self.meta, byte_frame)
-                #Savind detetion to class attribute
-                self.yolo_detections = r
+                #A new image is available if grab() returns SUCCESS
+                self.zed.retrieve_image(zed_image, sl.VIEW.VIEW_RIGHT)
 
-                #Draw detections in photo
-                for i in r:
-                    x, y, w, h = i[2][0], i[2][1], i[2][2], i[2][3]
+                #convert the image retrieved from the zed to numpy opencv image
+                byte_array = zed_image.get_data()
 
-                    #Perform solve pnp calculations
-                    self.distance_calculator.set_coordinates(r, i, x, y, w, h)
-                    rotation, translation, distance = self.distance_calculator.calculate_distance()
-                    xmin, ymin, xmax, ymax = convertBack(float(x), float(y), float(w), float(h))
-                    pt1 = (xmin, ymin)
-                    pt2 = (xmax, ymax)
-                    cv2.rectangle(byte_frame, pt1, pt2, (0, 255, 0), 2)
-                    cv2.putText(byte_frame, i[0].decode() + " [" + str(round(i[1] * 100, 2)) + "]", (pt1[0], pt1[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 1, [0, 255, 0], 4)
-                    cv2.putText(byte_frame, "[" + str(round(distance, 2)) + "ft]", (pt2[0], pt1[1] + 40), cv2.FONT_HERSHEY_SIMPLEX, 1, [0,127, 127], 4)
-                    label = i[0].decode("utf-8")
-                    detection_data = [label.encode("utf-8"),
-                                                 i[1],
-                                                 i[2][0],
-                                                 i[2][1],
-                                                 i[2][2],
-                                                 i[2][3],
-                                                 rotation[0],
-                                                 rotation[1],
-                                                 rotation[2],
-                                                 translation[0],
-                                                 translation[1],
-                                                 translation[2]]
-
-                    if ((time.time() - start_time) >= self.neural_net_timer):
-                        self.neural_net_publisher.publish(detection_data) #Send the detection data
-                        start_time = time.time()
-
-                # Get the Size of the image
-                image_size = sys.getsizeof(colored_byte_frame)
-
-            # Capture Bytes
-            ret, byte_frame = cv2.imencode( '.jpg', colored_byte_frame )
-
-            # Sending The Frame
-            if ret:
-                imageBuffer = io.BytesIO(byte_frame)
-
-                number_of_packets = math.ceil(image_size/self.MAX_UDP_PACKET_SIZE)
-                packet_size = math.ceil(image_size/number_of_packets)
-
-                # Uncomment for Manual Control of Send Speed:
-
-                #info_print=
+                # Operations on the frame
                 '''
-                IMAGE  SIZE:       {}
-                PACKET SIZE:       {}
-                NUMBER OF PACKETS: {}
+                Yolo: Operations on Frame For Yolo
                 '''
-                #.format(image_size, packet_size, number_of_packets)
+                if ret:
+                    r = detect(self.net, self.meta, byte_frame)
+                    #Savind detetion to class attribute
+                    self.yolo_detections = r
 
-                #print(info_print)
-                #input('Press Enter to Continue...')
+                    #Draw detections in photo
+                    for i in r:
+                        x, y, w, h = i[2][0], i[2][1], i[2][2], i[2][3]
 
-                # Count out the number of packets that need to be sent
-                for count_var in range(0, number_of_packets):
+                        #Perform solve pnp calculations
+                        self.distance_calculator.set_coordinates(r, i, x, y, w, h)
+                        rotation, translation, distance = self.distance_calculator.calculate_distance()
+                        xmin, ymin, xmax, ymax = convertBack(float(x), float(y), float(w), float(h))
+                        pt1 = (xmin, ymin)
+                        pt2 = (xmax, ymax)
+                        cv2.rectangle(byte_frame, pt1, pt2, (0, 255, 0), 2)
+                        cv2.putText(byte_frame, i[0].decode() + " [" + str(round(i[1] * 100, 2)) + "]", (pt1[0], pt1[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 1, [0, 255, 0], 4)
+                        cv2.putText(byte_frame, "[" + str(round(distance, 2)) + "ft]", (pt2[0], pt1[1] + 40), cv2.FONT_HERSHEY_SIMPLEX, 1, [0,127, 127], 4)
+                        label = i[0].decode("utf-8")
+                        detection_data = [label.encode("utf-8"),
+                                                    i[1],
+                                                    i[2][0],
+                                                    i[2][1],
+                                                    i[2][2],
+                                                    i[2][3],
+                                                    rotation[0],
+                                                    rotation[1],
+                                                    rotation[2],
+                                                    translation[0],
+                                                    translation[1],
+                                                    translation[2]]
 
-                    self._send(imageBuffer.read(packet_size), 'CAMERA', local=False, foreign=True)
+                        if ((time.time() - start_time) >= self.neural_net_timer):
+                            self.neural_net_publisher.publish(detection_data) #Send the detection data
+                            start_time = time.time()
 
-                # EOF packet for encapsulation
-                self._send(self.END_BYTE, 'CAMERA', local=False, foreign=True)
+                    # Get the Size of the image
+                    image_size = sys.getsizeof(byte_frame)
 
-                # Image Corruption decreases as sleep time increases (inversely proportional)
-                # this time.sleep is a manual fix balacing speed and the least
-                # amount of corruption on jpegs (not optimal)
-                #time.sleep(0) # check as appropriate
+                # Capture Bytes
+                ret, byte_frame = cv2.imencode( '.jpg', byte_frame )
+
+                # Sending The Frame
+                if ret:
+                    imageBuffer = io.BytesIO(byte_frame)
+
+                    number_of_packets = math.ceil(image_size/self.MAX_UDP_PACKET_SIZE)
+                    packet_size = math.ceil(image_size/number_of_packets)
+
+                    # Uncomment for Manual Control of Send Speed:
+
+                    #info_print=
+                    '''
+                    IMAGE  SIZE:       {}
+                    PACKET SIZE:       {}
+                    NUMBER OF PACKETS: {}
+                    '''
+                    #.format(image_size, packet_size, number_of_packets)
+
+                    #print(info_print)
+                    #input('Press Enter to Continue...')
+
+                    # Count out the number of packets that need to be sent
+                    for count_var in range(0, number_of_packets):
+
+                        self._send(imageBuffer.read(packet_size), 'CAMERA', local=False, foreign=True)
+
+                    # EOF packet for encapsulation
+                    self._send(self.END_BYTE, 'CAMERA', local=False, foreign=True)
+
+                    # Image Corruption decreases as sleep time increases (inversely proportional)
+                    # this time.sleep is a manual fix balacing speed and the least
+                    # amount of corruption on jpegs (not optimal)
+                    #time.sleep(0) # check as appropriate
 
             else:
                 time.sleep(0)
