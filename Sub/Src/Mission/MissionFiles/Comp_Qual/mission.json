@@ -9,7 +9,7 @@
 	   "type":"Gate_No_Vision",
 	"name":"gate_no_vision",
 	"timeout":5,
-	"line_up_position":[242, -15, -25, 5.5],
+	"line_up_position":[47, 23, 22, 4.0],
 	"position_buffer_zone":2.0,
 	"depth_buffer_zone":0.1,
 	"yaw_buffer_zone":5,
