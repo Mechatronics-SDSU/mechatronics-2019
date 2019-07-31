@@ -82,8 +82,9 @@ class Vision(node_base):
         #Create a zed camera object
         self.zed = sl.Camera()
         self.zed_init_params = sl.InitParameters()
-        self.zed_init_params.camera_fps = 30 #set fps at 30
-
+        self.zed_init_params.camera_resolution = sl.RESOLUTION.RESOLUTION_HD720
+        self.zed_init_params.camera_fps = 30 #set fps at 15
+        self.zed_init_params.depth_mode = sl.DEPTH_MODE.DEPTH_MODE_NONE
         #Open the zed camera
         err = self.zed.open(self.zed_init_params)
         if(err != sl.ERROR_CODE.SUCCESS):
@@ -130,13 +131,13 @@ class Vision(node_base):
                 self.zed.retrieve_image(zed_image, sl.VIEW.VIEW_RIGHT)
 
                 #convert the image retrieved from the zed to numpy opencv image
-                byte_array = zed_image.get_data()
+                byte_frame = zed_image.get_data()
 
                 # Operations on the frame
                 '''
                 Yolo: Operations on Frame For Yolo
                 '''
-                if ret:
+                if True:
                     r = detect(self.net, self.meta, byte_frame)
                     #Savind detetion to class attribute
                     self.yolo_detections = r
@@ -146,7 +147,7 @@ class Vision(node_base):
                         x, y, w, h = i[2][0], i[2][1], i[2][2], i[2][3]
 
                         #Perform solve pnp calculations
-                        self.distance_calculator.set_coordinates(r, i, x, y, w, h)
+                        #self.distance_calculator.set_coordinates(r, i, x, y, w, h)
                         rotation, translation, distance = self.distance_calculator.calculate_distance()
                         xmin, ymin, xmax, ymax = convertBack(float(x), float(y), float(w), float(h))
                         pt1 = (xmin, ymin)
@@ -211,8 +212,7 @@ class Vision(node_base):
                     # amount of corruption on jpegs (not optimal)
                     #time.sleep(0) # check as appropriate
 
-            else:
-                time.sleep(0)
+            time.sleep(0.001)
 if __name__=='__main__':
 
     # Get network configurations for MechOS.
