@@ -12,8 +12,7 @@ from PyQt5.QtWidgets import QWidget, QApplication, QGridLayout, QLineEdit, QLabe
 from PyQt5.QtGui import QColor
 from PyQt5.QtCore import Qt, QTimer
 import waypoint_mission_widget
-
-
+from missionPlanner import MissionPlanner
 
 class mission_planner_main_GUI(QWidget):
 
@@ -52,14 +51,19 @@ class mission_planner_main_GUI(QWidget):
         self.select_new_button = QPushButton("New Mission")
         self.select_new_button.setStyleSheet("background-color:#2A7E43; color:#E8FFE8")
         #self.select_load_button.clicked.connect(self.mission_editor("load")) #connect here
-        #self.select_new_button.clicked.connect()#self.mission_editor("new")) #connect here
-
+        self.select_new_button.clicked.connect(self.setNewMission)
 
         #Add text boxs and line edit displays to layout
         self.orientation_layout.addWidget(self.select_load_button, 0, 0)
         self.orientation_layout.addWidget(self.select_new_button, 0, 1)
         
         self.linking_layout.addLayout(self.orientation_layout, 1)
+
+
+    def setNewMission(self):
+
+        self.newMission = MissionPlanner()
+        self.newMission.show()
 
 if __name__ == "__main__":
     main_app = QApplication([])

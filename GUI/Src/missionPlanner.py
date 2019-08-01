@@ -3,17 +3,19 @@ import sys
 import os
 import pysftp
 from PyQt5 import uic
+import json
 
 class MissionPlanner(QtWidgets.QWidget):
 
-    def __init__(self, host, username, password):
+    #def __init__(self, host, username, password):
+    def __init__(self):
 
         QtWidgets.QWidget.__init__(self)
 
-        self.host = host
-        self.username = username
-        self.password = password
-        self.server_connection = pysftp.Connection(host=self.host, username=self.username, password=self.password)
+        #self.host = host
+        #self.username = username
+        #self.password = password
+        #self.server_connection = pysftp.Connection(host=self.host, username=self.username, password=self.password)
         self.foreign_filepath = "mechatronics-2019/Sub/Src/Mission/MissionFiles/tests/"
         self.local_filepath = None
         self.file_list = None
@@ -75,6 +77,50 @@ class SetGate(QtWidgets.QWidget):
         self.set_gate_no_vision = uic.loadUi("set_gate_no_vision_widget.ui", self)
         self.set_gate_no_vision.show()
 
+        self.set_gate_no_vision.pushButton.clicked.connect(self.saveGateTask)
+
+    #def setData(self):
+
+        #Fill in l8er
+
+    def getGateData(self):
+
+        self.name = self.set_gate_no_vision.lineEdit.text() #Name
+        self.timeout = self.set_gate_no_vision.lineEdit_2.text() #Timeout
+        self.desiredYaw = self.set_gate_no_vision.lineEdit_3.text() #Desired Yaw
+        self.desiredDepth = self.set_gate_no_vision.lineEdit_4.text() #Desired Depth
+        self.desiredX = self.set_gate_no_vision.lineEdit_5.text() #Desired X
+        self.desiredY = self.set_gate_no_vision.lineEdit_6.text() #Desired Y
+        self.posBuff = self.set_gate_no_vision.lineEdit_7.text() #Pos Buff
+        self.depthBuff = self.set_gate_no_vision.lineEdit_8.text() #Depth Buff
+        self.yawBuff = self.set_gate_no_vision.lineEdit_9.text() #Yaw Buff
+        self.stabilizationTime = self.set_gate_no_vision.lineEdit_10.text() #Stabilization time
+        self.fwdDistance = self.set_gate_no_vision.lineEdit_11.text() #Fwd Distance
+        self.torf = self.set_gate_no_vision.comboBox.currentText() #True or false
+    
+    def saveGateTask(self):
+
+        self.getGateData()
+
+        self.gate_task_data = {"Task_1": {"type": "Gate_No_Vision",
+        "name": self.name,
+        "timeout": self.timeout,
+        "line_up_position":[self.desiredYaw, self.desiredDepth, self.desiredX, self.desiredY],
+        "position_buffer_zone": self.posBuff,
+        "depth_buffer_zone": self.depthBuff,
+        "yaw_buffer_zone": self.yawBuff,
+        "stabilization_time": self.stabilizationTime, 
+        "move_forward_dist": self.fwdDistance,
+        "go_through_gate_backwards": self.torf
+        }}
+
+        #self.gate_task_data_json = json.dumps(self.gate_task_data)
+
+        with open('gateTask.txt', 'w') as json_file:
+            json.dump(self.gate_task_data, json_file)
+
+        self.set_gate_no_vision.close()
+
 class WaypointTask(QtWidgets.QWidget):
 
     def __init__(self):
@@ -84,6 +130,8 @@ class WaypointTask(QtWidgets.QWidget):
         #Call in the ui for waypoint_task_widget
         self.waypoint_task = uic.loadUi("waypoint_task_widget.ui", self)
         self.waypoint_task.show()
+
+        self.set_gate_no_vision.pushButton.clicked.connect(self.saveGateTask)
 
 if __name__ == "__main__":
 
