@@ -55,8 +55,13 @@ class mission_planner_main_GUI(QWidget):
 
         self.select_new_button = QPushButton("New Mission")
         self.select_new_button.setStyleSheet("background-color:#2A7E43; color:#E8FFE8")
+        
+        self.send_missions_button = QPushButton("Send Missions")
+        self.send_missions_button.setStyleSheet("background-color:#800000; color:#E8FFE8")
+
         self.select_load_button.clicked.connect(self.setOldMission)
         self.select_new_button.clicked.connect(self.setNewMission)
+        #self.send_missions_button.clicked.connect() SHAFI THIS ONE IS FOR YOU BABY
 
         self.available_missions = QListWidget()
         self.available_missions.addItems(subfolders)
@@ -67,6 +72,8 @@ class mission_planner_main_GUI(QWidget):
         self.orientation_layout.addWidget(self.select_load_button, 0, 0)
         self.orientation_layout.addWidget(self.select_new_button, 0, 1)
         self.orientation_layout.addWidget(self.available_missions,1,0)
+        self.orientation_layout.addWidget(self.send_missions_button,2,1)
+
         
         self.linking_layout.addLayout(self.orientation_layout, 1)
 
