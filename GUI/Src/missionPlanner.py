@@ -29,11 +29,11 @@ class MissionPlanner(QtWidgets.QWidget):
         self.task_selector_widget.selectorBox.currentIndexChanged.connect(self.taskSelected)
         self.task_selector_widget.saveButton.clicked.connect(self.saveMission)
 
-    def displayMission(self):
+    def displayMission(self, missionName):
 
         #filename = 'C:/Users/cfior/Desktop/GITS/mechatronics-2019/GUI/Src/MissionFiles/Auto_Test/mission.json'
         cwd = os.getcwd()
-        filename = '/MissionFiles/Auto_Test/mission.json'
+        filename = '/MissionFiles/' + missionName + '/mission.json'
         with open(cwd + filename) as f:
             json_data = json.load(f)
             json_data_new = json.dumps(json_data, indent = 4)

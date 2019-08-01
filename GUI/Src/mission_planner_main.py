@@ -61,6 +61,7 @@ class mission_planner_main_GUI(QWidget):
         self.available_missions = QListWidget()
         self.available_missions.addItems(subfolders)
         self.available_missions.show()
+        self.available_missions.currentItemChanged.connect(self.selectedMission)
 
         #Add text boxs and line edit displays to layout
         self.orientation_layout.addWidget(self.select_load_button, 0, 0)
@@ -69,6 +70,8 @@ class mission_planner_main_GUI(QWidget):
         
         self.linking_layout.addLayout(self.orientation_layout, 1)
 
+    def selectedMission(self):
+        self.missionSelected = self.available_missions.currentItem().text()
 
     def setNewMission(self):
 
@@ -82,7 +85,8 @@ class mission_planner_main_GUI(QWidget):
         self.oldMission = MissionPlanner()
         self.oldMission.show()
         self.oldMission.isLoadedMission = True
-        self.oldMission.displayMission()
+        print("mission selected: " + self.missionSelected)
+        self.oldMission.displayMission(self.missionSelected)
 
 if __name__ == "__main__":
     main_app = QApplication([])

@@ -18,7 +18,7 @@
     },
     "Task_2": {
         "depth_buffer_zone": "0.1",
-        "name": "test_waypoint_task",
+        "name": "test_task",
         "position_buffer_zone": "2.0",
         "timeout": "5",
         "type": "Waypoint",
