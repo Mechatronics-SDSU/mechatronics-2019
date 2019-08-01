@@ -52,22 +52,22 @@
                 <max_error>100</max_error>
             </pitch_pid>
             <yaw_pid>
-                <p>0.5</p>
+                <p>0.52</p>
                 <i>0.0</i>
                 <d>0.0</d>
                 <min_error>-40</min_error>
                 <max_error>40</max_error>
             </yaw_pid>
             <x_pid>
-                <p>10.0</p>
-                <i>0.0</i>
+                <p>10.8</p>
+                <i>0.01</i>
                 <d>0.0</d>
                 <min_error>-3</min_error>
                 <max_error>3</max_error>
             </x_pid>
             <y_pid>
-                <p>8.0</p>
-                <i>0.0</i>
+                <p>10.8</p>
+                <i>0.01</i>
                 <d>0.0</d>
 		<min_error>-3</min_error>
                 <max_error>3</max_error>
@@ -147,7 +147,7 @@
     </Vision>
     <Missions>
       <waypoint_collect_file>/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/Pool_B_Waypoints/waypoints.csv</waypoint_collect_file>
-      <mission_file>/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/Pool_B_Waypoints/mission.json</mission_file>
+      <mission_file>/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/Pool_A_Waypoints/mission.json</mission_file>
 
     </Missions>
 </Perseverance>

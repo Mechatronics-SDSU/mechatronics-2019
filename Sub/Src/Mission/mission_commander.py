@@ -169,7 +169,7 @@ class Mission_Commander(threading.Thread):
                 if(self.auto_serial.in_waiting):
                     auto_pressed = (self.auto_serial.read(13)).decode()
                     self.auto_serial.read(2) #Read the excess two bytes
-
+                    print(auto_pressed)
                     if(auto_pressed == "Auto Status:1" and self.mission_mode):
                         print("[INFO]: Mission Now Live")
                         self.mission_live = True

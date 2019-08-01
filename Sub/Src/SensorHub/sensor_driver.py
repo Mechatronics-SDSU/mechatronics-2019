@@ -191,7 +191,11 @@ class Sensor_Driver(threading.Thread):
 
             try:
                 self.sensor_driver_node.spin_once()
-                self.sensor_data = self._get_sensor_data()
+                sensor_data = self._get_sensor_data()
+
+                if(sensor_data != None):
+                    self.sensor_data = sensor_data
+
                 self.nav_data_publisher.publish(self.sensor_data)
 
 

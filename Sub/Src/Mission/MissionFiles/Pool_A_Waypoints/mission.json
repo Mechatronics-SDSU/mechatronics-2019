@@ -9,10 +9,10 @@
         "type": "Waypoint",
         "name": "pool_a_waypoints",
         "timeout":5,
-        "position_buffer_zone":2.0,
+        "position_buffer_zone":2,
         "depth_buffer_zone":0.1,
         "yaw_buffer_zone":8,
-        "waypoint_file": "/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/Pool_A_Waypoints/waypoints.csv"
+        "waypoint_file": "/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/Pool_A_Waypoints/waypoint.csv"
     }
 
 }
