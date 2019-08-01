@@ -109,10 +109,10 @@ class waypoint_task_GUI(QWidget):
     def getWaypointData(self):
         
         self.name = self.name_box.text() #Name
-        self.timeout = self.timeout_box.text() #Timeout needs to be integers/decimals
-        self.posBuff = self.pos_buff_box.text() #Pos Buff
-        self.depthBuff = self.depth_buff_box.text() #Depth Buff
-        self.yawBuff = self.yaw_buff_box.text() #Yaw Buff
+        self.timeout = float(self.timeout_box.text()) #Timeout needs to be integers/decimals
+        self.posBuff = float(self.pos_buff_box.text()) #Pos Buff
+        self.depthBuff = float(self.depth_buff_box.text()) #Depth Buff
+        self.yawBuff = float(self.yaw_buff_box.text()) #Yaw Buff
         self.waypointPath = self.waypoint_file_box.text() #Waypoint file path
         
     def saveWaypointTask(self):

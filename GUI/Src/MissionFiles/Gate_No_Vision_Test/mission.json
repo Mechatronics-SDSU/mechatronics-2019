@@ -1,12 +1,12 @@
 {
-    "Task_3": {
-        "depth_buffer_zone": "0.1",
+    "Task_4": {
+        "depth_buffer_zone": 0.1,
         "name": "test_waypoint_task",
-        "position_buffer_zone": "2.0",
-        "timeout": "5",
+        "position_buffer_zone": 2.0,
+        "timeout": 5.0,
         "type": "Waypoint",
         "waypoint_file": "/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/GateQual/gate_2.csv",
-        "yaw_buffer_zone": "11"
+        "yaw_buffer_zone": 11.0
     },
     "Task_1": {
         "depth_buffer_zone": 0.1,
