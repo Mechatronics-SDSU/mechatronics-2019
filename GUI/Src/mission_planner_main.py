@@ -64,12 +64,15 @@ class mission_planner_main_GUI(QWidget):
 
         self.newMission = MissionPlanner()
         self.newMission.show()
+        self.newMission.isLoadedMission = False
+        self.newMission.getNewMission()
 
     def setOldMission(self):
 
         self.oldMission = MissionPlanner()
         self.oldMission.show()
         self.oldMission.isLoadedMission = True
+        self.oldMission.displayMission()
 
 if __name__ == "__main__":
     main_app = QApplication([])

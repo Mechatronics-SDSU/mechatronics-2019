@@ -75,7 +75,7 @@ class SetGate(QtWidgets.QWidget):
 
         #self.gate_task_data_json = json.dumps(self.gate_task_data)
 
-        with open('gateTask.txt', 'w') as json_file:
-            json.dump(self.gate_task_data, json_file)
+        #with open('gateTask.txt', 'w') as json_file:
+            #json.dump(self.gate_task_data, json_file)
 
         self.set_gate_no_vision.close()

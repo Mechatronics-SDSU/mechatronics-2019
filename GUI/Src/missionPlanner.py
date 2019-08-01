@@ -27,6 +27,21 @@ class MissionPlanner(QtWidgets.QWidget):
         #Call in the ui for mission select
         self.task_selector_widget = uic.loadUi("task_selector_widget.ui", self)
         self.task_selector_widget.selectorBox.currentIndexChanged.connect(self.taskSelected)
+        self.task_selector_widget.saveButton.clicked.connect(self.saveMission)
+
+    def displayMission(self):
+
+        filename = 'C:/Users/cfior/Desktop/GITS/mechatronics-2019/GUI/Src/MissionFiles/Auto_Test/mission.json'
+        with open(filename) as f:
+            json_data = json.load(f)
+            json_data_new = json.dumps(json_data, indent = 4)
+            self.plainTextEdit.setPlainText((str)(json_data_new))
+
+    def getNewMission(self):
+
+        path= os.getcwd()
+        print("current directory" + (str)(path))
+        self.setTaskNumber = 1
 
     def taskSelected(self):
 
@@ -70,6 +85,10 @@ class MissionPlanner(QtWidgets.QWidget):
 
     def kill_connection(self):
         self.server_connection.close()
+
+    def saveMission(self):
+        text = self.plainTextEdit.toPlainText()
+        #SAVE TEXT TO MISSION FILE
 
 
 if __name__ == "__main__":

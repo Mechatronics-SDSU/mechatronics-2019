@@ -114,6 +114,8 @@ class waypoint_task_GUI(QWidget):
 
         self.getWaypointData()
 
+        #data = {}
+
         self.waypoint_data = {"type": "Waypoint",
         "name": self.name,
         "timeout": self.timeout,
@@ -123,8 +125,10 @@ class waypoint_task_GUI(QWidget):
         "waypoint_file": self.waypointPath 
         }
 
-        with open('waypointTask.json', 'w') as json_file:
-            json.dump(self.waypoint_data, json_file)
+        #data['Task_1'] = self.waypoint_data
+        
+        with open('waypointTask.json') as json_file:
+            json_decoded = json.load(json_file)
 
     def setWaypointData(self):
 
@@ -139,9 +143,3 @@ class waypoint_task_GUI(QWidget):
                 self.depth_buff_box.setText((str)(self.loaded_waypoint_data["depth_buffer_zone"])) #Desired Depth
                 self.yaw_buff_box.setText((str)(self.loaded_waypoint_data["yaw_buffer_zone"])) #Desired X
                 self.waypoint_file_box.setText((str)(self.loaded_waypoint_data["waypoint_file"])) #Desired Y
-
-if __name__ == "__main__":
-    app = QApplication([])
-    set_pos_gui = waypoint_task_GUI()
-    set_pos_gui.show()
-    sys.exit(app.exec_())
