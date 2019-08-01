@@ -99,7 +99,7 @@ class SetGate(QtWidgets.QWidget):
         self.torf = self.set_gate_no_vision.comboBox.currentText() #True or false
     
     def saveGateTask(self):
-
+        print("saved?")
         self.getGateData()
 
         self.gate_task_data = {"Task_1": {"type": "Gate_No_Vision",

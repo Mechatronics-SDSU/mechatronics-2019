@@ -6,6 +6,7 @@ Author: Ramiz Hanan<ramizhana@gmail.com>
 Description: This module is a PyQt 5 widget used to set the parameters for a waypoint mission.
 '''
 import os
+import json
 import sys
 
 from PyQt5.QtWidgets import QWidget, QApplication, QGridLayout, QLineEdit, QLabel, QVBoxLayout, QPushButton
@@ -74,16 +75,7 @@ class waypoint_task_GUI(QWidget):
         self.waypoint_file_txt.setText("<font color='black'>Waypoint File</font>")
         self.waypoint_file_box = QLineEdit()
         self.waypoint_file_box.setText("/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/GateQual/gate_2.csv")
-        self.save_task_button = QPushButton("Save Task")
-        self.save_task_button.setStyleSheet("background-color:#2A7E43; color:#E8FFE8")
-        #self.save_task_button.clicked.connect()
-
-
-        self.cancel_task_button = QPushButton("Cancel")
-        self.cancel_task_button.setStyleSheet("background-color:#DBDB3A; color:#5A5A00")
-        #self.cancel_task_button.clicked.connect()
-
-
+        
         #Add text boxs and line edit displays to layout
         self.orientation_layout.addWidget(self.name_txt, 0, 0)
         self.orientation_layout.addWidget(self.name_box, 0, 1)
@@ -105,13 +97,38 @@ class waypoint_task_GUI(QWidget):
 
         self.select_add_button = QPushButton("Add task")
         self.select_add_button.setStyleSheet("background-color:#2A7E43; color:#E8FFE8")
-
+        self.select_add_button.clicked.connect(self.saveWaypointTask)
         #Add text boxs and line edit displays to layout
         self.orientation_layout.addWidget(self.select_cancel_button, 6, 0)
         self.orientation_layout.addWidget(self.select_add_button, 6, 1)
         
         self.linking_layout.addLayout(self.orientation_layout, 1)
 
+    def getWaypointData(self):
+        
+        self.name = self.name_box.text() #Name
+        self.timeout = self.timeout_box.text() #Timeout
+        self.posBuff = self.pos_buff_box.text() #Pos Buff
+        self.depthBuff = self.depth_buff_box.text() #Depth Buff
+        self.yawBuff = self.yaw_buff_box.text() #Yaw Buff
+        self.waypointPath = self.waypoint_file_box.text() #Waypoint file path
+        
+    def saveWaypointTask(self):
+        print("saved?")
+
+        self.getWaypointData()
+
+        self.waypoint_data = {"type": "Waypoint",
+        "name": self.name,
+        "timeout": self.timeout,
+        "position_buffer_zone": self.posBuff,
+        "depth_buffer_zone": self.depthBuff,
+        "yaw_buffer_zone": self.yawBuff,
+        "waypoint_file": self.waypointPath 
+        }
+
+        with open('waypointTask.json', 'w') as json_file:
+            json.dump(self.waypoint_data, json_file)
 
 
 if __name__ == "__main__":

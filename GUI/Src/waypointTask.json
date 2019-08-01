@@ -1,0 +1,9 @@
+{
+    "type": "Waypoint",
+    "name": "test_waypoint_task", 
+    "timeout": "5", 
+    "position_buffer_zone": "2.0", 
+    "depth_buffer_zone": "0.1", 
+    "yaw_buffer_zone": "11", 
+    "waypoint_file": "/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/GateQual/gate_2.csv"
+}
