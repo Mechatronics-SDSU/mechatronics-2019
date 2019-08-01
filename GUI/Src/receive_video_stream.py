@@ -46,11 +46,11 @@ class Receive_Video_Stream(node_base):
         node_base.__init__(self, MEM, IP)
 
         # Data Size Per Packet
-        self.MAX_UDP_PACKET_SIZE = 1500
+        self.MAX_UDP_PACKET_SIZE = 2840
 
         # Resize image
         self.resize_image = True
-        self.scale_percent = 100
+        self.scale_percent = 150
 
         # Collect Images (Switch to False for speed)
         self.save_image = True
@@ -128,7 +128,7 @@ if __name__=='__main__':
     RECV_SOCK   = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     # IP initialization
-    IP_ADDRESS = (configs["video_ip"], int(configs["video_port"]))
+    IP_ADDRESS = (configs["video_ip"], 6666)
     RECV_SOCK.bind((IP_ADDRESS))
 
     IP ={'CAMERA':
