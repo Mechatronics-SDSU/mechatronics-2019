@@ -1,7 +1,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import sys
 import os
-import pysftp
 from PyQt5 import uic
 import json
 from setGateWidget import SetGate
@@ -18,9 +17,6 @@ class MissionPlanner(QtWidgets.QWidget):
         #self.username = username
         #self.password = password
         #self.server_connection = pysftp.Connection(host=self.host, username=self.username, password=self.password)
-        self.foreign_filepath = "mechatronics-2019/Sub/Src/Mission/MissionFiles/tests/"
-        self.local_filepath = None
-        self.file_list = None
         self.taskNumber = 0
 
         self.isLoadedMission = False
@@ -80,27 +76,8 @@ class MissionPlanner(QtWidgets.QWidget):
         self.waypoint.filePath = os.getcwd() + '/exampleWaypointTask.json' #ADD FILE PATH HERE
         self.waypoint.setWaypointData()
 
-    def send_file(self):
-        index = self.local_filepath.rfind('/')
-        try:
-            self.server_connection.put(self.local_filepath, self.foreign_filepath + (self.local_filepath[index::]))
-        except Exception as e:
-            print("[ERROR]: File not found!!!", e)
-
-    def receive_file(self):
-        self.file_list = self.server_connection.listdir(self.foreign_filepath)
-        for filename in self.file_list:
-            if filename.endswith('.json'):
-                try:
-                    self.server_connection.get(self.foreign_filepath + filename, self.local_filepath + filename)
-                except Exception as e:
-                    print("[ERROR]: Filepath not found!!!", e)
-
-    def kill_connection(self):
-        self.server_connection.close()
-
     def saveMission(self):
-        
+
         cwd = os.getcwd()
         path = cwd + self.filename
         '''
@@ -111,7 +88,7 @@ class MissionPlanner(QtWidgets.QWidget):
         print("about to be saved:" + temp)
 
         with open(path, 'w') as f:
-            json.dump(temp, f)  
+            json.dump(temp, f)
         '''
         print(str(self.plainTextEdit.toPlainText()))
         with open(path, 'w') as file:
