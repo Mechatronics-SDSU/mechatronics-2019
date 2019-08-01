@@ -43,7 +43,7 @@
     <rect>
      <x>30</x>
      <y>30</y>
-     <width>181</width>
+     <width>500</width>
      <height>21</height>
     </rect>
    </property>
@@ -87,7 +87,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Cancel</string>
+    <string>Refresh</string>
    </property>
   </widget>
   <widget class="QLabel" name="listLabel_2">

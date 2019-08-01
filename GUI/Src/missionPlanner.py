@@ -21,6 +21,7 @@ class MissionPlanner(QtWidgets.QWidget):
         self.foreign_filepath = "mechatronics-2019/Sub/Src/Mission/MissionFiles/tests/"
         self.local_filepath = None
         self.file_list = None
+        self.taskNumber = 0
 
         self.isLoadedMission = False
 
@@ -28,13 +29,24 @@ class MissionPlanner(QtWidgets.QWidget):
         self.task_selector_widget = uic.loadUi("task_selector_widget.ui", self)
         self.task_selector_widget.selectorBox.currentIndexChanged.connect(self.taskSelected)
         self.task_selector_widget.saveButton.clicked.connect(self.saveMission)
+        self.task_selector_widget.saveButton_2.clicked.connect(self.refresh)
+
+    def refresh(self):
+        cwd = os.getcwd()
+        self.filename = '/MissionFiles/' + (str)(self.tempMissionName) + '/mission.json'
+        with open(cwd + self.filename) as f:
+            json_data = json.load(f)
+            json_data_new = json.dumps(json_data, indent = 4)
+            self.plainTextEdit.setPlainText((str)(json_data_new))
 
     def displayMission(self, missionName):
+        self.tempMissionName = missionName
+        self.task_selector_widget.listLabel.setText("Loaded mission: " + self.tempMissionName)
 
         #filename = 'C:/Users/cfior/Desktop/GITS/mechatronics-2019/GUI/Src/MissionFiles/Auto_Test/mission.json'
         cwd = os.getcwd()
-        filename = '/MissionFiles/' + missionName + '/mission.json'
-        with open(cwd + filename) as f:
+        self.filename = '/MissionFiles/' + (str)(self.tempMissionName) + '/mission.json'
+        with open(cwd + self.filename) as f:
             json_data = json.load(f)
             json_data_new = json.dumps(json_data, indent = 4)
             self.plainTextEdit.setPlainText((str)(json_data_new))
@@ -43,7 +55,6 @@ class MissionPlanner(QtWidgets.QWidget):
 
         path= os.getcwd()
         print("current directory" + (str)(path))
-        self.setTaskNumber = 1
 
     def taskSelected(self):
 
@@ -63,7 +74,7 @@ class MissionPlanner(QtWidgets.QWidget):
     def waypoint_task_selected(self):
 
         #Call in the ui for waypoint_task_widget
-        self.waypoint = waypoint_task_GUI()
+        self.waypoint = waypoint_task_GUI(self.tempMissionName)
         self.waypoint.show()
         self.waypoint.isLoadedMission = self.isLoadedMission
         self.waypoint.filePath = os.getcwd() + '/exampleWaypointTask.json' #ADD FILE PATH HERE
@@ -89,7 +100,23 @@ class MissionPlanner(QtWidgets.QWidget):
         self.server_connection.close()
 
     def saveMission(self):
+        
+        cwd = os.getcwd()
+        path = cwd + self.filename
+        '''
         text = self.plainTextEdit.toPlainText()
+        text = text.replace('\n', '').replace('\r', '').replace(' ','').strip('"')
+
+        temp = json.dumps(text, sort_keys=True, indent=4)
+        print("about to be saved:" + temp)
+
+        with open(path, 'w') as f:
+            json.dump(temp, f)  
+        '''
+        print(str(self.plainTextEdit.toPlainText()))
+        with open(path, 'w') as file:
+            file.write(str(self.plainTextEdit.toPlainText()))
+
         #SAVE TEXT TO MISSION FILE
 
 

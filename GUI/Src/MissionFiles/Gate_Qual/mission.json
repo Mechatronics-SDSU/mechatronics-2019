@@ -10,6 +10,7 @@
 	"stabilization_time":10.5,
 	"move_forward_dist":15,
 	"go_through_gate_backwards":false
+
     },
     "Task_2":{
         "type": "Waypoint",

@@ -16,7 +16,7 @@ from PyQt5.QtCore import Qt, QTimer
 
 class waypoint_task_GUI(QWidget):
 
-    def __init__(self): #pass mission name, task number
+    def __init__(self, missionName): #pass mission name, task number
         '''
         Initialize the Waypoint task parameter GUI
 
@@ -32,6 +32,7 @@ class waypoint_task_GUI(QWidget):
 
         self.isLoadedMission = False
         self.filePath = None
+        self.missionName = missionName
 
     def _desired_waypoint_inputs(self):
         '''
@@ -91,6 +92,7 @@ class waypoint_task_GUI(QWidget):
 
         self.select_cancel_button = QPushButton("Cancel task")
         self.select_cancel_button.setStyleSheet("background-color:#999900; color:#E8FFE8")
+        self.select_cancel_button.clicked.connect(self.cancel)
 
         self.select_add_button = QPushButton("Add task")
         self.select_add_button.setStyleSheet("background-color:#2A7E43; color:#E8FFE8")
@@ -101,6 +103,9 @@ class waypoint_task_GUI(QWidget):
         
         self.linking_layout.addLayout(self.orientation_layout, 1)
 
+    def cancel(self):
+        self.close()
+        
     def getWaypointData(self):
         
         self.name = self.name_box.text() #Name
@@ -126,17 +131,19 @@ class waypoint_task_GUI(QWidget):
         }
 
         cwd = os.getcwd()
-        filepath = "/MissionFiles/Auto_Test/mission.json"
+        filepath = "/MissionFiles/"+ self.missionName +"/mission.json"
         path = cwd + filepath
         with open(path, 'r') as f:
             data = json.loads(f.read()) #data becomes a dictionary
 
         #do things with data here
-        data['Task_2'] = self.waypoint_data
+        data['Task_'] = self.waypoint_data
 
         #and then just write the data back on the file
         with open(path, 'w') as f:
             f.write(json.dumps(data, sort_keys=True, indent=4, separators=(',', ': ')))
+
+        self.close()
 
         '''
         with open(cwd + filepath) as json_file:
