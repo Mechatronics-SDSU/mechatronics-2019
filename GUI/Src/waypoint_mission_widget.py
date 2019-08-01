@@ -30,6 +30,9 @@ class waypoint_task_GUI(QWidget):
         self.setFixedWidth(1000)
         self._desired_waypoint_inputs()
 
+        self.isLoadedMission = False
+        self.filePath = None
+
     def _desired_waypoint_inputs(self):
         '''
         Set up the layout grid for displaying waypoint parameter inputs
@@ -49,32 +52,26 @@ class waypoint_task_GUI(QWidget):
         self.name_txt = QLabel()
         self.name_txt.setText("<font color='black'>Name</font>")
         self.name_box = QLineEdit()
-        self.name_box.setText("test_waypoint_task")
 
         self.timeout_txt = QLabel()
         self.timeout_txt.setText("<font color='black'>Timeout</font>")
         self.timeout_box = QLineEdit()
-        self.timeout_box.setText("5")
 
         self.pos_buff_txt = QLabel()
         self.pos_buff_txt.setText("<font color='black'>Position Buffer Zone</font>")
         self.pos_buff_box = QLineEdit()
-        self.pos_buff_box.setText("2.0")
 
         self.depth_buff_txt = QLabel()
         self.depth_buff_txt.setText("<font color='black'>Depth Buffer Zone</font>")
         self.depth_buff_box = QLineEdit()
-        self.depth_buff_box.setText("0.1")
 
         self.yaw_buff_txt = QLabel()
         self.yaw_buff_txt.setText("<font color='black'>Yaw Buffer Zone</font>")
         self.yaw_buff_box = QLineEdit()
-        self.yaw_buff_box.setText("11")
 
         self.waypoint_file_txt = QLabel()
         self.waypoint_file_txt.setText("<font color='black'>Waypoint File</font>")
         self.waypoint_file_box = QLineEdit()
-        self.waypoint_file_box.setText("/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/GateQual/gate_2.csv")
         
         #Add text boxs and line edit displays to layout
         self.orientation_layout.addWidget(self.name_txt, 0, 0)
@@ -114,7 +111,6 @@ class waypoint_task_GUI(QWidget):
         self.waypointPath = self.waypoint_file_box.text() #Waypoint file path
         
     def saveWaypointTask(self):
-        print("saved?")
 
         self.getWaypointData()
 
@@ -130,6 +126,19 @@ class waypoint_task_GUI(QWidget):
         with open('waypointTask.json', 'w') as json_file:
             json.dump(self.waypoint_data, json_file)
 
+    def setWaypointData(self):
+
+        if self.isLoadedMission == True:
+
+            with open(self.filePath, 'r') as json_file:
+                self.loaded_waypoint_data = json.load(json_file)
+
+                self.name_box.setText((str)(self.loaded_waypoint_data['name'])) #Name
+                self.timeout_box.setText((str)(self.loaded_waypoint_data["timeout"])) #Timeout
+                self.pos_buff_box.setText((str)(self.loaded_waypoint_data["position_buffer_zone"])) #Desired Yaw
+                self.depth_buff_box.setText((str)(self.loaded_waypoint_data["depth_buffer_zone"])) #Desired Depth
+                self.yaw_buff_box.setText((str)(self.loaded_waypoint_data["yaw_buffer_zone"])) #Desired X
+                self.waypoint_file_box.setText((str)(self.loaded_waypoint_data["waypoint_file"])) #Desired Y
 
 if __name__ == "__main__":
     app = QApplication([])

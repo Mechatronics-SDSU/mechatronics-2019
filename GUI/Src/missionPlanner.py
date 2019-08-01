@@ -5,7 +5,7 @@ import pysftp
 from PyQt5 import uic
 import json
 from setGateWidget import SetGate
-#from setWaypointWidget import WaypointTask
+from waypoint_mission_widget import waypoint_task_GUI
 
 class MissionPlanner(QtWidgets.QWidget):
 
@@ -27,9 +27,6 @@ class MissionPlanner(QtWidgets.QWidget):
         #Call in the ui for mission select
         self.task_selector_widget = uic.loadUi("task_selector_widget.ui", self)
         self.task_selector_widget.selectorBox.currentIndexChanged.connect(self.taskSelected)
-        self.task_selector_widget.findFileButton.clicked.connect(self.getFile)
-        self.task_selector_widget.sendButton.clicked.connect(self.send_file)
-        self.task_selector_widget.receiveButton.clicked.connect(self.receive_file)
 
     def taskSelected(self):
 
@@ -49,15 +46,11 @@ class MissionPlanner(QtWidgets.QWidget):
     def waypoint_task_selected(self):
 
         #Call in the ui for waypoint_task_widget
-        self.waypoint = WaypointTask()
+        self.waypoint = waypoint_task_GUI()
         self.waypoint.show()
         self.waypoint.isLoadedMission = self.isLoadedMission
+        self.waypoint.filePath = 'C:/Users/cfior/Desktop/GITS/mechatronics-2019/GUI/Src/exampleWaypointTask.json' #ADD FILE PATH HERE
         self.waypoint.setWaypointData()
-        self.waypoint.filePath = "none" #ADD FILE PATH HERE
-
-    def getFile(self):
-
-        self.local_filepath = str(self.task_selector_widget.findFileEditor.text())
 
     def send_file(self):
         index = self.local_filepath.rfind('/')
@@ -78,27 +71,6 @@ class MissionPlanner(QtWidgets.QWidget):
     def kill_connection(self):
         self.server_connection.close()
 
-'''
-class WaypointTask(QtWidgets.QWidget):
-
-    def __init__(self):
-
-        QtWidgets.QWidget.__init__(self)
-
-        #Call in the ui for waypoint_task_widget
-        self.waypoint_task = uic.loadUi("waypoint_task_widget.ui", self)
-        self.waypoint_task.show()
-
-        self.set_gate_no_vision.pushButton.clicked.connect(self.saveGateTask)
-
-        self.isLoadedMission = False
-
-    def setWaypointData(self):
-
-    def getWaypointData(self):
-
-    def saveWaypointTask(self):
-'''
 
 if __name__ == "__main__":
 
