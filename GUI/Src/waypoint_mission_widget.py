@@ -99,6 +99,17 @@ class waypoint_task_GUI(QWidget):
         self.orientation_layout.addWidget(self.waypoint_file_box, 5, 1)
         #self.orientation_layout.addWidget(self.send_position_button, 6, 8)
         #self.orientation_layout.addWidget(self.zero_position_button, 6, 9)
+
+        self.select_cancel_button = QPushButton("Cancel task")
+        self.select_cancel_button.setStyleSheet("background-color:#999900; color:#E8FFE8")
+
+        self.select_add_button = QPushButton("Add task")
+        self.select_add_button.setStyleSheet("background-color:#2A7E43; color:#E8FFE8")
+
+        #Add text boxs and line edit displays to layout
+        self.orientation_layout.addWidget(self.select_cancel_button, 6, 0)
+        self.orientation_layout.addWidget(self.select_add_button, 6, 1)
+        
         self.linking_layout.addLayout(self.orientation_layout, 1)
 
 
