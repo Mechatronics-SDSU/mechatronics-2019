@@ -4,6 +4,8 @@ import os
 import pysftp
 from PyQt5 import uic
 import json
+from setGateWidget import SetGate
+#from setWaypointWidget import WaypointTask
 
 class MissionPlanner(QtWidgets.QWidget):
 
@@ -19,6 +21,8 @@ class MissionPlanner(QtWidgets.QWidget):
         self.foreign_filepath = "mechatronics-2019/Sub/Src/Mission/MissionFiles/tests/"
         self.local_filepath = None
         self.file_list = None
+
+        self.isLoadedMission = False
 
         #Call in the ui for mission select
         self.task_selector_widget = uic.loadUi("task_selector_widget.ui", self)
@@ -38,11 +42,18 @@ class MissionPlanner(QtWidgets.QWidget):
         #Call in the ui for set_gate_no_vision_widget
         self.set_gate = SetGate()
         self.set_gate.show()
+        self.set_gate.isLoadedMission = self.isLoadedMission
+        self.set_gate.filePath =  'C:/Users/cfior/Desktop/GITS/mechatronics-2019/GUI/Src/exampleGateMission.json' #ADD FILE PATH HERE
+        self.set_gate.setGateData()
 
     def waypoint_task_selected(self):
+
         #Call in the ui for waypoint_task_widget
         self.waypoint = WaypointTask()
         self.waypoint.show()
+        self.waypoint.isLoadedMission = self.isLoadedMission
+        self.waypoint.setWaypointData()
+        self.waypoint.filePath = "none" #ADD FILE PATH HERE
 
     def getFile(self):
 
@@ -67,60 +78,7 @@ class MissionPlanner(QtWidgets.QWidget):
     def kill_connection(self):
         self.server_connection.close()
 
-class SetGate(QtWidgets.QWidget):
-
-    def __init__(self):
-
-        QtWidgets.QWidget.__init__(self)
-
-        #Call in the ui for set_gate_no_vision_widget
-        self.set_gate_no_vision = uic.loadUi("set_gate_no_vision_widget.ui", self)
-        self.set_gate_no_vision.show()
-
-        self.set_gate_no_vision.pushButton.clicked.connect(self.saveGateTask)
-
-    #def setData(self):
-
-        #Fill in l8er
-
-    def getGateData(self):
-
-        self.name = self.set_gate_no_vision.lineEdit.text() #Name
-        self.timeout = self.set_gate_no_vision.lineEdit_2.text() #Timeout
-        self.desiredYaw = self.set_gate_no_vision.lineEdit_3.text() #Desired Yaw
-        self.desiredDepth = self.set_gate_no_vision.lineEdit_4.text() #Desired Depth
-        self.desiredX = self.set_gate_no_vision.lineEdit_5.text() #Desired X
-        self.desiredY = self.set_gate_no_vision.lineEdit_6.text() #Desired Y
-        self.posBuff = self.set_gate_no_vision.lineEdit_7.text() #Pos Buff
-        self.depthBuff = self.set_gate_no_vision.lineEdit_8.text() #Depth Buff
-        self.yawBuff = self.set_gate_no_vision.lineEdit_9.text() #Yaw Buff
-        self.stabilizationTime = self.set_gate_no_vision.lineEdit_10.text() #Stabilization time
-        self.fwdDistance = self.set_gate_no_vision.lineEdit_11.text() #Fwd Distance
-        self.torf = self.set_gate_no_vision.comboBox.currentText() #True or false
-    
-    def saveGateTask(self):
-
-        self.getGateData()
-
-        self.gate_task_data = {"Task_1": {"type": "Gate_No_Vision",
-        "name": self.name,
-        "timeout": self.timeout,
-        "line_up_position":[self.desiredYaw, self.desiredDepth, self.desiredX, self.desiredY],
-        "position_buffer_zone": self.posBuff,
-        "depth_buffer_zone": self.depthBuff,
-        "yaw_buffer_zone": self.yawBuff,
-        "stabilization_time": self.stabilizationTime, 
-        "move_forward_dist": self.fwdDistance,
-        "go_through_gate_backwards": self.torf
-        }}
-
-        #self.gate_task_data_json = json.dumps(self.gate_task_data)
-
-        with open('gateTask.txt', 'w') as json_file:
-            json.dump(self.gate_task_data, json_file)
-
-        self.set_gate_no_vision.close()
-
+'''
 class WaypointTask(QtWidgets.QWidget):
 
     def __init__(self):
@@ -132,6 +90,15 @@ class WaypointTask(QtWidgets.QWidget):
         self.waypoint_task.show()
 
         self.set_gate_no_vision.pushButton.clicked.connect(self.saveGateTask)
+
+        self.isLoadedMission = False
+
+    def setWaypointData(self):
+
+    def getWaypointData(self):
+
+    def saveWaypointTask(self):
+'''
 
 if __name__ == "__main__":
 

@@ -50,7 +50,7 @@ class mission_planner_main_GUI(QWidget):
 
         self.select_new_button = QPushButton("New Mission")
         self.select_new_button.setStyleSheet("background-color:#2A7E43; color:#E8FFE8")
-        #self.select_load_button.clicked.connect(self.mission_editor("load")) #connect here
+        self.select_load_button.clicked.connect(self.setOldMission)
         self.select_new_button.clicked.connect(self.setNewMission)
 
         #Add text boxs and line edit displays to layout
@@ -64,6 +64,12 @@ class mission_planner_main_GUI(QWidget):
 
         self.newMission = MissionPlanner()
         self.newMission.show()
+
+    def setOldMission(self):
+
+        self.oldMission = MissionPlanner()
+        self.oldMission.show()
+        self.oldMission.isLoadedMission = True
 
 if __name__ == "__main__":
     main_app = QApplication([])
