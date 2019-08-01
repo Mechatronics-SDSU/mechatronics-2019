@@ -8,7 +8,7 @@ Description: This module allows to choose between loading existing mission or cr
 import os
 import sys
 
-from PyQt5.QtWidgets import QWidget, QApplication, QGridLayout, QLineEdit, QLabel, QVBoxLayout, QPushButton
+from PyQt5.QtWidgets import QWidget, QApplication, QGridLayout, QLineEdit, QLabel, QVBoxLayout, QPushButton, QListWidget
 from PyQt5.QtGui import QColor
 from PyQt5.QtCore import Qt, QTimer
 import waypoint_mission_widget
@@ -40,6 +40,11 @@ class mission_planner_main_GUI(QWidget):
         Returns:
             N/A
         '''
+
+        directory = os.getcwd() + "/MissionFiles"
+        subfolders = [f.name for f in os.scandir(directory) if f.is_dir() ]    
+        print(subfolders)
+
         orientation_txt = QLabel("<font color='black'>WELCOME TO MECHAMISSION PLANNER</font>")
         orientation_txt.setAlignment(Qt.AlignCenter)
         self.linking_layout.addWidget(orientation_txt, 0)
@@ -53,9 +58,14 @@ class mission_planner_main_GUI(QWidget):
         self.select_load_button.clicked.connect(self.setOldMission)
         self.select_new_button.clicked.connect(self.setNewMission)
 
+        self.available_missions = QListWidget()
+        self.available_missions.addItems(subfolders)
+        self.available_missions.show()
+
         #Add text boxs and line edit displays to layout
         self.orientation_layout.addWidget(self.select_load_button, 0, 0)
         self.orientation_layout.addWidget(self.select_new_button, 0, 1)
+        self.orientation_layout.addWidget(self.available_missions,1,0)
         
         self.linking_layout.addLayout(self.orientation_layout, 1)
 
@@ -68,7 +78,7 @@ class mission_planner_main_GUI(QWidget):
         self.newMission.getNewMission()
 
     def setOldMission(self):
-
+        
         self.oldMission = MissionPlanner()
         self.oldMission.show()
         self.oldMission.isLoadedMission = True

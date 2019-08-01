@@ -31,8 +31,10 @@ class MissionPlanner(QtWidgets.QWidget):
 
     def displayMission(self):
 
-        filename = 'C:/Users/cfior/Desktop/GITS/mechatronics-2019/GUI/Src/MissionFiles/Auto_Test/mission.json'
-        with open(filename) as f:
+        #filename = 'C:/Users/cfior/Desktop/GITS/mechatronics-2019/GUI/Src/MissionFiles/Auto_Test/mission.json'
+        cwd = os.getcwd()
+        filename = '/MissionFiles/Auto_Test/mission.json'
+        with open(cwd + filename) as f:
             json_data = json.load(f)
             json_data_new = json.dumps(json_data, indent = 4)
             self.plainTextEdit.setPlainText((str)(json_data_new))
@@ -55,7 +57,7 @@ class MissionPlanner(QtWidgets.QWidget):
         self.set_gate = SetGate()
         self.set_gate.show()
         self.set_gate.isLoadedMission = self.isLoadedMission
-        self.set_gate.filePath =  'C:/Users/cfior/Desktop/GITS/mechatronics-2019/GUI/Src/exampleGateMission.json' #ADD FILE PATH HERE
+        self.set_gate.filePath =  os.getcwd() + '/exampleGateMission.json' #ADD FILE PATH HERE
         self.set_gate.setGateData()
 
     def waypoint_task_selected(self):
@@ -64,7 +66,7 @@ class MissionPlanner(QtWidgets.QWidget):
         self.waypoint = waypoint_task_GUI()
         self.waypoint.show()
         self.waypoint.isLoadedMission = self.isLoadedMission
-        self.waypoint.filePath = 'C:/Users/cfior/Desktop/GITS/mechatronics-2019/GUI/Src/exampleWaypointTask.json' #ADD FILE PATH HERE
+        self.waypoint.filePath = os.getcwd() + '/exampleWaypointTask.json' #ADD FILE PATH HERE
         self.waypoint.setWaypointData()
 
     def send_file(self):

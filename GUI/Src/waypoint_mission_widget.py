@@ -16,7 +16,7 @@ from PyQt5.QtCore import Qt, QTimer
 
 class waypoint_task_GUI(QWidget):
 
-    def __init__(self):
+    def __init__(self): #pass mission name, task number
         '''
         Initialize the Waypoint task parameter GUI
 
@@ -104,7 +104,7 @@ class waypoint_task_GUI(QWidget):
     def getWaypointData(self):
         
         self.name = self.name_box.text() #Name
-        self.timeout = self.timeout_box.text() #Timeout
+        self.timeout = self.timeout_box.text() #Timeout needs to be integers/decimals
         self.posBuff = self.pos_buff_box.text() #Pos Buff
         self.depthBuff = self.depth_buff_box.text() #Depth Buff
         self.yawBuff = self.yaw_buff_box.text() #Yaw Buff
@@ -114,7 +114,7 @@ class waypoint_task_GUI(QWidget):
 
         self.getWaypointData()
 
-        #data = {}
+        data = {}
 
         self.waypoint_data = {"type": "Waypoint",
         "name": self.name,
@@ -125,10 +125,29 @@ class waypoint_task_GUI(QWidget):
         "waypoint_file": self.waypointPath 
         }
 
-        #data['Task_1'] = self.waypoint_data
-        
-        with open('waypointTask.json') as json_file:
+        cwd = os.getcwd()
+        filepath = "/MissionFiles/Auto_Test/mission.json"
+        path = cwd + filepath
+        with open(path, 'r') as f:
+            data = json.loads(f.read()) #data becomes a dictionary
+
+        #do things with data here
+        data['Task_2'] = self.waypoint_data
+
+        #and then just write the data back on the file
+        with open(path, 'w') as f:
+            f.write(json.dumps(data, sort_keys=True, indent=4, separators=(',', ': ')))
+
+        '''
+        with open(cwd + filepath) as json_file:
             json_decoded = json.load(json_file)
+
+        data['Task_2'] = self.waypoint_data
+
+        with open((cwd + filepath), 'w') as json_file:
+            json.dump(json_decoded, json_file)
+            '''
+
 
     def setWaypointData(self):
 
