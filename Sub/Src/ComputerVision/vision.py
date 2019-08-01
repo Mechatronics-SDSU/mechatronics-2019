@@ -10,6 +10,7 @@ Description: Vision (Cam Node) utilizes the neural network and Yolo for object
 detection of captured images, that are then sent over a socket to be captured by Recv Node.
 '''
 
+import PySpin
 import numpy as np
 import cv2
 import math
@@ -37,6 +38,46 @@ MESSAGE_TYPES_PATH = os.path.join("..", "..", "..", "Message_Types")
 sys.path.append(MESSAGE_TYPES_PATH)
 from neural_network_message import Neural_Network_Message
 
+class Camera:
+	def signalHandler(self, sig, frame):
+		print('Exiting')
+		self.__deinit__()
+		sys.exit(0)
+
+	def __init__(self):
+		self._system = PySpin.System.GetInstance()
+		# Get camera object
+		self._cam_list = self._system.GetCameras()
+		self._cam = self._cam_list.GetByIndex(0)
+		# Initialize camera/Node mode/color format
+		self._cam.Init()
+		node_map = self._cam.GetNodeMap()
+		node_acq_mode = PySpin.CEnumerationPtr(node_map.GetNode('AcquisitionMode'))
+		node_acq_mode_cont = node_acq_mode.GetEntryByName('Continuous')
+		acq_mode_cont = node_acq_mode_cont.GetValue()
+		node_acq_mode.SetIntValue(acq_mode_cont)
+		offset_x_node = PySpin.CIntegerPtr(node_map.GetNode('OffsetX'))
+		offset_y_node = PySpin.CIntegerPtr(node_map.GetNode('OffsetY'))	
+		width_node = PySpin.CIntegerPtr(node_map.GetNode('Width'))
+		height_node = PySpin.CIntegerPtr(node_map.GetNode('Height'))
+		offset_x_node.SetValue(0)
+		offset_y_node.SetValue(0)
+		width_node.SetValue(452)
+		height_node.SetValue(452)
+		self._cam.BeginAcquisition()
+
+	def get_image(self):
+		# every 3rd image is saved
+		image = self._cam.GetNextImage()
+		return image
+		#image.Release()
+
+	def __deinit__(self):
+		self._cam.EndAcquisition()
+		self._cam.DeInit()
+		del self._cam
+		self._cam_list.Clear()
+		self._system.ReleaseInstance()
 
 class Vision(node_base):
     '''
@@ -68,31 +109,19 @@ class Vision(node_base):
         self.neural_net_timer = float(self.param_serv.get_param("Timing/neural_network"))
 
         #--MESSAGING INFO--#
-        self.MAX_UDP_PACKET_SIZE = 1500
+        self.MAX_UDP_PACKET_SIZE = 2840
 
         # The end byte of the image sent over udp
         self.END_BYTE = bytes.fromhex('c0c0')*2
 
         # the Max Packet Size the Port will accept
-        self.MAX_PACKET_SIZE = 1500
+        self.MAX_PACKET_SIZE = 2840
 
         #--CAMERA INSTANCE--(using the zed camera)#
         #front_camera_index = int(self.param_serv.get_param("Vision/front_camera_index"))
         
         #Create a zed camera object
-        self.zed = sl.Camera()
-        self.zed_init_params = sl.InitParameters()
-        self.zed_init_params.camera_resolution = sl.RESOLUTION.RESOLUTION_HD720
-        self.zed_init_params.camera_fps = 30 #set fps at 15
-        self.zed_init_params.depth_mode = sl.DEPTH_MODE.DEPTH_MODE_NONE
-        #Open the zed camera
-        err = self.zed.open(self.zed_init_params)
-        if(err != sl.ERROR_CODE.SUCCESS):
-            exit(1)
-
-        # Maximum image size the Tegra allows without timeout
-        #self.capture.set(3, 450)
-        #self.capture.set(4, 450)
+        self.capture = Camera()
 
         # Neural Network Loaded from instance in darknet module
         darknet_path = self.param_serv.get_param("Vision/yolo/darknet_path")
@@ -118,20 +147,11 @@ class Vision(node_base):
         '''
         start_time = time.time()
 
-        #Capture the images in the byte frame
-        zed_image = sl.Mat()
-
-        zed_runtime_parameters = sl.RuntimeParameters()
-
         while(True):
             # Capture frame-by-frame
-            if self.zed.grab(zed_runtime_parameters) == sl.ERROR_CODE.SUCCESS:
-
-                #A new image is available if grab() returns SUCCESS
-                self.zed.retrieve_image(zed_image, sl.VIEW.VIEW_RIGHT)
-
-                #convert the image retrieved from the zed to numpy opencv image
-                byte_frame = zed_image.get_data()
+            byte_frame = self.capture.get_image()
+            byte_frame = np.array(byte_frame.GetData(), dtype="uint8").reshape(byte_frame.GetHeight(), byte_frame.GetWidth())
+            colored_byte_frame =  cv2.cvtColor(byte_frame, cv2.COLOR_BAYER_BG2BGR)
 
                 # Operations on the frame
                 '''
