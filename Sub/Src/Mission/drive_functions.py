@@ -177,7 +177,7 @@ class Drive_Functions:
 
             if not self.drive_functions_enabled:
                 print("[WARNING]: Cannot Execute drive function because the drive functions are disabled.")
-                return False, desired_depth
+                return False, current_position[5]
 
             if(timeout != None):
                 if(self.timeout_timer.net_timer() > timeout):
@@ -188,7 +188,7 @@ class Drive_Functions:
             current_position = self.sensor_data
 
         print("[INFO]: Move to depth succeeded to getting to depth:", desired_depth)
-        return True, desired_depth
+        return True, current_position[5]
 
 
     def move_to_face_position(self, north_position, east_position, buffer_zone=0.0, timeout=None, desired_orientation={}):
@@ -240,19 +240,19 @@ class Drive_Functions:
 
             if not self.drive_functions_enabled:
                 print("[WARNING]: Cannot Execute drive function because the drive functions are disabled.")
-                return False, desired_depth
+                return False, current_position[2]
 
             if(timeout != None):
                 if(self.timeout_timer.net_timer() > timeout):
                     print("[WARNING]: Move to face position timed out. Yaw Error:", yaw_error)
                     current_position = self.sensor_data
-                    return False, desired_yaw
+                    return False, current_position[2]
 
             current_position = self.sensor_data
             yaw_error = self.get_yaw_error(current_position[2], desired_yaw)
 
         print("[INFO]: Move to face position succeeded. Facing coordinate: (%0.2fft, %0.2fft)" % (north_position, east_position))
-        return True, desired_yaw
+        return True, current_position[2]
 
     def move_to_yaw(self, desired_yaw, buffer_zone=0.0, timeout=None, desired_orientation={}):
         '''
@@ -296,12 +296,12 @@ class Drive_Functions:
                 if(self.timeout_timer.net_timer() > timeout):
                     print("[WARNING]: Move to face position timed out. Yaw Error:", yaw_error)
                     current_position = self.sensor_data
-                    return False, desired_yaw
+                    return False, current_position[2]
 
             current_position = self.sensor_data
             yaw_error = self.get_yaw_error(current_position[2], desired_yaw)
 
-        return True, desired_yaw
+        return True, current_position[2]
 
     def move_to_position_hold_orientation(self, north_position, east_position, buffer_zone=0.0, timeout=None, desired_orientation={}):
         '''
@@ -351,12 +351,12 @@ class Drive_Functions:
                 if(self.timeout_timer.net_timer() > timeout):
                     print("[WARNING]: Move to position while holding orientatio timed out. Distance to position:", distance_to_position)
                     current_position = self.sensor_data
-                    return False, north_position, east_position
+                    return False, current_position[3], current_position[4]
             distance_to_position = self.get_distance_to_position(current_position[3], current_position[4], north_position, east_position)
             current_position = self.sensor_data
 
         print("[INFO]: Move to position while holding orientation succeeded. At position (%0.2fft, %0.2fft)" % (north_position, east_position))
-        return True, north_position, east_position
+        return True, current_position[3], current_position[4]
 
     def move_x_direction(self, distance_x, buffer_zone, timeout=None, desired_orientation={}):
         '''
