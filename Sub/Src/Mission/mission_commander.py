@@ -25,6 +25,7 @@ from drive_functions import Drive_Functions
 from waypoint_task import Waypoint_Task
 from gate_no_vision_task import Gate_No_Vision_Task
 from initial_dive_task import Initial_Dive_Task
+from buoy_task import Buoy_Task
 
 class Mission_Commander(threading.Thread):
     '''
@@ -221,7 +222,11 @@ class Mission_Commander(threading.Thread):
             elif(task_type == "Gate_No_Vision"):
                 gate_no_vision = Gate_No_Vision_Task(self.mission_data[task], self.drive_functions)
                 self.mission_tasks.append(gate_no_vision)
-
+            '''
+            elif(task_type == "Buoy_Mission"):
+                buoy_task = Buoy_Task(self.mission_data[task], self.drive_functions, self.neural_net_data)
+                self.mission_tasks.append(buoy_task)
+            '''
 
     def run(self):
         '''

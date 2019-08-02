@@ -12,6 +12,7 @@
         <backplane_handler>0.025</backplane_handler>
         <nav_controller>0.025</nav_controller>
         <neural_network>0.5</neural_network>
+        <detections_number>60</detections_number>
     </Timing>
     <Control>
         <max_thrust>60</max_thrust>

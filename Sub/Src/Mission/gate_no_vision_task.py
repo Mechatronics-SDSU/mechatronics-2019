@@ -23,7 +23,7 @@ class Gate_No_Vision_Task(Task):
     Drive through the gate using strictly waypoints. If the task cannot be completed
     in time, then the task will fail.
     '''
-    def __init__(self, task_dict,drive_functions):
+    def __init__(self, task_dict, drive_functions):
         '''
         Initialize the Gate task give the task description dictionary.
 
@@ -63,7 +63,7 @@ class Gate_No_Vision_Task(Task):
         self.yaw_buffer_zone = self.task_dict["yaw_buffer_zone"]
         self.stabilization_time = self.task_dict["stabilization_time"]
         self.move_forward_dist = self.task_dict["move_forward_dist"]
-        
+
         self.drive_functions = drive_functions
         #If true, then the sub will attempt to go through the gate backwards
         self.go_through_gate_backwards = self.task_dict["go_through_gate_backwards"]
