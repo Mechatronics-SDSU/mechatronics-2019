@@ -5,8 +5,9 @@ import numpy as np
 import math
 import json
 import csv
+import threading
 
-class Generate_Waypoint_Map:
+class Generate_Waypoint_Map(threading.Thread):
 
     def __init__(self, map_image, map_json, waypoint_save_file):
         '''
@@ -22,10 +23,14 @@ class Generate_Waypoint_Map:
         self.temporary_map_image = self.original_map_image.copy() #This is where stuff will be drawn intermediately
         self.waypointed_map_image = self.original_map_image.copy() #The map image with the drawn waypoints
 
+        threading.Thread.__init__(self)
+
         self.current_editing_index = 0
         with open(map_json, 'r') as read_map_json:
             map_data = json.load(read_map_json)
 
+        self.map_json = map_json
+        self.map_data = map_data
         self.pixel_distance_ratio = map_data["pixel_distance_ratio"]
         self.north_angle = map_data["north_angle"]
 
@@ -79,6 +84,8 @@ class Generate_Waypoint_Map:
         with open(map_json, 'r') as read_map_json:
             map_data = json.load(read_map_json)
 
+        self.map_json = map_json
+        self.map_data = map_data
         self.pixel_distance_ratio = map_data["pixel_distance_ratio"]
         self.north_angle = map_data["north_angle"]
 
@@ -281,7 +288,10 @@ class Generate_Waypoint_Map:
                         for index, waypoint in enumerate(self.waypoint_list[1:]):
                             waypoints_csv_writer.writerow([index, waypoint[2], waypoint[3], 4])
 
-
+                    #Save the origin position
+                    self.map_data["static_origin"] = self.waypoint_list[0][0:2]
+                    with open(self.map_json, 'w') as write_map_json:
+                        json.dump(self.map_data, write_map_json)
 
 
 if __name__ == "__main__":
