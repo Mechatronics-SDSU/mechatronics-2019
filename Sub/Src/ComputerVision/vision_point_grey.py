@@ -57,7 +57,7 @@ class Camera:
 		acq_mode_cont = node_acq_mode_cont.GetValue()
 		node_acq_mode.SetIntValue(acq_mode_cont)
 		offset_x_node = PySpin.CIntegerPtr(node_map.GetNode('OffsetX'))
-		offset_y_node = PySpin.CIntegerPtr(node_map.GetNode('OffsetY'))	
+		offset_y_node = PySpin.CIntegerPtr(node_map.GetNode('OffsetY'))
 		width_node = PySpin.CIntegerPtr(node_map.GetNode('Width'))
 		height_node = PySpin.CIntegerPtr(node_map.GetNode('Height'))
 		offset_x_node.SetValue(0)
@@ -69,7 +69,7 @@ class Camera:
 	def get_image(self):
 		# every 3rd image is saved
 		image = self._cam.GetNextImage()
-                image.Release()
+        image.Release()
 		return image
 
 	def __deinit__(self):
@@ -119,7 +119,7 @@ class Vision(node_base):
 
         #--CAMERA INSTANCE--(using the zed camera)#
         #front_camera_index = int(self.param_serv.get_param("Vision/front_camera_index"))
-        
+
         #Create a zed camera object
         self.capture = Camera()
 
