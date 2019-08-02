@@ -53,17 +53,17 @@ class Camera:
         self._cam.Init()
         node_map = self._cam.GetNodeMap()
         node_acq_mode = PySpin.CEnumerationPtr(node_map.GetNode('AcquisitionMode'))
-        node_acq_mode_cont = node_acq_mode.GetEntryByName('Continuous')
+        node_acq_mode_cont = node_acq_mode.GetEntryByName('SingleFrame')
         acq_mode_cont = node_acq_mode_cont.GetValue()
         node_acq_mode.SetIntValue(acq_mode_cont)
         offset_x_node = PySpin.CIntegerPtr(node_map.GetNode('OffsetX'))
         offset_y_node = PySpin.CIntegerPtr(node_map.GetNode('OffsetY'))    
         width_node = PySpin.CIntegerPtr(node_map.GetNode('Width'))
         height_node = PySpin.CIntegerPtr(node_map.GetNode('Height'))
-        offset_x_node.SetValue(0)
-        offset_y_node.SetValue(0)
-        width_node.SetValue(452)
-        height_node.SetValue(452)
+        offset_x_node.SetValue(254)
+        offset_y_node.SetValue(124)
+        width_node.SetValue(448)
+        height_node.SetValue(448)
         self._cam.BeginAcquisition()
 
     def get_image(self):
@@ -109,13 +109,11 @@ class Vision(node_base):
         self.neural_net_timer = float(self.param_serv.get_param("Timing/neural_network"))
 
         #--MESSAGING INFO--#
-        self.MAX_UDP_PACKET_SIZE = 2840
+        self.MAX_UDP_PACKET_SIZE = 65527
 
         # The end byte of the image sent over udp
         self.END_BYTE = bytes.fromhex('c0c0')*2
 
-        # the Max Packet Size the Port will accept
-        self.MAX_PACKET_SIZE = 2840
 
         #--CAMERA INSTANCE--(using the zed camera)#
         #front_camera_index = int(self.param_serv.get_param("Vision/front_camera_index"))
@@ -153,86 +151,86 @@ class Vision(node_base):
             byte_frame = np.array(byte_frame.GetData(), dtype="uint8").reshape(byte_frame.GetHeight(), byte_frame.GetWidth())
             colored_byte_frame =  cv2.cvtColor(byte_frame, cv2.COLOR_BAYER_BG2BGR)
 
-        # Operations on the frame
-        '''
-        Yolo: Operations on Frame For Yolo
-        '''
-        if True:
-            r = detect(self.net, self.meta, byte_frame)
-            #Savind detetion to class attribute
-            self.yolo_detections = r
-
-            #Draw detections in photo
-            for i in r:
-                x, y, w, h = i[2][0], i[2][1], i[2][2], i[2][3]
-
-                #Perform solve pnp calculations
-                #self.distance_calculator.set_coordinates(r, i, x, y, w, h)
-                rotation, translation, distance = self.distance_calculator.calculate_distance()
-                xmin, ymin, xmax, ymax = convertBack(float(x), float(y), float(w), float(h))
-                pt1 = (xmin, ymin)
-                pt2 = (xmax, ymax)
-                cv2.rectangle(byte_frame, pt1, pt2, (0, 255, 0), 2)
-                cv2.putText(byte_frame, i[0].decode() + " [" + str(round(i[1] * 100, 2)) + "]", (pt1[0], pt1[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 1, [0, 255, 0], 4)
-                cv2.putText(byte_frame, "[" + str(round(distance, 2)) + "ft]", (pt2[0], pt1[1] + 40), cv2.FONT_HERSHEY_SIMPLEX, 1, [0,127, 127], 4)
-                label = i[0].decode("utf-8")
-                detection_data = [label.encode("utf-8"),
-                                            i[1],
-                                            i[2][0],
-                                            i[2][1],
-                                            i[2][2],
-                                            i[2][3],
-                                            rotation[0],
-                                            rotation[1],
-                                            rotation[2],
-                                            translation[0],
-                                            translation[1],
-                                            translation[2]]
-
-                if ((time.time() - start_time) >= self.neural_net_timer):
-                    self.neural_net_publisher.publish(detection_data) #Send the detection data
-                    start_time = time.time()
-
-            # Get the Size of the image
-            image_size = sys.getsizeof(byte_frame)
-
-        # Capture Bytes
-        ret, byte_frame = cv2.imencode( '.jpg', byte_frame )
-
-        # Sending The Frame
-        if ret:
-            imageBuffer = io.BytesIO(byte_frame)
-
-            number_of_packets = math.ceil(image_size/self.MAX_UDP_PACKET_SIZE)
-            packet_size = math.ceil(image_size/number_of_packets)
-
-            # Uncomment for Manual Control of Send Speed:
-
-            #info_print=
+            # Operations on the frame
             '''
-            IMAGE  SIZE:       {}
-            PACKET SIZE:       {}
-            NUMBER OF PACKETS: {}
+            Yolo: Operations on Frame For Yolo
             '''
-            #.format(image_size, packet_size, number_of_packets)
+            if(True):
+                r = detect(self.net, self.meta, colored_byte_frame)
+                #Savind detetion to class attribute
+                self.yolo_detections = r
 
-            #print(info_print)
-            #input('Press Enter to Continue...')
+                #Draw detections in photo
+                #for i in r:
+                #    x, y, w, h = i[2][0], i[2][1], i[2][2], i[2][3]
 
-            # Count out the number of packets that need to be sent
-            for count_var in range(0, number_of_packets):
+                #    #Perform solve pnp calculations
+                #    #self.distance_calculator.set_coordinates(r, i, x, y, w, h)
+                #    #rotation, translation, distance = self.distance_calculator.calculate_distance()
+                #    xmin, ymin, xmax, ymax = convertBack(float(x), float(y), float(w), float(h))
+                #    pt1 = (xmin, ymin)
+                #    pt2 = (xmax, ymax)
+                #    cv2.rectangle(colored_byte_frame, pt1, pt2, (0, 255, 0), 2)
+                #    cv2.putText(colored_byte_frame, i[0].decode() + " [" + str(round(i[1] * 100, 2)) + "]", (pt1[0], pt1[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 1, [0, 255, 0], 4)
+                #    cv2.putText(colored_byte_frame, "[" + str(round(distance, 2)) + "ft]", (pt2[0], pt1[1] + 40), cv2.FONT_HERSHEY_SIMPLEX, 1, [0,127, 127], 4)
+                #    label = i[0].decode("utf-8")
+                #    detection_data = [label.encode("utf-8"),
+                #                                i[1],
+                #                                i[2][0],
+                #                                i[2][1],
+                #                                i[2][2],
+                #                                i[2][3],
+                #                                rotation[0],
+                #                                rotation[1],
+                #                                rotation[2],
+                #                                translation[0],
+                #                                translation[1],
+                #                                translation[2]]
 
-                self._send(imageBuffer.read(packet_size), 'CAMERA', local=False, foreign=True)
+                #    if ((time.time() - start_time) >= self.neural_net_timer):
+                #        self.neural_net_publisher.publish(detection_data) #Send the detection data
+                #        start_time = time.time()
 
-            # EOF packet for encapsulation
-            self._send(self.END_BYTE, 'CAMERA', local=False, foreign=True)
+                # Get the Size of the image
+            image_size = sys.getsizeof(colored_byte_frame)
 
-            # Image Corruption decreases as sleep time increases (inversely proportional)
-            # this time.sleep is a manual fix balacing speed and the least
-            # amount of corruption on jpegs (not optimal)
-            #time.sleep(0) # check as appropriate
+            # Capture Bytes
+            ret, colored_byte_frame = cv2.imencode( '.jpg', colored_byte_frame )
 
-            time.sleep(0.001)
+            # Sending The Frame
+            if ret:
+                imageBuffer = io.BytesIO(colored_byte_frame)
+
+                number_of_packets = math.ceil(image_size/self.MAX_UDP_PACKET_SIZE)
+                packet_size = math.ceil(image_size/number_of_packets)
+
+                # Uncomment for Manual Control of Send Speed:
+
+                #info_print=
+                '''
+                IMAGE  SIZE:       {}
+                PACKET SIZE:       {}
+                NUMBER OF PACKETS: {}
+                '''
+                #.format(image_size, packet_size, number_of_packets)
+
+                #print(info_print)
+                #input('Press Enter to Continue...')
+
+                # Count out the number of packets that need to be sent
+                for count_var in range(0, number_of_packets):
+
+                    self._send(imageBuffer.read(packet_size), 'CAMERA', local=False, foreign=True)
+
+                # EOF packet for encapsulation
+                self._send(self.END_BYTE, 'CAMERA', local=False, foreign=True)
+
+                # Image Corruption decreases as sleep time increases (inversely proportional)
+                # this time.sleep is a manual fix balacing speed and the least
+                # amount of corruption on jpegs (not optimal)
+                #time.sleep(0) # check as appropriate
+
+                # time.sleep(0.001)
 if __name__=='__main__':
 
     # Get network configurations for MechOS.
