@@ -45,7 +45,7 @@ class Camera:
 		sys.exit(0)
 
 	def __init__(self):
-		self._system = PySpin.System.GetInstance()
+        self._system = PySpin.System.GetInstance()
 		# Get camera object
 		self._cam_list = self._system.GetCameras()
 		self._cam = self._cam_list.GetByIndex(0)
