@@ -39,45 +39,45 @@ sys.path.append(MESSAGE_TYPES_PATH)
 from neural_network_message import Neural_Network_Message
 
 class Camera:
-	def signalHandler(self, sig, frame):
-		print('Exiting')
-		self.__deinit__()
-		sys.exit(0)
+    def signalHandler(self, sig, frame):
+        print('Exiting')
+        self.__deinit__()
+        sys.exit(0)
+    def __init__(self):
+        self._system = PySpin.System.GetInstance()
+        # Get camera object
+        self._cam_list = self._system.GetCameras()
+        self._cam = self._cam_list.GetByIndex(0)
+        # Initialize camera/Node mode/color format
+        self._cam.Init()
+        node_map = self._cam.GetNodeMap()
+        node_acq_mode = PySpin.CEnumerationPtr(node_map.GetNode('AcquisitionMode'))
+        node_acq_mode_cont = node_acq_mode.GetEntryByName('Continuous')
+        acq_mode_cont = node_acq_mode_cont.GetValue()
+        node_acq_mode.SetIntValue(acq_mode_cont)
+        offset_x_node = PySpin.CIntegerPtr(node_map.GetNode('OffsetX'))
+        offset_y_node = PySpin.CIntegerPtr(node_map.GetNode('OffsetY'))
+        width_node = PySpin.CIntegerPtr(node_map.GetNode('Width'))
+        height_node = PySpin.CIntegerPtr(node_map.GetNode('Height'))
+        offset_x_node.SetValue(0)
+        offset_y_node.SetValue(0)
+        width_node.SetValue(452)
+        height_node.SetValue(452)
+        self._cam.BeginAcquisition()
 
-	def __init__(self):
-		self._system = PySpin.System.GetInstance()
-		# Get camera object
-		self._cam_list = self._system.GetCameras()
-		self._cam = self._cam_list.GetByIndex(0)
-		# Initialize camera/Node mode/color format
-		self._cam.Init()
-		node_map = self._cam.GetNodeMap()
-		node_acq_mode = PySpin.CEnumerationPtr(node_map.GetNode('AcquisitionMode'))
-		node_acq_mode_cont = node_acq_mode.GetEntryByName('Continuous')
-		acq_mode_cont = node_acq_mode_cont.GetValue()
-		node_acq_mode.SetIntValue(acq_mode_cont)
-		offset_x_node = PySpin.CIntegerPtr(node_map.GetNode('OffsetX'))
-		offset_y_node = PySpin.CIntegerPtr(node_map.GetNode('OffsetY'))
-		width_node = PySpin.CIntegerPtr(node_map.GetNode('Width'))
-		height_node = PySpin.CIntegerPtr(node_map.GetNode('Height'))
-		offset_x_node.SetValue(0)
-		offset_y_node.SetValue(0)
-		width_node.SetValue(452)
-		height_node.SetValue(452)
-		self._cam.BeginAcquisition()
 
-	def get_image(self):
-		# every 3rd image is saved
-		image = self._cam.GetNextImage()
+    def get_image(self):
+        # every 3rd image is saved
+        image = self._cam.GetNextImage()
         image.Release()
-		return image
+        return image
 
-	def __deinit__(self):
-		self._cam.EndAcquisition()
-		self._cam.DeInit()
-		del self._cam
-		self._cam_list.Clear()
-		self._system.ReleaseInstance()
+    def __deinit__(self):
+        self._cam.EndAcquisition()
+        self._cam.DeInit()
+        del self._cam
+        self._cam_list.Clear()
+        self._system.ReleaseInstance()
 
 class Vision(node_base):
     '''
@@ -99,13 +99,12 @@ class Vision(node_base):
 
         # Instantiations
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
-
         self.param_serv = mechos.Parameter_Server_Client(configs["param_ip"], configs["param_port"])
         self.param_serv.use_parameter_database(configs["param_server_path"])
 
         self.vision_node= mechos.Node("VISION", "192.168.1.14", "192.168.1.14")
         self.neural_net_publisher = self.vision_node.create_publisher("NEURAL_NET", Neural_Network_Message(), protocol="tcp")
-        #self.neural_net_publisher = self.neural_network_node.create_publisher("NN", configs["pub_port"])
+        self.neural_net_publisher = self.neural_network_node.create_publisher("NN", configs["pub_port"])
         self.neural_net_timer = float(self.param_serv.get_param("Timing/neural_network"))
 
         #--MESSAGING INFO--#
@@ -153,84 +152,82 @@ class Vision(node_base):
             byte_frame = np.array(byte_frame.GetData(), dtype="uint8").reshape(byte_frame.GetHeight(), byte_frame.GetWidth())
             colored_byte_frame =  cv2.cvtColor(byte_frame, cv2.COLOR_BAYER_BG2BGR)
 
-                # Operations on the frame
-                '''
-                Yolo: Operations on Frame For Yolo
-                '''
-                if True:
-                    r = detect(self.net, self.meta, byte_frame)
-                    #Savind detetion to class attribute
-                    self.yolo_detections = r
+            # Operations on the frame
+            '''
+            Yolo: Operations on Frame For Yolo
+            '''
+            if True:
+                r = detect(self.net, self.meta, byte_frame)
+                #Savind detetion to class attribute
+                self.yolo_detections = r
 
-                    #Draw detections in photo
-                    for i in r:
-                        x, y, w, h = i[2][0], i[2][1], i[2][2], i[2][3]
-
-                        #Perform solve pnp calculations
-                        #self.distance_calculator.set_coordinates(r, i, x, y, w, h)
-                        rotation, translation, distance = self.distance_calculator.calculate_distance()
-                        xmin, ymin, xmax, ymax = convertBack(float(x), float(y), float(w), float(h))
-                        pt1 = (xmin, ymin)
-                        pt2 = (xmax, ymax)
-                        cv2.rectangle(byte_frame, pt1, pt2, (0, 255, 0), 2)
-                        cv2.putText(byte_frame, i[0].decode() + " [" + str(round(i[1] * 100, 2)) + "]", (pt1[0], pt1[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 1, [0, 255, 0], 4)
-                        cv2.putText(byte_frame, "[" + str(round(distance, 2)) + "ft]", (pt2[0], pt1[1] + 40), cv2.FONT_HERSHEY_SIMPLEX, 1, [0,127, 127], 4)
-                        label = i[0].decode("utf-8")
-                        detection_data = [label.encode("utf-8"),
-                                                    i[1],
-                                                    i[2][0],
-                                                    i[2][1],
-                                                    i[2][2],
-                                                    i[2][3],
-                                                    rotation[0],
-                                                    rotation[1],
-                                                    rotation[2],
-                                                    translation[0],
-                                                    translation[1],
-                                                    translation[2]]
-
-                        if ((time.time() - start_time) >= self.neural_net_timer):
-                            self.neural_net_publisher.publish(detection_data) #Send the detection data
-                            start_time = time.time()
+                #Draw detections in photo
+                for i in r:
+                    x, y, w, h = i[2][0], i[2][1], i[2][2], i[2][3]
+                    #Perform solve pnp calculations
+                    #self.distance_calculator.set_coordinates(r, i, x, y, w, h)
+                    rotation, translation, distance = self.distance_calculator.calculate_distance()
+                    xmin, ymin, xmax, ymax = convertBack(float(x), float(y), float(w), float(h))
+                    pt1 = (xmin, ymin)
+                    pt2 = (xmax, ymax)
+                    cv2.rectangle(byte_frame, pt1, pt2, (0, 255, 0), 2)
+                    cv2.putText(byte_frame, i[0].decode() + " [" + str(round(i[1] * 100, 2)) + "]", (pt1[0], pt1[1] + 20), cv2.FONT_HERSHEY_SIMPLEX, 1, [0, 255, 0], 4)
+                    cv2.putText(byte_frame, "[" + str(round(distance, 2)) + "ft]", (pt2[0], pt1[1] + 40), cv2.FONT_HERSHEY_SIMPLEX, 1, [0,127, 127], 4)
+                    label = i[0].decode("utf-8")
+                    detection_data = [label.encode("utf-8"),
+                                                i[1],
+                                                i[2][0],
+                                                i[2][1],
+                                                i[2][2],
+                                                i[2][3],
+                                                rotation[0],
+                                                rotation[1],
+                                                rotation[2],
+                                                translation[0],
+                                                translation[1],
+                                                translation[2]]
+                    if ((time.time() - start_time) >= self.neural_net_timer):
+                        self.neural_net_publisher.publish(detection_data) #Send the detection data
+                        start_time = time.time()
 
                     # Get the Size of the image
                     image_size = sys.getsizeof(byte_frame)
 
-                # Capture Bytes
-                ret, byte_frame = cv2.imencode( '.jpg', byte_frame )
+                    # Capture Bytes
+                    ret, byte_frame = cv2.imencode( '.jpg', byte_frame )
 
-                # Sending The Frame
-                if ret:
-                    imageBuffer = io.BytesIO(byte_frame)
+                    # Sending The Frame
+                    if ret:
+                        imageBuffer = io.BytesIO(byte_frame)
 
-                    number_of_packets = math.ceil(image_size/self.MAX_UDP_PACKET_SIZE)
-                    packet_size = math.ceil(image_size/number_of_packets)
+                        number_of_packets = math.ceil(image_size/self.MAX_UDP_PACKET_SIZE)
+                        packet_size = math.ceil(image_size/number_of_packets)
 
-                    # Uncomment for Manual Control of Send Speed:
+                        # Uncomment for Manual Control of Send Speed:
 
-                    #info_print=
-                    '''
-                    IMAGE  SIZE:       {}
-                    PACKET SIZE:       {}
-                    NUMBER OF PACKETS: {}
-                    '''
-                    #.format(image_size, packet_size, number_of_packets)
+                        #info_print=
+                        '''
+                        IMAGE  SIZE:       {}
+                        PACKET SIZE:       {}
+                        NUMBER OF PACKETS: {}
+                        '''
+                        #.format(image_size, packet_size, number_of_packets)
 
-                    #print(info_print)
-                    #input('Press Enter to Continue...')
+                        #print(info_print)
+                        #input('Press Enter to Continue...')
 
-                    # Count out the number of packets that need to be sent
-                    for count_var in range(0, number_of_packets):
+                        # Count out the number of packets that need to be sent
+                        for count_var in range(0, number_of_packets):
 
-                        self._send(imageBuffer.read(packet_size), 'CAMERA', local=False, foreign=True)
+                            self._send(imageBuffer.read(packet_size), 'CAMERA', local=False, foreign=True)
 
-                    # EOF packet for encapsulation
-                    self._send(self.END_BYTE, 'CAMERA', local=False, foreign=True)
+                        # EOF packet for encapsulation
+                        self._send(self.END_BYTE, 'CAMERA', local=False, foreign=True)
 
-                    # Image Corruption decreases as sleep time increases (inversely proportional)
-                    # this time.sleep is a manual fix balacing speed and the least
-                    # amount of corruption on jpegs (not optimal)
-                    #time.sleep(0) # check as appropriate
+                        # Image Corruption decreases as sleep time increases (inversely proportional)
+                        # this time.sleep is a manual fix balacing speed and the least
+                        # amount of corruption on jpegs (not optimal)
+                        #time.sleep(0) # check as appropriate
 
 if __name__=='__main__':
 
