@@ -6,6 +6,9 @@ import math
 import json
 import csv
 import threading
+from PyQt5.QtWidgets import QWidget, QApplication
+from PyQt5 import uic
+import sys
 
 class Generate_Waypoint_Map(threading.Thread):
 
@@ -65,6 +68,7 @@ class Generate_Waypoint_Map(threading.Thread):
 
         self.redraw_all_points()
 
+        self.daemon = True
 
     def set_map(self, map_image, map_json, waypoint_save_file):
         '''
@@ -257,6 +261,14 @@ class Generate_Waypoint_Map(threading.Thread):
 
                 self.temporary_map_image = self.waypointed_map_image.copy()
 
+        elif event == cv2.EVENT_RBUTTONDOWN:
+
+            #First check to see if already hovering over a waypoint
+            for index, waypoint in enumerate(self.waypoint_list):
+                mouse_distance_from_waypoint = math.sqrt((x_coordinate - waypoint[0])**2 + (y_coordinate - waypoint[1])**2)
+
+                if(mouse_distance_from_waypoint <= 5):
+                    self.set_depth_for_waypoint_widget.show()
     def run(self):
         '''
         '''
