@@ -1,4 +1,5 @@
 {
-  "pixel_distance_ratio":7.9,
-  "north_angle":-12
+  "pixel_distance_ratio":8.1,
+  "north_angle":-25,
+  "static_origin": [167, 101]
 }
