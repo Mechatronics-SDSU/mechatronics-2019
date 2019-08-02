@@ -9,9 +9,9 @@
         "type": "Waypoint",
         "name": "pool_c_waypoints",
         "timeout":5,
-        "position_buffer_zone":2.0,
+        "position_buffer_zone":2.5,
         "depth_buffer_zone":0.1,
-        "yaw_buffer_zone":8,
+        "yaw_buffer_zone":10,
         "waypoint_file": "/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/Pool_C_Waypoints/waypoints.csv"
     }
 
