@@ -1,34 +1,59 @@
 {
-  "Task_1":{
-    "type":"Initial_Dive",
-    "name":"start_dive",
-    "timeout":0.0833
-
-  },
-  "Task_2":{
-	   "type":"Gate_No_Vision",
-	"name":"gate_no_vision",
-	"timeout":5,
-	"line_up_position":[109, -2.5, 33.5, 4.0],
-	"position_buffer_zone":2.0,
-	"depth_buffer_zone":0.1,
-	"yaw_buffer_zone":5,
-	"stabilization_time":10.5,
-	"move_forward_dist":15,
-	"go_through_gate_backwards":false
-
+    "Task_6": {
+        "depth_buffer_zone": 0.1,
+        "name": "test_waypoint_task",
+        "position_buffer_zone": 2.0,
+        "timeout": 5.0,
+        "type": "Waypoint",
+        "waypoint_file": "/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/GateQual/gate_2.csv",
+        "yaw_buffer_zone": 11.0
     },
-  "Task_3":{
-	   "type":"Gate_No_Vision",
-	"name":"gate_no_vision_2",
-	"timeout":5,
-	"line_up_position":[100, -47, 118, 4.0],
-	"position_buffer_zone":2.0,
-	"depth_buffer_zone":0.1,
-	"yaw_buffer_zone":5,
-	"stabilization_time":10.5,
-	"move_forward_dist":0.1,
-	"go_through_gate_backwards":false
-
- }
- }
+    "Task_1": {
+        "name": "start_dive",
+        "timeout": 0.0833,
+        "type": "Initial_Dive"
+    },
+    "Task_2": {
+        "depth_buffer_zone": 0.1,
+        "go_through_gate_backwards": false,
+        "line_up_position": [
+            109,
+            -2.5,
+            33.5,
+            4.0
+        ],
+        "move_forward_dist": 15,
+        "name": "gate_no_vision",
+        "position_buffer_zone": 2.0,
+        "stabilization_time": 10.5,
+        "timeout": 5,
+        "type": "Gate_No_Vision",
+        "yaw_buffer_zone": 5
+    },
+    "Task_3": {
+        "depth_buffer_zone": 0.1,
+        "go_through_gate_backwards": false,
+        "line_up_position": [
+            100,
+            -47,
+            118,
+            4.0
+        ],
+        "move_forward_dist": 0.1,
+        "name": "gate_no_vision_2",
+        "position_buffer_zone": 2.0,
+        "stabilization_time": 10.5,
+        "timeout": 5,
+        "type": "Gate_No_Vision",
+        "yaw_buffer_zone": 5
+    },
+    "Task_5": {
+        "depth_buffer_zone": 0.1,
+        "name": "test_waypoint_task",
+        "position_buffer_zone": 2.0,
+        "timeout": 5.0,
+        "type": "Waypoint",
+        "waypoint_file": "/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/GateQual/gate_2.csv",
+        "yaw_buffer_zone": 11.0
+    }
+}

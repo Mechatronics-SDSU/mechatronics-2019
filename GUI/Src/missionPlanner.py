@@ -13,16 +13,11 @@ class MissionPlanner(QtWidgets.QWidget):
 
         QtWidgets.QWidget.__init__(self)
 
-        #self.host = host
-        #self.username = username
-        #self.password = password
-        #self.server_connection = pysftp.Connection(host=self.host, username=self.username, password=self.password)
         self.taskNumber = 0
-
         self.isLoadedMission = False
-
         #Call in the ui for mission select
         self.task_selector_widget = uic.loadUi("task_selector_widget.ui", self)
+        self.task_selector_widget.selectorBox.setCurrentText("Add Task")
         self.task_selector_widget.selectorBox.currentIndexChanged.connect(self.taskSelected)
         self.task_selector_widget.saveButton.clicked.connect(self.saveMission)
         self.task_selector_widget.saveButton_2.clicked.connect(self.refresh)
@@ -36,11 +31,10 @@ class MissionPlanner(QtWidgets.QWidget):
             self.plainTextEdit.setPlainText((str)(json_data_new))
 
     def displayMission(self, missionName):
+        cwd = os.getcwd()
         self.tempMissionName = missionName
         self.task_selector_widget.listLabel.setText("Loaded mission: " + self.tempMissionName)
 
-        #filename = 'C:/Users/cfior/Desktop/GITS/mechatronics-2019/GUI/Src/MissionFiles/Auto_Test/mission.json'
-        cwd = os.getcwd()
         self.filename = '/MissionFiles/' + (str)(self.tempMissionName) + '/mission.json'
         with open(cwd + self.filename) as f:
             json_data = json.load(f)
@@ -53,10 +47,10 @@ class MissionPlanner(QtWidgets.QWidget):
         print("current directory" + (str)(path))
 
     def taskSelected(self):
-
-        if self.task_selector_widget.selectorBox.currentIndex() == 2:
+        self.currentIndex = self.task_selector_widget.selectorBox.currentIndex()
+        if self.currentIndex == 2:
             self.set_gate_no_vision_selected()
-        elif self.task_selector_widget.selectorBox.currentIndex() == 0:
+        elif self.currentIndex == 0:
             self.waypoint_task_selected()
 
     def set_gate_no_vision_selected(self):
@@ -80,16 +74,7 @@ class MissionPlanner(QtWidgets.QWidget):
 
         cwd = os.getcwd()
         path = cwd + self.filename
-        '''
-        text = self.plainTextEdit.toPlainText()
-        text = text.replace('\n', '').replace('\r', '').replace(' ','').strip('"')
-
-        temp = json.dumps(text, sort_keys=True, indent=4)
-        print("about to be saved:" + temp)
-
-        with open(path, 'w') as f:
-            json.dump(temp, f)
-        '''
+        
         print(str(self.plainTextEdit.toPlainText()))
         with open(path, 'w') as file:
             file.write(str(self.plainTextEdit.toPlainText()))

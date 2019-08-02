@@ -85,30 +85,32 @@ class mission_planner_main_GUI(QWidget):
         self.orientation_layout.addWidget(self.send_missions_button,2,1)
         self.orientation_layout.addWidget(self.receive_missions_button,2,0)
 
-
         self.linking_layout.addLayout(self.orientation_layout, 1)
 
     def selectedMission(self):
         self.missionSelected = self.available_missions.currentItem().text()
 
     def sendMissions(self):
-        self.server_connection = pysftp.Connection(host=self.host, username=self.username, password=self.password)
         self.local_filepath = os.getcwd() + "/MissionFiles"
         try:
+            self.server_connection = pysftp.Connection(host=self.host, username=self.username, password=self.password)
             self.server_connection.put_r(self.local_filepath, self.foreign_filepath)
         except Exception as e:
             print("[ERROR]: FILE OR DIRECTORY NOT FOUND!!!", e)
+            self.server_connection.close()
         self.server_connection.close()
 
     def receiveMissions(self):
-        self.server_connection = pysftp.Connection(host=self.host, username=self.username, password=self.password)
         self.local_filepath = os.getcwd()
         try:
+            self.server_connection = pysftp.Connection(host=self.host, username=self.username, password=self.password)
             self.server_connection.chdir(self.foreign_filepath)
             self.server_connection.get_r("MissionFiles/", self.local_filepath)
         except Exception as e:
             print("[ERROR]: FILE OR DIRECTORY NOT FOUND!!!", e)
             self.server_connection.close()
+        self.server_connection.close()
+
 
     def setNewMission(self):
 
@@ -116,7 +118,7 @@ class mission_planner_main_GUI(QWidget):
         self.newMission.show()
         self.newMission.isLoadedMission = False
         self.newMission.getNewMission()
-
+    
     def setOldMission(self):
 
         self.oldMission = MissionPlanner()
