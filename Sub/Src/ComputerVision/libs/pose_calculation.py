@@ -146,7 +146,7 @@ class Distance_Calculator():
                                             [(self.x_coordinate - (0.5 * self.width)), (self.y_coordinate + (0.5 * self.height))],
                                             [(self.x_coordinate), (self.y_coordinate + (0.5 * self.height))],
                                             [(self.x_coordinate + (0.5 * self.width)), (self.y_coordinate + (0.5 * self.height))]])
-
+        '''
         elif(label == b'Gate Arm'):
 
             self.center = float(self.param_serv.get_param("Vision/Coordinates/gate/center")) #0.0
@@ -232,7 +232,7 @@ class Distance_Calculator():
                                                             [self.second_x_coordinate, self.second_y_coordinate + (0.5 * self.second_height)]])
 
 
-
+        '''                                                        
         else:
             pass
 

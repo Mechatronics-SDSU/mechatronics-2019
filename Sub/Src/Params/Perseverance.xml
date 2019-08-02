@@ -108,17 +108,17 @@
          </yolo>
          <solvePnP>
                <camera_matrix>
-                  <focal_length_x>659.40019747</focal_length_x>
-                  <focal_length_y>659.67574743</focal_length_y>
-                  <optical_center_x>316.68549694</optical_center_x>
-                  <optical_center_y>232.10189564</optical_center_y>
+                  <focal_length_x>653.22465409</focal_length_x>
+                  <focal_length_y>649.52013674</focal_length_y>
+                  <optical_center_x>404.22999627</optical_center_x>
+                  <optical_center_y>309.15174895</optical_center_y>
                </camera_matrix>
                <distortion_matrix>
-                  <k1>0.09439093</k1>
-                  <k2>-0.32645474</k2>
-                  <p1>-0.00576758</p1>
-                  <p2>0.0029054</p2>
-                  <k3>-0.1284451</k3>
+                  <k1>-0.3363067</k1>
+                  <k2>0.205455771</k2>
+                  <p1>-0.00122315</p1>
+                  <p2>0.00717899</p2>
+                  <k3>-0.08737073</k3>
                </distortion_matrix>
          </solvePnP>
          <Coordinates>

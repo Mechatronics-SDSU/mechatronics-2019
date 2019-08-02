@@ -57,7 +57,7 @@ class Camera:
 		acq_mode_cont = node_acq_mode_cont.GetValue()
 		node_acq_mode.SetIntValue(acq_mode_cont)
 		offset_x_node = PySpin.CIntegerPtr(node_map.GetNode('OffsetX'))
-		offset_y_node = PySpin.CIntegerPtr(node_map.GetNode('OffsetY'))	
+		offset_y_node = PySpin.CIntegerPtr(node_map.GetNode('OffsetY'))
 		width_node = PySpin.CIntegerPtr(node_map.GetNode('Width'))
 		height_node = PySpin.CIntegerPtr(node_map.GetNode('Height'))
 		offset_x_node.SetValue(0)
@@ -119,7 +119,7 @@ class Vision(node_base):
 
         #--CAMERA INSTANCE--(using the zed camera)#
         #front_camera_index = int(self.param_serv.get_param("Vision/front_camera_index"))
-        
+
         #Create a zed camera object
         self.capture = Camera()
 
@@ -167,7 +167,7 @@ class Vision(node_base):
                         x, y, w, h = i[2][0], i[2][1], i[2][2], i[2][3]
 
                         #Perform solve pnp calculations
-                        #self.distance_calculator.set_coordinates(r, i, x, y, w, h)
+                        self.distance_calculator.set_coordinates(r, i, x, y, w, h)
                         rotation, translation, distance = self.distance_calculator.calculate_distance()
                         xmin, ymin, xmax, ymax = convertBack(float(x), float(y), float(w), float(h))
                         pt1 = (xmin, ymin)
