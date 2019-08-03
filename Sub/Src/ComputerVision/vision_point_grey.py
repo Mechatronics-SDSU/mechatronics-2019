@@ -104,7 +104,6 @@ class Vision(node_base):
 
         self.vision_node= mechos.Node("VISION", "192.168.1.14", "192.168.1.14")
         self.neural_net_publisher = self.vision_node.create_publisher("NEURAL_NET", Neural_Network_Message(), protocol="tcp")
-        self.neural_net_publisher = self.neural_network_node.create_publisher("NN", configs["pub_port"])
         self.neural_net_timer = float(self.param_serv.get_param("Timing/neural_network"))
 
         #--MESSAGING INFO--#
@@ -157,7 +156,7 @@ class Vision(node_base):
             Yolo: Operations on Frame For Yolo
             '''
             if True:
-                r = detect(self.net, self.meta, byte_frame)
+                r = detect(self.net, self.meta, colored_byte_frame)
                 #Savind detetion to class attribute
                 self.yolo_detections = r
 
@@ -165,7 +164,7 @@ class Vision(node_base):
                 for i in r:
                     x, y, w, h = i[2][0], i[2][1], i[2][2], i[2][3]
                     #Perform solve pnp calculations
-                    #self.distance_calculator.set_coordinates(r, i, x, y, w, h)
+                    self.distance_calculator.set_coordinates(i, x, y, w, h)
                     rotation, translation, distance = self.distance_calculator.calculate_distance()
                     xmin, ymin, xmax, ymax = convertBack(float(x), float(y), float(w), float(h))
                     pt1 = (xmin, ymin)
@@ -191,14 +190,14 @@ class Vision(node_base):
                         start_time = time.time()
 
                     # Get the Size of the image
-                    image_size = sys.getsizeof(byte_frame)
+                    image_size = sys.getsizeof(colored_byte_frame)
 
                     # Capture Bytes
-                    ret, byte_frame = cv2.imencode( '.jpg', byte_frame )
+                    ret, colored_byte_frame = cv2.imencode( '.jpg', colored_byte_frame )
 
                     # Sending The Frame
                     if ret:
-                        imageBuffer = io.BytesIO(byte_frame)
+                        imageBuffer = io.BytesIO(colored_byte_frame)
 
                         number_of_packets = math.ceil(image_size/self.MAX_UDP_PACKET_SIZE)
                         packet_size = math.ceil(image_size/number_of_packets)

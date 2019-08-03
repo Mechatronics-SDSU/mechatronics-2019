@@ -68,7 +68,7 @@ class Distance_Calculator():
         self.two_dim_points = None
         self.three_dim_points = None
 
-    def set_coordinates(self, detect_list, detection, x, y, w, h):
+    def set_coordinates(self, detection, x, y, w, h):
         '''
         This function sets our three dimensional and two dimensional points depending on the detection.
         The three dimensional points are set using the acutal dimensions of the object. For example, the gate is 10
@@ -147,8 +147,9 @@ class Distance_Calculator():
                                             [(self.x_coordinate), (self.y_coordinate + (0.5 * self.height))],
                                             [(self.x_coordinate + (0.5 * self.width)), (self.y_coordinate + (0.5 * self.height))]])
 
+    
         elif(label == b'Gate Arm'):
-
+            '''
             self.center = float(self.param_serv.get_param("Vision/Coordinates/gate/center")) #0.0
             self.max = float(self.param_serv.get_param("Vision/Coordinates/gate/max")) #5
             self.mid_max = float(self.param_serv.get_param("Vision/Coordinates/gate/mid")) #2.5
@@ -231,8 +232,7 @@ class Distance_Calculator():
                                                             [self.second_x_coordinate, self.second_y_coordinate + (0.25 * self.second_height)],
                                                             [self.second_x_coordinate, self.second_y_coordinate + (0.5 * self.second_height)]])
 
-
-
+            '''
         else:
             pass
 
