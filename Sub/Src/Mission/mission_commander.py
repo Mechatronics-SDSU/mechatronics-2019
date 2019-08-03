@@ -68,7 +68,7 @@ class Mission_Commander(threading.Thread):
         #subscriber to listen if neural network data is available
         self.neural_network_subscriber = self.mission_commander_node.create_subscriber("NEURAL_NET", Neural_Network_Message(), self._update_neural_net_callback, protocol="tcp")
 
-        self.neural_net_data = [0, 0, 0, 0, 0, 0]
+        self.neural_net_data = []
 
         #Publisher to be able to kill the sub within the mission
         self.kill_sub_publisher = self.mission_commander_node.create_publisher("KILL_SUB", Bool(), protocol="tcp")
@@ -149,8 +149,9 @@ class Mission_Commander(threading.Thread):
             self.drive_functions.drive_functions_enabled = False
 
     def _update_neural_net_callback(self, neural_net_data):
-        self.neural_net_data = neural_net_data
-        print(self.neural_net_data)
+        
+        if(len(self.neural_net_data) <= 100): #Maximum queued neural net data is 100
+            self.neural_net_data.append(neural_net_data)
 
     def _command_listener(self):
         '''
@@ -222,11 +223,11 @@ class Mission_Commander(threading.Thread):
             elif(task_type == "Gate_No_Vision"):
                 gate_no_vision = Gate_No_Vision_Task(self.mission_data[task], self.drive_functions)
                 self.mission_tasks.append(gate_no_vision)
-            '''
-            elif(task_type == "Buoy_Mission"):
-                buoy_task = Buoy_Task(self.mission_data[task], self.drive_functions, self.neural_net_data)
+
+            elif(task_type == "Buoy"):
+                buoy_task = Buoy_Task(self.mission_data[task], self.drive_functions, mission_commander_obj=self)
                 self.mission_tasks.append(buoy_task)
-            '''
+
 
     def run(self):
         '''

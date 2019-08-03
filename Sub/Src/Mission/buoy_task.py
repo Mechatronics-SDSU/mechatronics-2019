@@ -17,7 +17,7 @@ class Buoy_Task(Task):
     respect to the sub
     '''
 
-    def __init__(self, task_dict, drive_functions, neural_net_data):
+    def __init__(self, task_dict, drive_functions, mission_commander_obj):
 
         '''
         Initialize the buoy task given the task dictionary
@@ -45,33 +45,38 @@ class Buoy_Task(Task):
 
         self.name = self.task_dict["name"]
         self.type = "Buoy"
-        self.line_up_timeout = self.task_dict["line_up_timeout"]
-        self.detection_timeout = self.task_dict["detection_timeoutFse"]
+        self.timeout = self.task_dict["timeout"] #timeout for the entire task
+        self.detection_timeout = self.task_dict["detection_timeoutFse"] #time out at the observervation point
 
-        self.line_up_timeout_timer = util_timer.Timer()
+        self.timeout_timer = util_timer.Timer()
         self.detection_timeout_timer = util_timer.Timer()
 
-        self.line_up_position = self.task_dict["line_up_position"]
+        self.observation_position = self.task_dict["observation_position"]
         self.position_buffer_zone = self.task_dict["position_buffer_zone"]
         self.depth_buffer_zone = self.task_dict["depth_buffer_zone"]
         self.yaw_buffer_zone = self.task_dict["yaw_buffer_zone"]
-        self.stabilization = self.task_dict["stabilization_time"]
-        self.move_forward_dist = self.task_dict["move_forward_dist"]
+
+        #The name of the object and confidence detection
+        self.object_type = self.task_dict["object_type"]
+        self.object_confidence = self.task_dict["object_confidence"]
 
         self.drive_functions = drive_functions
 
-        self.neural_net_data = neural_net_data
+        self.mission_commander = mission_commander_obj
+
         self.calculated_depth = 0.0
         self.calculated_yaw = 0.0
         self.calculated_y = 0.0
         self.calculated_x = 0.0
 
-
+        #This is a buffer of the detections for the object type we are looking for
+        #if there are ten object detection, stop collecting in the buffer
+        self.object_detections_buffer = []
         #TODO: Add more mission params later
 
-    def go_to_line_up_position(self):
+    def go_to_observation_position(self):
         '''
-        Function to go to the line up position.
+        Function to go to the observation position.
 
         Parameters:
             N/A
@@ -81,17 +86,17 @@ class Buoy_Task(Task):
         '''
 
         #Dive to depth of the desired_line_up_position
-        desired_yaw, desired_north, desired_east, desired_depth = self.line_up_position
+        desired_yaw, desired_north, desired_east, desired_depth = self.observation_position
         print("Desired_Yaw,", desired_yaw)
 
-        remaining_task_time = self.line_up_timeout - self.line_up_timeout_timer.net_timer()
+        remaining_task_time = self.timeout - self.timeout_timer.net_timer()
         succeeded, _ = self.drive_functions.move_to_depth(desired_depth=desired_depth,
                                                             buffer_zone=self.depth_buffer_zone,
                                                             timeout=remaining_task_time)
         if(not succeeded):
             return False
         #Face the desired_line_up_position
-        remaining_task_time = self.line_up_timeout - self.line_up_timeout_timer.net_timer()
+        remaining_task_time = self.timeout - self.timeout_timer.net_timer()
         succeeded, ret_yaw = self.drive_functions.move_to_face_position(north_position=desired_north,
                                                         east_position=desired_east,
                                                         buffer_zone=self.yaw_buffer_zone,
@@ -101,7 +106,7 @@ class Buoy_Task(Task):
         if(not succeeded):
             return False
         #Drive to the desired_line_up_position
-        remaining_task_time = self.line_up_timeout - self.line_up_timeout_timer.net_timer()
+        remaining_task_time = self.timeout - self.timeout_timer.net_timer()
         succeeded, _, _ = self.drive_functions.move_to_position_hold_orientation(north_position=desired_north,
                                                                       east_position=desired_east,
                                                                       buffer_zone=self.position_buffer_zone,
@@ -127,21 +132,20 @@ class Buoy_Task(Task):
         Sit at desired detection spot until enough detection data has been gathered. When
         enough has been gathered, we will run an average
         '''
-        depth_desired = 0
-        yaw_desired = 0
-        strafe_desired = 0
-        forward_desired = 0
+        if(len(self.object_detections_buffer) >= 10):
+            return True
 
-        for i in range(0, 10):
-            depth_desired = depth_desired + self.neural_net_data[10]
-            yaw_desired = 0.0
-            strafe_desired = strafe_desired + self.neural_net_data[9]
-            forward_desired = forward_desired + self.neural_net_data[11]
+        elif(len(self.mission_commander.neural_net_data) > 0):
+            object_detection_data = self.mission_commander.neural_net_data.pop(0)
 
-        self.calculated_depth = float(depth_desired/10.0)
-        self.calculated_yaw = float(yaw_desired/10.0)
-        self.calculated_y = float(strafe_desired/10.0)
-        self.calculated_x = float(forward_desired/10.0)
+            #if it is the object we are looking for.
+            if(self.object_type == object_detection_data[0] and object_detection_data[1] >= self.object_confidence):
+
+                self.object_detections_buffer.append(object_detection_data)
+
+            return False
+        else:
+            return False
 
     def hit_buoy(self):
         '''
@@ -150,11 +154,71 @@ class Buoy_Task(Task):
         first, then yaw, then move y direction, then move x
         '''
 
-        remaining_task_time = self.detection_timeout - self.detection_timeout_timer.net_timer()
-        succeeded, _ = self.drive_functions.move_to_depth(desired_depth=self.calculated_depth,
-                                                            buffer_zone=self.depth_buffer_zone,
-                                                            timeout=remaining_task_time)
+        pass
 
-        remaining_task_time = self.detection_timeout - self.detection_timeout_timer.net_timer()
-        succeeded, _ = self.drive_functions.move_y_direction(distance_y=self.calculated_y,
-                                                             buffer_zone=self.)
+    def run(self):
+        '''
+         Run the hit object task. This task will have the sub go to the observe position
+         where it will attempt to look for the desired object having self.object_type with
+         a detected object confidence of self.object_confidence. If the sub detects the object
+         at least N times, then the sub will calculate the position it should drive to hit it.
+        '''
+
+        #Go to observe position
+        succeeded = self.go_to_observation_position()
+
+        if( not succeeded):
+            return False
+
+        #Clear the all the neural network data in the neural net queue
+        self.mission_commander.neural_net_data.clear()
+
+        #Start the observation timer to get detection and look for detections
+        while(((self.detection_timeout - self.detection_timeout_timer.net_timer()) > 0) and \
+                ((self.timeout - self.timeout_timer.net_timer()) > 0)):
+
+            #Attemp to collect detections
+            enough_detections_found = self.collect_detections()
+
+            if(enough_detections_found):
+                break
+
+        if not enought_detection_found:
+            return False
+
+        #Take the average of the detections
+        sub_x_direction, sub_y_direction, sub_depth_direction = 0, 0, 0
+        for i in range(10):
+
+            sub_x_direction += self.object_detections_buffer[i][11]
+            sub_y_direction += self.object_detections_buffer[i][9]
+            sub_depth_direction += self.object_detections_buffer[i][10]
+
+        sub_x_direction /= 10.0
+        sub_y_direction /= 10.0
+        sub_depth_direction /= 10.0
+
+        #Move to the depth
+        remaining_task_time = self.timeout - self.timeout_timer.net_timer()
+        succeeded, _ = self.drive_functions.move_to_depth(desired_depth=sub_depth_direction,
+                                                            buffer_zone=self.depth_buffer_zone,
+                                                            timeout=remaining_task_time,
+                                                            desired_orientation={"yaw":self.observation_position[0]})
+        if(not succeeded):
+            return False
+        #Face the desired_line_up_position
+        remaining_task_time = self.timeout - self.timeout_timer.net_timer()
+        succeeded, _, _ = self.drive_functions.move_y_direction(sub_y_direction,
+                                                        buffer_zone=self.yaw_buffer_zone,
+                                                        timeout=remaining_task_time,
+                                                desired_orientation={"depth":self.observation_position[3], "yaw":self.observation_position[0]})
+
+        if(not succeeded):
+            return False
+
+        #Face the desired_line_up_position
+        remaining_task_time = self.timeout - self.timeout_timer.net_timer()
+        succeeded, _, _ = self.drive_functions.move_y_direction(sub_y_direction,
+                                                        buffer_zone=self.yaw_buffer_zone,
+                                                        timeout=remaining_task_time,
+                                                desired_orientation={"depth":self.observation_position[3], "yaw":self.observation_position[0]})
