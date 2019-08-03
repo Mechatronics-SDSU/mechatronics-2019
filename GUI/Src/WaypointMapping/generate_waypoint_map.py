@@ -7,12 +7,12 @@ import json
 import csv
 import threading
 from PyQt5.QtWidgets import QWidget, QApplication
-from PyQt5 import uic
 import sys
+import pysftp
 
 class Generate_Waypoint_Map(threading.Thread):
 
-    def __init__(self, map_image, map_json, waypoint_save_file):
+    def __init__(self, map_image, map_json, waypoint_save_file, sub_save_directory):
         '''
         Initialize the waypoint map generator.
 
@@ -36,6 +36,7 @@ class Generate_Waypoint_Map(threading.Thread):
         self.map_data = map_data
         self.pixel_distance_ratio = map_data["pixel_distance_ratio"]
         self.north_angle = map_data["north_angle"]
+        self.sub_save_directory = sub_save_directory
 
         #State of drawing the points on the image.
         self.placing_new_waypoint = False
@@ -61,7 +62,7 @@ class Generate_Waypoint_Map(threading.Thread):
             self.waypoint_list.append(map_data["static_origin"] + [0.0, 0.0])
             self.current_editing_index = 1
         else:
-            self.waypoint_list.append([0.0, 0.0, 0.0, 0.0])
+            self.waypoint_list.append([0, 0, 0.0, 0.0])
             self.current_editing_index = 0
 
         self.placing_new_waypoint = False
@@ -260,15 +261,8 @@ class Generate_Waypoint_Map(threading.Thread):
                     self.waypoint_list.append(self.calculate_position(x_coordinate, y_coordinate))
 
                 self.temporary_map_image = self.waypointed_map_image.copy()
+            print(self.waypoint_list)
 
-        elif event == cv2.EVENT_RBUTTONDOWN:
-
-            #First check to see if already hovering over a waypoint
-            for index, waypoint in enumerate(self.waypoint_list):
-                mouse_distance_from_waypoint = math.sqrt((x_coordinate - waypoint[0])**2 + (y_coordinate - waypoint[1])**2)
-
-                if(mouse_distance_from_waypoint <= 5):
-                    self.set_depth_for_waypoint_widget.show()
     def run(self):
         '''
         '''
@@ -298,18 +292,27 @@ class Generate_Waypoint_Map(threading.Thread):
 
                         #Iterate through each waypoint an save it.
                         for index, waypoint in enumerate(self.waypoint_list[1:]):
-                            waypoints_csv_writer.writerow([index, waypoint[2], waypoint[3], 4])
+                            waypoints_csv_writer.writerow([index, waypoint[2], waypoint[3], 5])
 
                     #Save the origin position
                     self.map_data["static_origin"] = self.waypoint_list[0][0:2]
                     with open(self.map_json, 'w') as write_map_json:
                         json.dump(self.map_data, write_map_json)
 
+                    try:
+                        #Send the waypoints to the sub
+                        connection_to_sub = pysftp.Connection(host='192.168.1.14', username='nvidia', password='nvidia')
+                        connection_to_sub.put(self.waypoint_save_file, os.path.join(self.sub_save_directory, self.waypoint_save_file))
+
+                    except:
+                        print('[INFO]: Could not send waypoint file to sub.')
+
 
 if __name__ == "__main__":
-    map_image = "Maps/transdec_pool_b.png"
-    map_json = "Maps/transdec_pool_b.json"
+    map_image = "Maps/transdec_pool_c.png"
+    map_json = "Maps/transdec_pool_c.json"
     waypoint_save_file = "waypoints.csv"
+    sub_save_directory = "/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/Pool_C_Waypoints"
 
-    generate_waypoint_map = Generate_Waypoint_Map(map_image, map_json, waypoint_save_file)
+    generate_waypoint_map = Generate_Waypoint_Map(map_image, map_json, waypoint_save_file, sub_save_directory)
     generate_waypoint_map.run()
