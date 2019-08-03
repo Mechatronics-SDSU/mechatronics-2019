@@ -2,9 +2,9 @@
     <COM_Ports>
         <maestro>/dev/ttyACM0</maestro>
         <AHRS>/dev/ttyUSB1</AHRS>
-        <backplane>/dev/ttyUSB6</backplane>
-        <DVL>/dev/ttyUSB5</DVL>
-	<auto>/dev/ttyUSB4</auto>
+        <backplane>/dev/ttyUSB5</backplane>
+        <DVL>/dev/ttyUSB4</DVL>
+	<auto>/dev/ttyUSB6</auto>
     </COM_Ports>
     <Timing>
         <AHRS>0.05</AHRS>
@@ -60,14 +60,14 @@
             </yaw_pid>
             <x_pid>
                 <p>10.8</p>
-                <i>0.01</i>
+                <i>0.0</i>
                 <d>0.0</d>
                 <min_error>-3</min_error>
                 <max_error>3</max_error>
             </x_pid>
             <y_pid>
                 <p>10.8</p>
-                <i>0.01</i>
+                <i>0.0</i>
                 <d>0.0</d>
 		<min_error>-3</min_error>
                 <max_error>3</max_error>
@@ -147,7 +147,7 @@
     </Vision>
     <Missions>
       <waypoint_collect_file>/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/Pool_B_Waypoints/waypoints.csv</waypoint_collect_file>
-      <mission_file>/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/Pool_A_Waypoints/mission.json</mission_file>
+      <mission_file>/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/Pool_C_Waypoints/mission.json</mission_file>
 
     </Missions>
 </Perseverance>
