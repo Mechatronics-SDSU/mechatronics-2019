@@ -9,6 +9,7 @@ import threading
 from PyQt5.QtWidgets import QWidget, QApplication
 import sys
 import pysftp
+import os
 
 class Generate_Waypoint_Map(threading.Thread):
 
@@ -261,7 +262,7 @@ class Generate_Waypoint_Map(threading.Thread):
                     self.waypoint_list.append(self.calculate_position(x_coordinate, y_coordinate))
 
                 self.temporary_map_image = self.waypointed_map_image.copy()
-            print(self.waypoint_list)
+
 
     def run(self):
         '''
@@ -271,7 +272,7 @@ class Generate_Waypoint_Map(threading.Thread):
             cv2.imshow("Map_Image", self.waypointed_map_image)
             k = cv2.waitKey(1) & 0xFF
 
-            if(k == 27):
+            if(k == 27 or k == ord('q')):
                 break
             #Press z to remove last set waypoint
             if(k == ord('z')):
@@ -296,6 +297,7 @@ class Generate_Waypoint_Map(threading.Thread):
 
                     #Save the origin position
                     self.map_data["static_origin"] = self.waypoint_list[0][0:2]
+
                     with open(self.map_json, 'w') as write_map_json:
                         json.dump(self.map_data, write_map_json)
 
@@ -306,13 +308,14 @@ class Generate_Waypoint_Map(threading.Thread):
 
                     except:
                         print('[INFO]: Could not send waypoint file to sub.')
+                        raise
 
 
 if __name__ == "__main__":
-    map_image = "Maps/transdec_pool_c.png"
-    map_json = "Maps/transdec_pool_c.json"
+    map_image = "Maps/aquaplex.png"
+    map_json = "Maps/aquaplex.json"
     waypoint_save_file = "waypoints.csv"
-    sub_save_directory = "/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/Pool_C_Waypoints"
+    sub_save_directory = "/home/nvidia/mechatronics-2019/Sub/Src/Mission/MissionFiles/Aquaplex_Waypoints"
 
     generate_waypoint_map = Generate_Waypoint_Map(map_image, map_json, waypoint_save_file, sub_save_directory)
     generate_waypoint_map.run()
