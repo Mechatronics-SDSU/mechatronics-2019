@@ -2,7 +2,7 @@
 Copyright 2019, David Pierce Walker-Howell, All rights reserved
 
 Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
-Last Modified: 06/12/2019
+Last Modified: 08/05/2019
 Description: This module contains a PID based movement controller that is used
             to control the six degrees of freedom control of Perseverance.
 '''
@@ -18,10 +18,6 @@ PARAM_PATH = os.path.join("..", "Params")
 sys.path.append(PARAM_PATH)
 MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
 from mechos_network_configs import MechOS_Network_Configs
-
-PROTO_PATH = os.path.join("..", "..", "..", "Proto")
-sys.path.append(os.path.join(PROTO_PATH, "Src"))
-sys.path.append(PROTO_PATH)
 
 from thruster import Thruster
 from pid_controller import PID_Controller
@@ -40,7 +36,7 @@ class Movement_PID:
         Initialize the thrusters and PID controllers on Perseverance.
 
         Parameters:
-            error_publisher: A MechOS publisher to send the publish the current error
+            N/A
 
         Returns:
             N/A
@@ -144,6 +140,7 @@ class Movement_PID:
         #The bias term is a thruster vale to set to thruster 1, 3, 5, 7 to make the sub neutrally bouyant.
         #This term is added to the proportional gain controller.
         #(K_p * error) + bias
+        #Essentially this parameter will make the sub act neutrally bouyant below the activate bias depth.
         self.z_bias = float(self.param_serv.get_param("Control/PID/z_pid/bias"))
         self.z_active_bias_depth = float(self.param_serv.get_param("Control/PID/z_pid/active_bias_depth"))
 
@@ -400,9 +397,6 @@ class Movement_PID:
         #Get the thrusts from the PID controllers to move towards desired pos.
         roll_control = self.roll_pid_controller.control_step(roll_error)
         pitch_control = self.pitch_pid_controller.control_step(pitch_error)
-        #yaw_control = self.yaw_pid_controller.control_step(remote_commands[0])
-        #x_control = self.x_pid_controller.control_step(remote_commands[1])
-        #y_control = self.y_pid_controller.control_step(remote_commands[2])
         z_control = self.z_pid_controller.control_step(depth_error)
         self.controlled_thrust(roll_control, pitch_control, yaw_control,-1 * x_control, y_control, z_control, current_position[5])
 

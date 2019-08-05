@@ -13,6 +13,7 @@ sys.path.append(PARAM_PATH)
 MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
 from mechos_network_configs import MechOS_Network_Configs
 from MechOS import mechos
+from MechOS.simple_messages.bool import Bool
 import struct
 
 class Kill_Button(QWidget):
@@ -63,17 +64,17 @@ class Kill_Button(QWidget):
 
         #Create MechOS node
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
-        self.sub_killed_node = mechos.Node("GUI_KILL_STATUS", configs["ip"])
-        self.sub_killed_publisher = self.sub_killed_node.create_publisher("KS", configs["pub_port"])
+        self.sub_killed_node = mechos.Node("KILL_SUB_GUI", '192.168.1.2', '192.168.1.14')
+        self.sub_killed_publisher = self.sub_killed_node.create_publisher("KILL_SUB", Bool(), protocol="tcp")
 
         #Also create a killed button subscriber in case the sub kills it's self, so that way the
         #state changes in the GUI.
-        self.sub_killed_subscriber = self.sub_killed_node.create_subscriber("KS", self._sub_killed_callback, configs["sub_port"])
+        self.sub_killed_subscriber = self.sub_killed_node.create_subscriber("KILL_SUB", Bool(), self._sub_killed_callback, protocol="tcp")
 
         #Set up a QTimer to update the PID errors
         self.sub_killed_subscriber_update_timer = QTimer()
         self.sub_killed_subscriber_update_timer.timeout.connect( \
-                    lambda: self.sub_killed_node.spinOnce(self.sub_killed_subscriber))
+                    lambda: self.sub_killed_node.spin_once())
 
         #Start the timer to check if the subs killed state has changed (every 100ms)
         self.sub_killed_subscriber_update_timer.start(100)
@@ -89,7 +90,6 @@ class Kill_Button(QWidget):
         Returns:
             N/A
         '''
-        killed_state = struct.unpack('b', killed_state)[0]
 
         if(killed_state):
             self.KILL_STATUS = "killed"
@@ -112,14 +112,14 @@ class Kill_Button(QWidget):
             N/A
         '''
         if(self.KILL_STATUS == "operational"):
-            killed_state = struct.pack('b', 1)
-            self.sub_killed_publisher.publish(killed_state)
+
+            self.sub_killed_publisher.publish(True)
             self.pushButton.setStyleSheet("background-color: red")
             self.pushButton.setText("Killed")
             self.KILL_STATUS = "killed"
         else:
-            killed_state = struct.pack('b', 0)
-            self.sub_killed_publisher.publish(killed_state)
+
+            self.sub_killed_publisher.publish(False)
             self.pushButton.setStyleSheet("background-color: green")
             self.pushButton.setText("Un-Killed")
             self.KILL_STATUS = "operational"

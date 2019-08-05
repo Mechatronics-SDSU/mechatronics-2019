@@ -1,15 +1,30 @@
+'''
+Copyright 2019, David Pierce Walker-Howell, All rights reserved
+Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
+Last Modified 08/05/2019
+
+Description: The mission commander executes a mission based on a mission.json file
+            when the vehicle is in mission mode. Missions are started by pressing
+            the auto button on the rear of perseverance. Missions are a queue of tasks
+            to complete.
+'''
 import sys
 import os
-PROTO_PATH = os.path.join("..", "..", "..", "Proto")
-sys.path.append(os.path.join(PROTO_PATH, "Src"))
-sys.path.append(PROTO_PATH)
 
 PARAM_PATH = os.path.join("..", "Params")
 sys.path.append(PARAM_PATH)
 MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
 from mechos_network_configs import MechOS_Network_Configs
 
+MESSAGE_TYPES_PATH = os.path.join("..", "..", "..", "Message_Types")
+sys.path.append(MESSAGE_TYPES_PATH)
+from neural_network_message import Neural_Network_Message
+
 from MechOS import mechos
+from MechOS.simple_messages.int import Int
+from MechOS.simple_messages.bool import Bool
+from MechOS.simple_messages.float_array import Float_Array
+
 import threading
 import time
 import json
@@ -19,6 +34,7 @@ import struct
 from drive_functions import Drive_Functions
 from waypoint_task import Waypoint_Task
 from gate_no_vision_task import Gate_No_Vision_Task
+from initial_dive_task import Initial_Dive_Task
 
 class Mission_Commander(threading.Thread):
     '''
@@ -27,7 +43,7 @@ class Mission_Commander(threading.Thread):
     '.json'.
     '''
 
-    def __init__(self, sensor_driver):
+    def __init__(self):
         '''
         Initialize the mission given the mission .json file.
         Parameters:
@@ -40,10 +56,9 @@ class Mission_Commander(threading.Thread):
         threading.Thread.__init__(self)
 
         self.mission_file = None
-        self.sensor_driver = sensor_driver
 
         #Initialize the drive functions
-        self.drive_functions = Drive_Functions(self.sensor_driver)
+        self.drive_functions = Drive_Functions()
 
         #Get the mechos network parameters
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
@@ -53,18 +68,26 @@ class Mission_Commander(threading.Thread):
         self.param_serv.use_parameter_database(configs["param_server_path"])
 
         #MechOS node to connect the mission commander to the mechos network
-        self.mission_commander_node = mechos.Node("MISSION_COMMANDER", configs["ip"])
+        self.mission_commander_node = mechos.Node("MISSION_COMMANDER", '192.168.1.14', '192.168.1.14')
 
         #subscriber to listen if the movement mode is set to be autonomous mission mode
-        self.movement_mode_subscriber = self.mission_commander_node.create_subscriber("MM", self._update_movement_mode_callback, configs["sub_port"])
+        self.movement_mode_subscriber = self.mission_commander_node.create_subscriber("MOVEMENT_MODE", Int(), self._update_movement_mode_callback, protocol="tcp")
         #subscriber to listen if the mission informatin has changed.
-        self.update_mission_info_subscriber = self.mission_commander_node.create_subscriber("MS", self._update_mission_info_callback, configs["sub_port"])
+        self.update_mission_info_subscriber = self.mission_commander_node.create_subscriber("MISSON_SELECT", Bool(), self._update_mission_info_callback, protocol="tcp")
+        #subscriber to listen if neural network data is available
+        self.neural_network_subscriber = self.mission_commander_node.create_subscriber("NEURAL_NET", Neural_Network_Message(), self._update_neural_net_callback, protocol="tcp")
 
-        #subscriber to listen if the mission informatin has changed.
-        self.update_mission_info_subscriber = self.mission_commander_node.create_subscriber("MS", self._update_mission_info_callback, configs["sub_port"])
+        self.neural_net_data = [0, 0, 0, 0, 0, 0]
 
         #Publisher to be able to kill the sub within the mission
-        self.kill_sub_publisher = self.mission_commander_node.create_publisher("KS", configs["pub_port"])
+        self.kill_sub_publisher = self.mission_commander_node.create_publisher("KILL_SUB", Bool(), protocol="tcp")
+
+        #Publisher to zero the position of the sub.
+        self.zero_position_publisher = self.mission_commander_node.create_publisher("ZERO_POSITION", Bool(), protocol="tcp")
+
+        #Set up serial com to read the autonomous button
+        com_port = self.param_serv.get_param("COM_Ports/auto")
+        self.auto_serial = serial.Serial(com_port, 9600)
 
         #Set up a thread to listen to request from the GUI
         self.command_listener_thread = threading.Thread(target=self._command_listener)
@@ -81,39 +104,12 @@ class Mission_Commander(threading.Thread):
         self.mission_mode = False #If true, then the subs navigation system is ready for missions
         self.mission_live = False  #Mission live corresponds to the autonomous buttons state.
 
-        #Set up serial com to read the autonomous button
-        com_port = self.param_serv.get_param("COM_Ports/auto")
-        self.auto_serial = serial.Serial(com_port, 9600)
+        #Variable to keep the current sensor data(position) of the sub.
+        self.current_position = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
 
         #load the mission data
         self._update_mission_info_callback(None)
-
-    def _update_movement_mode_callback(self, movement_mode):
-        '''
-        The callback function to select which navigation controller mode is being used.
-        If it is set to 3, then the navigation controller is ready for autonomous mode.
-        Parameters:
-            movement_mode: Raw byte of the mode.
-        Returns:
-            N/A
-        '''
-        movement_mode = struct.unpack('b', movement_mode)[0]
-        if(movement_mode == 3):
-            print("[INFO]: Mission Commander Ready to Run Missions. Sub Initially Killed")
-
-            #Initially have the sub killed when switched to mission commander mode
-            kill_state = struct.pack('b', 1)
-            self.kill_sub_publisher.publish(kill_state)
-
-            self.mission_mode = True
-
-        else:
-
-            if(self.mission_mode == True):
-                print("[INFO]: Exited Mission Command Mode.")
-
-            self.mission_mode = False
-            self.mission_live = False
 
     def _update_mission_info_callback(self, misc):
         '''
@@ -131,27 +127,9 @@ class Mission_Commander(threading.Thread):
         self.mission_file = self.param_serv.get_param("Missions/mission_file")
         self.mission_live = False
 
-        print("[INFO]: New Mission file set as %s", self.mission_file)
+        print("[INFO]: New Mission file set as %s" % self.mission_file)
         #Parse the mission file
         self.parse_mission()
-    def _command_listener(self):
-        '''
-        The thread to run update requests from the GUI to tell the mission commander
-        when it is ready to run missions and what missions to do.
-
-        Parameters:
-            N/A
-        Returns:
-            N/A
-        '''
-        while self.command_listener_thread_run:
-            try:
-                #Recieve commands from the the GUI and/or Mission Commander
-                self.mission_commander_node.spinOnce(self.movement_mode_subscriber)
-
-            except Exception as e:
-                print("[ERROR]: Could not properly recieved messages in command listener. Error:", e)
-            time.sleep(0.2)
 
     def _update_movement_mode_callback(self, movement_mode):
         '''
@@ -162,13 +140,11 @@ class Mission_Commander(threading.Thread):
         Returns:
             N/A
         '''
-        movement_mode = struct.unpack('b', movement_mode)[0]
         if(movement_mode == 3):
             print("[INFO]: Mission Commander Ready to Run Missions. Sub Initially Killed")
 
             #Initially have the sub killed when switched to mission commander mode
-            kill_state = struct.pack('b', 1)
-            self.kill_sub_publisher.publish(kill_state)
+            self.kill_sub_publisher.publish(1)
 
             self.mission_mode = True
 
@@ -181,28 +157,9 @@ class Mission_Commander(threading.Thread):
             self.mission_live = False
             self.drive_functions.drive_functions_enabled = False
 
-    def _update_mission_info_callback(self, misc):
-        '''
-        If the update mission info button is pressed in the mission planner widget,
-        update the mission info here. Note that the mission being live should go to
-        false.
-
-        Parameters:
-            misc: Nothing used.
-        Returns:
-            N/A
-        '''
-
-        #Get the new mission file from the parameter server.
-        self.mission_file = self.param_serv.get_param("Missions/mission_file")
-        self.mission_live = False
-
-        #Disable drive function from running.
-        self.drive_functions.drive_functions_enabled = False
-
-        print("[INFO]: New Mission file set as %s", self.mission_file)
-        #Parse the mission file
-        self.parse_mission()
+    def _update_neural_net_callback(self, neural_net_data):
+        self.neural_net_data = neural_net_data
+        print(self.neural_net_data)
 
     def _command_listener(self):
         '''
@@ -217,17 +174,17 @@ class Mission_Commander(threading.Thread):
         while self.command_listener_thread_run:
             try:
                 #Recieve commands from the the GUI and/or Mission Commander
-                self.mission_commander_node.spinOnce(self.movement_mode_subscriber)
+                self.mission_commander_node.spin_once()
 
                 if(self.auto_serial.in_waiting):
                     auto_pressed = (self.auto_serial.read(13)).decode()
                     self.auto_serial.read(2) #Read the excess two bytes
-
+                    print(auto_pressed)
                     if(auto_pressed == "Auto Status:1" and self.mission_mode):
                         print("[INFO]: Mission Now Live")
                         self.mission_live = True
                         self.drive_functions.drive_functions_enabled = True
-                        
+
                     elif(auto_pressed == "Auto Status:0" and self.mission_mode):
                         print("[INFO]: Mission is no longer Live.")
                         self.mission_live = False
@@ -235,7 +192,7 @@ class Mission_Commander(threading.Thread):
 
             except Exception as e:
                 print("[ERROR]: Could not properly recieved messages in command listener. Error:", e)
-            time.sleep(0.2)
+            time.sleep(0.001)
 
     def parse_mission(self):
         '''
@@ -246,7 +203,7 @@ class Mission_Commander(threading.Thread):
         Returns:
             N/A
         '''
-
+        self.mission_tasks = [] #Reset the mission tasks
         with open(self.mission_file, 'r') as f:
             self.mission_data = json.load(f)
 
@@ -261,8 +218,12 @@ class Mission_Commander(threading.Thread):
             #Get the task type and name
             task_type = self.mission_data[task]["type"]
 
+            if(task_type == "Initial_Dive"):
+                initial_dive_task = Initial_Dive_Task(self.mission_data[task], self.drive_functions)
+                self.mission_tasks.append(initial_dive_task)
+
             #generate waypoint task
-            if(task_type == "Waypoint"):
+            elif(task_type == "Waypoint"):
                 waypoint_task = Waypoint_Task(self.mission_data[task], self.drive_functions)
                 self.mission_tasks.append(waypoint_task)
 
@@ -270,6 +231,7 @@ class Mission_Commander(threading.Thread):
             elif(task_type == "Gate_No_Vision"):
                 gate_no_vision = Gate_No_Vision_Task(self.mission_data[task], self.drive_functions)
                 self.mission_tasks.append(gate_no_vision)
+
 
     def run(self):
         '''
@@ -289,15 +251,14 @@ class Mission_Commander(threading.Thread):
                 if(self.mission_mode and self.mission_live):
 
                     #self.mission_live = True
-                    #print("[INFO]: Starting Mission")
+                    print("[INFO]: Starting Mission")
                     #When mission is live, run the mission
+                    #Unkill the sub
+                    self.kill_sub_publisher.publish(False)
 
-                    unkill_state = struct.pack('b', 0)
-                    self.kill_sub_publisher.publish(unkill_state)
-
-                    #Set the current position as origin
-                    self.sensor_driver.zero_pos()
-
+                    #Zero position of the sensors
+                    self.zero_position_publisher.publish(True)
+                    time.sleep(0.1) #wait for the messae to make it
                     #Iterate through each task in the mission and run them
                     for task_id, task in enumerate(self.mission_tasks):
                         if((self.mission_live == False) or (self.mission_mode == False)):
@@ -316,8 +277,7 @@ class Mission_Commander(threading.Thread):
                     self.mission_live = False
 
                     #Kill the sub.
-                    kill_state = struct.pack('b', 1)
-                    self.kill_sub_publisher.publish(kill_state)
+                    self.kill_sub_publisher.publish(True)
             except:
                 print("[ERROR]: Encountered an Error in Mission Commander. Error:", sys.exc_info()[0])
                 raise
@@ -325,4 +285,5 @@ class Mission_Commander(threading.Thread):
 
 
 if __name__ == "__main__":
-    mission_commander = Mission_Commander('MissionFiles/GateQual/mission.json', None)
+    mission_commander = Mission_Commander()
+    mission_commander.run()

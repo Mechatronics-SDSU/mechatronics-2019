@@ -19,13 +19,11 @@ from PyQt5 import uic
 from PyQt5.QtGui import QColor
 from PyQt5.QtCore import Qt, QTimer
 from MechOS import mechos
-
-PROTO_PATH = os.path.join("..", "..", "Proto")
-sys.path.append(os.path.join(PROTO_PATH, "Src"))
-sys.path.append(PROTO_PATH)
-import navigation_data_pb2
+from MechOS.simple_messages.bool import Bool
 
 import struct
+from remote_control_input import Remote_Control_Input
+import threading
 
 class Waypoint_GUI(QWidget):
     '''
@@ -49,12 +47,12 @@ class Waypoint_GUI(QWidget):
         self.waypoint_widget = uic.loadUi("waypoint_widget.ui", self)
 
         self.waypoint_widget.enable_waypoint_collection_checkbox.stateChanged.connect(self._update_waypoint_enable)
-        
+
         self.waypoint_widget.enable_waypoint_collection_checkbox.setChecked(False)
         #Create a mechos network publisher to publish the enable state of the
         #waypoints
-        self.waypoint_node = mechos.Node("Waypoint Node", configs["ip"])
-        self.waypoint_control_publisher = self.waypoint_node.create_publisher("WYP", configs["pub_port"])
+        self.waypoint_node = mechos.Node("WAYPOINT_COLLECTION_GUI", '192.168.1.2', '192.168.1.14')
+        self.waypoint_control_publisher = self.waypoint_node.create_publisher("ENABLE_WAYPOINT_COLLECTION", Bool(), protocol="tcp")
 
         #Connect button to save button to the parameter server.
         self.waypoint_widget.save_waypoint_file_btn.clicked.connect(self._update_save_waypoint_file)
@@ -70,7 +68,10 @@ class Waypoint_GUI(QWidget):
 
         self.setMinimumSize(449, 330)
 
-
+        #Start the remote control thread
+        #Note: You MUST have the logitech plugged in.
+        self.remote_control = Remote_Control_Input()
+        self.remote_control.start()
 
     def _update_waypoint_enable(self):
         '''
@@ -83,14 +84,14 @@ class Waypoint_GUI(QWidget):
         '''
         #If the box is checked, send enable waypoint to sub.
         if(self.waypoint_widget.enable_waypoint_collection_checkbox.isChecked()):
-            enable_waypoint_state = struct.pack('b', 1)
-            self.waypoint_control_publisher.publish(enable_waypoint_state)
+
+            self.waypoint_control_publisher.publish(True)
             self.waypoint_widget.waypoint_info_text_edit.append("[INFO]: Waypoint Mode Enabled")
 
         #Else disable the ability to capture of waypoints.
         else:
-            enable_waypoint_state = struct.pack('b', 0)
-            self.waypoint_control_publisher.publish(enable_waypoint_state)
+
+            self.waypoint_control_publisher.publish(False)
             self.waypoint_widget.waypoint_info_text_edit.append("[INFO]: Waypoint Mode Disabled")
 
     def _update_save_waypoint_file(self):

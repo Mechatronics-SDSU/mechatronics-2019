@@ -7,11 +7,7 @@ Description: This PyQt widget is for tunning the PID controls.
 import sys
 import os
 from MechOS import mechos
-
-PROTO_PATH = os.path.join("..", "..", "Proto")
-sys.path.append(os.path.join(PROTO_PATH, "Src"))
-sys.path.append(PROTO_PATH)
-import pid_errors_pb2
+from MechOS.simple_messages.bool import Bool
 
 PARAM_PATH = os.path.join("..", "..", "Sub", "Src", "Params")
 sys.path.append(PARAM_PATH)
@@ -45,14 +41,14 @@ class PID_Tuner_Widget(QWidget):
 
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
-        self.pid_gui_node = mechos.Node("PID_GUI", configs["ip"])
+        self.pid_gui_node = mechos.Node("PID_TUNER_GUI", '192.168.1.2', '192.168.1.14')
 
         #Publisher to tell the navigation/movement controller when new PID values are saved.
-        self.pid_configs_update_publisher = self.pid_gui_node.create_publisher("PID", configs["pub_port"])
+        self.pid_configs_update_publisher = self.pid_gui_node.create_publisher("UPDATE_PID_CONFIGS", Bool(), protocol="tcp")
 
         #Subscriber to get PID ERRORS
-        self.pid_errors_subscriber = self.pid_gui_node.create_subscriber("PE", self._update_error_plot, configs["sub_port"])
-        self.pid_error_proto = pid_errors_pb2.PID_ERRORS()
+        #self.pid_errors_subscriber = self.pid_gui_node.create_subscriber("PE", self._update_error_plot, configs["sub_port"])
+        #self.pid_error_proto = pid_errors_pb2.PID_ERRORS()
 
         #Mechos parameter server
         #Initialize parameter server client to get and set parameters related to sub
@@ -81,7 +77,7 @@ class PID_Tuner_Widget(QWidget):
         #Set up QTimer to update the PID errors
         self.pid_error_update_timer = QTimer()
 
-        self.pid_error_update_timer.timeout.connect(lambda: self.pid_gui_node.spinOnce(self.pid_errors_subscriber))
+        #self.pid_error_update_timer.timeout.connect(lambda: self.pid_gui_node.spinOnce(self.pid_errors_subscriber))
 
         self.primary_linking_layout.addLayout(self.options_linking_layout, 1)
         self.primary_linking_layout.addWidget(self.set_desired_position, 2)

@@ -7,15 +7,15 @@ Description: This PyQt widget is for testing thruster by simply
 '''
 import sys
 import os
-PROTO_PATH = os.path.join("..", "..", "Proto")
-sys.path.append(os.path.join(PROTO_PATH, "Src"))
-sys.path.append(PROTO_PATH)
-import thrusters_pb2
 
 PARAM_PATH = os.path.join("..", "..", "Sub", "Src", "Params")
 sys.path.append(PARAM_PATH)
 MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
 from mechos_network_configs import MechOS_Network_Configs
+
+MESSAGE_TYPE_PATH = os.path.join("..", "..", "Message_Types")
+sys.path.append(MESSAGE_TYPE_PATH)
+from thruster_message import Thruster_Message
 
 from MechOS import mechos
 from PyQt5.QtWidgets import QWidget, QApplication, QGridLayout, QCheckBox, QLabel, QSlider
@@ -59,12 +59,10 @@ class Thruster_Test(QWidget):
 
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
         #MechOS publisher to send thrust test messages to thruster controller
-        self.thruster_test_node = mechos.Node("THRUSTER_TEST", configs["ip"])
-        self.publisher = self.thruster_test_node.create_publisher("TT", configs["pub_port"])
+        self.thruster_test_node = mechos.Node("THRUSTER_TEST_GUI", '192.168.1.2', '192.168.1.14')
+        self.publisher = self.thruster_test_node.create_publisher("THRUSTS", Thruster_Message(), protocol="tcp")
 
-        #Initialize the thruster test proto to package thrust requests
-        self.thruster_test_proto = thrusters_pb2.Thrusters()
-
+        self.thrusts = [0, 0, 0, 0, 0, 0, 0, 0]
 
     def _thruster_check_boxes(self):
         '''
@@ -154,46 +152,42 @@ class Thruster_Test(QWidget):
 
         #Set each of the proto fields with the desired thrust if checkbox is checked
         if self.thruster_check_boxes[0].isChecked():
-            self.thruster_test_proto.thruster_1 = desired_thrust
+            self.thrusts[0] = desired_thrust
         else:
-            self.thruster_test_proto.thruster_1 = 0
+            self.thrusts[0] = 0
         if self.thruster_check_boxes[1].isChecked():
-            self.thruster_test_proto.thruster_2 = desired_thrust
+            self.thrusts[1]  = desired_thrust
         else:
-            self.thruster_test_proto.thruster_2 = 0
+            self.thrusts[1] = 0
         if self.thruster_check_boxes[2].isChecked():
-            self.thruster_test_proto.thruster_3 = desired_thrust
+            self.thrusts[2]  = desired_thrust
         else:
-            self.thruster_test_proto.thruster_3 = 0
+            self.thrusts[2] = 0
         if self.thruster_check_boxes[3].isChecked():
-            self.thruster_test_proto.thruster_4 = desired_thrust
+            self.thrusts[3]  = desired_thrust
         else:
-            self.thruster_test_proto.thruster_4 = 0
+            self.thrusts[3] = 0
         if self.thruster_check_boxes[4].isChecked():
-            self.thruster_test_proto.thruster_5 = desired_thrust
+            self.thrusts[4]  = desired_thrust
         else:
-            self.thruster_test_proto.thruster_5 = 0
+            self.thrusts[4] = 0
         if self.thruster_check_boxes[5].isChecked():
-            self.thruster_test_proto.thruster_6 = desired_thrust
+            self.thrusts[5]  = desired_thrust
         else:
-            self.thruster_test_proto.thruster_6 = 0
+            self.thrusts[5] = 0
         if self.thruster_check_boxes[6].isChecked():
-            self.thruster_test_proto.thruster_7 = desired_thrust
+            self.thrusts[6] = desired_thrust
         else:
-            self.thruster_test_proto.thruster_7 = 0
+            self.thrusts[6] = 0
         if self.thruster_check_boxes[7].isChecked():
-            self.thruster_test_proto.thruster_8 = desired_thrust
+            self.thrusts[7] = desired_thrust
         else:
-            self.thruster_test_proto.thruster_8 = 0
+            self.thrusts[7] = 0
 
 
-
-        #package test thrust data into a protobuf
-
-        serialized_thruster_data = self.thruster_test_proto.SerializeToString()
 
         #publish data to mechos network
-        self.publisher.publish(serialized_thruster_data)
+        self.publisher.publish(self.thrusts)
 
 
 if __name__ == "__main__":

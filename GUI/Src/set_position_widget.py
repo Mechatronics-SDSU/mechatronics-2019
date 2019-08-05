@@ -13,15 +13,16 @@ sys.path.append(PARAM_PATH)
 MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
 from mechos_network_configs import MechOS_Network_Configs
 
+MESSAGE_TYPE_PATH = os.path.join("..", "..", "Message_Types")
+sys.path.append(MESSAGE_TYPE_PATH)
+from desired_position_message import Desired_Position_Message
+
 from PyQt5.QtWidgets import QWidget, QApplication, QGridLayout, QLineEdit, QLabel, QVBoxLayout, QPushButton
 from PyQt5.QtGui import QColor
 from PyQt5.QtCore import Qt, QTimer
 from MechOS import mechos
+from MechOS.simple_messages.bool import Bool
 
-PROTO_PATH = os.path.join("..", "..", "Proto")
-sys.path.append(os.path.join(PROTO_PATH, "Src"))
-sys.path.append(PROTO_PATH)
-import desired_position_pb2
 
 class Set_Desired_Position_GUI(QWidget):
 
@@ -43,15 +44,15 @@ class Set_Desired_Position_GUI(QWidget):
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
         #MechOS node to receive data from the sub and display it
-        self.set_position_node = mechos.Node("SET_POS_GUI", configs["ip"])
-        self.set_position_pub = self.set_position_node.create_publisher("DP", configs["pub_port"])
-
-        #Initialize the desired position proto
-        self.dest_pos_proto = desired_position_pb2.DESIRED_POS()
+        self.set_position_node = mechos.Node("SET_POSITION_GUI", '192.168.1.2', '192.168.1.14')
+        self.set_position_pub = self.set_position_node.create_publisher("DESIRED_POSITION", Desired_Position_Message(), protocol="tcp")
+        self.zero_position_pub = self.set_position_node.create_publisher("ZERO_POSITION", Bool(), protocol="tcp")
 
         self.linking_layout = QVBoxLayout(self)
         self.setLayout(self.linking_layout)
         self._desired_position_inputs()
+
+        self.desired_position = [0, 0, 0, 0, 0, 0]
 
     def _desired_position_inputs(self):
         '''
@@ -136,17 +137,15 @@ class Set_Desired_Position_GUI(QWidget):
         Returns:
             N/A
         '''
-        self.dest_pos_proto.roll = float(self.roll_box.text())
-        self.dest_pos_proto.pitch = float(self.pitch_box.text())
-        self.dest_pos_proto.yaw = float(self.yaw_box.text())
-        self.dest_pos_proto.depth = float(self.depth_box.text())
-        self.dest_pos_proto.north_pos = float(self.x_box.text())
-        self.dest_pos_proto.east_pos = float(self.y_box.text())
-        self.dest_pos_proto.zero_pos = False
+        self.desired_position[0] = float(self.roll_box.text())
+        self.desired_position[1] = float(self.pitch_box.text())
+        self.desired_position[2] = float(self.yaw_box.text())
+        self.desired_position[3] = float(self.x_box.text())
+        self.desired_position[4] = float(self.y_box.text())
+        self.desired_position[5] = float(self.depth_box.text())
 
-        serialized_pos_proto = self.dest_pos_proto.SerializeToString()
-        print("[INFO]: Sending Position\n", self.dest_pos_proto)
-        self.set_position_pub.publish(serialized_pos_proto)
+        print("[INFO]: Sending Position\n", self.desired_position)
+        self.set_position_pub.publish(self.desired_position)
 
     def zero_position(self):
         '''
@@ -158,9 +157,6 @@ class Set_Desired_Position_GUI(QWidget):
         Returns:
             N/A
         '''
-        self.dest_pos_proto.zero_pos = True
-        serialized_pos_proto = self.dest_pos_proto.SerializeToString()
-
         #Zero roll, pitch, x, and y to stabilize the sub at origin.
 
         self.roll_box.setText("0.0")
@@ -168,12 +164,13 @@ class Set_Desired_Position_GUI(QWidget):
         self.x_box.setText("0.0")
         self.y_box.setText("0.0")
 
-        self.dest_pos_proto.roll = 0.0
-        self.dest_pos_proto.pitch = 0.0
-        self.dest_pos_proto.north_pos = 0.0
-        self.dest_pos_proto.east_pos = 0.0
-        self.set_position_pub.publish(serialized_pos_proto)
-        print("[INFO]: Zeroing Position\n", self.dest_pos_proto)
+        self.desired_position[0] = 0.0
+        self.desired_position[1] = 0.0
+        self.desired_position[2] = 0.0
+        self.desired_position[3] = 0.0
+        self.set_position_pub.publish(self.desired_position)
+        self.zero_position_pub.publish(True)
+        print("[INFO]: Zeroing Position\n", self.desired_position)
 
 if __name__ == "__main__":
     import sys

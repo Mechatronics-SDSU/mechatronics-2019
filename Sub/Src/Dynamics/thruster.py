@@ -2,17 +2,13 @@
 Copyright 2019, David Pierce Walker-Howell, All rights reserved
 
 Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
-Last Modified 01/30/2019
+Date: 08/05/2019
 
 Description: This module contains the "Thruster" class which allows control of thruster
             speeds using PWM.
 '''
 import sys
 import os
-
-PROTO_PATH = os.path.join("..", "..", "..", "Proto")
-sys.path.append(os.path.join(PROTO_PATH, "Src"))
-sys.path.append(PROTO_PATH)
 
 PARAM_PATH = os.path.join("..", "Params")
 sys.path.append(PARAM_PATH)
@@ -107,82 +103,3 @@ class Thruster():
 
             #write thrust to maestro
             self.maestro_serial_obj.write(bytearray([0xFF, self.thruster_id, thrust]))
-
-class Thruster_Controller:
-    '''
-    This is a controller that will receive thrust values through a MechOS subscriber
-    and write the values to the thrusters.
-    '''
-    def __init__(self, maestro_serial_obj, max_thrust):
-        '''
-        Intialize the thruster controller and communication to the MechOS network
-        to receive thrust values.
-
-        Parameters:
-            maestro_serial_obj: The open serial communication port object connected
-                                to the maestro motor controller.
-            max_thrust: A value between 0 and 100 signifying the maximum thrust possible. Example,
-                        80 would mean limiting the thruster to 80% it's maximum possible thrust at
-                        all times
-        '''
-        #Type of proto to receive thruster values through
-        self.type = "THRUSTERS"
-
-        #Get the mechos network parameters
-        configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
-
-        #Subscribe to the thrust publisher to receive thrust values
-        self.thruster_control_node = mechos.Node("THRUSTER_CONTROL", configs["ip"])
-        self.subscriber = self.thruster_control_node.create_subscriber("THRUST", self._update_thrust, configs["sub_port"])
-
-        self.thrusters = []
-        self.thrust_proto = Mechatronics_pb2.Mechatronics()
-
-        #Declare objects for each thruster
-        for thruster_id in range(8):
-            self.thrusters.append(Thruster(maestro_serial_obj, thruster_id + 1, None,
-                                None, max_thrust))
-
-    def _update_thrust(self, thrust_proto_data):
-        '''
-        Call back function for the subscriber to pass the proto messages received.
-        Parse the proto message and set the apprioriate thruster values.
-
-        Parameters:
-            thruster_proto_data: A proto buff message containging data under type
-                                thruster.
-        Returns:
-            N/A
-        '''
-        self.thrust_proto.ParseFromString(thrust_proto_data)
-
-
-        #Set all the thrusters
-        self.thrusters[0].set_thrust(self.thrust_proto.thruster.thruster_1)
-        self.thrusters[1].set_thrust(self.thrust_proto.thruster.thruster_2)
-        self.thrusters[2].set_thrust(self.thrust_proto.thruster.thruster_3)
-        self.thrusters[3].set_thrust(self.thrust_proto.thruster.thruster_4)
-        self.thrusters[4].set_thrust(self.thrust_proto.thruster.thruster_5)
-        self.thrusters[5].set_thrust(self.thrust_proto.thruster.thruster_6)
-        self.thrusters[6].set_thrust(self.thrust_proto.thruster.thruster_7)
-        self.thrusters[7].set_thrust(self.thrust_proto.thruster.thruster_8)
-
-
-    def run(self):
-        '''
-        Continually listen for messages from a publisher giving thrust messages.
-
-        Parameters:
-            N/A
-
-        Returns:
-            N/A
-        '''
-        while(True):
-            self.thruster_control_node.spinOnce(self.subscriber)
-            time.sleep(0.1)
-
-if __name__ == "__main__":
-    maestro_serial_obj = serial.Serial('COM29', 9600)
-    thruster_controller = Thruster_Controller(maestro_serial_obj, 80)
-    thruster_controller.run()

@@ -1,10 +1,18 @@
-import numpy as np
+'''
+Copyright 2019, David Pierce Walker-Howell, All rights reserved
 
+Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
+Last Modified 08/05/2019
 
+Description: The base Kalman Filter algorithm to implement probabilistic
+                sensor fusion and data filtering.
+'''
 class Kalman_Filter():
     '''
+    A class that contains the mathmatics for a kalman filter. The
+    state transistions, measurment predictions and parameter covariances
+    need to be set, then predictions can be made about the state of data.
     '''
-
     def __init__(self, A, B, R, C, Q):
         '''
         Initialize the parameter matrices for state transistions, measurement

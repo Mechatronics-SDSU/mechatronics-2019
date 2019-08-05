@@ -2,7 +2,7 @@
 Copyright 2019, David Pierce Walker-Howell, All rights reserved
 
 Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
-Last Modified 02/25/2019
+Last Modified 08/05/2019
 
 Description: The sensor driver controls and starts all the threads for each sensor.
              The driver will package up the sensor data into their respective proto
@@ -11,21 +11,17 @@ Description: The sensor driver controls and starts all the threads for each sens
 import sys
 import os
 
-PROTO_PATH = os.path.join("..", "..", "..", "Proto")
-sys.path.append(os.path.join(PROTO_PATH, "Src"))
-sys.path.append(PROTO_PATH)
-
 PARAM_PATH = os.path.join("..", "Params")
 sys.path.append(PARAM_PATH)
 MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
 from mechos_network_configs import MechOS_Network_Configs
 
-import navigation_data_pb2
-import desired_position_pb2
-from AHRS import AHRS
-from Backplane_Sensor_Data import Backplane_Handler
-from DVL import DVL_THREAD
+from ahrs import AHRS
+from backplane import Backplane_Handler
+from dvl import DVL
 from MechOS import mechos
+from MechOS.simple_messages.float_array import Float_Array
+from MechOS.simple_messages.bool import Bool
 import serial
 import threading
 import time
@@ -48,16 +44,18 @@ class Sensor_Driver(threading.Thread):
         '''
 
         threading.Thread.__init__(self)
-
-        #proto buff packaging
-        #self.nav_data_proto = navigation_data_pb2.NAV_DATA()
-
         #Get the mechos network parameters
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
         #Mechos nodes to send Sensor Data
-        self.sensor_driver_node = mechos.Node("SENSOR_DRIVER", configs["ip"])
-        #self.nav_data_publisher = self.sensor_driver_node.create_publisher("NAV", configs["pub_port"])
+        self.sensor_driver_node = mechos.Node("SENSOR_DRIVER", '192.168.1.14', '192.168.1.14')
+
+        #Publisher to publish the sensor data to the network.
+        #Sensd [roll, pitch, yaw, north pos., east pos., depth]
+        self.nav_data_publisher = self.sensor_driver_node.create_publisher("SENSOR_DATA",Float_Array(6), protocol="udp", queue_size=1)
+
+        #Subscriber to receive a message to zero position of the currrent north/east position of the sub.
+        self.zero_pos_subscriber = self.sensor_driver_node.create_subscriber("ZERO_POSITION", Bool(), self._update_zero_position, protocol="tcp")
 
         #MechOS node to receive zero position message (zero position message is sent in the DP topic)
         #self.zero_pos_sub = self.sensor_driver_node.create_subscriber("DP", self._zero_pos_callback, configs["sub_port"])
@@ -88,7 +86,6 @@ class Sensor_Driver(threading.Thread):
         self.backplane_driver_thread.start()
         self.ahrs_driver_thread.start()
         self.dvl_driver_thread.start()
-        self.zero_pos_flag = True
 
         self.current_north_pos = 0
         self.current_east_pos = 0
@@ -100,7 +97,7 @@ class Sensor_Driver(threading.Thread):
         self.run_thread = True
         self.daemon = True
 
-    def zero_pos(self):
+    def _update_zero_position(self, misc):
         '''
         Zero the position of the sub in the x and y coordinates
 
@@ -109,6 +106,7 @@ class Sensor_Driver(threading.Thread):
         Returns:
             N/A
         '''
+
         self.current_north_pos = 0
         self.current_east_pos = 0
 
@@ -190,11 +188,23 @@ class Sensor_Driver(threading.Thread):
         '''
 
         while(self.run_thread):
+
             try:
-                self.sensor_data = self._get_sensor_data()
+                self.sensor_driver_node.spin_once()
+                sensor_data = self._get_sensor_data()
+
+                if(sensor_data != None):
+                    self.sensor_data = sensor_data
+
+                #publish the data to the mechos network so subscriber can get
+                #the current position of the sub.
+                self.nav_data_publisher.publish(self.sensor_data)
+
+
             except Exception as e:
                 print("[ERROR]: Sensor Driver could not correctly collect sensor data. Error:", e)
-                time.sleep(0.001)
+
+            time.sleep(0.01)
 
 
 

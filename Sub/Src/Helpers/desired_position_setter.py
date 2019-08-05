@@ -1,16 +1,17 @@
 import sys
 import os
-PROTO_PATH = os.path.join("..", "..", "..", "Proto")
-sys.path.append(os.path.join(PROTO_PATH, "Src"))
-sys.path.append(PROTO_PATH)
-import desired_position_pb2
 
 PARAM_PATH = os.path.join("..", "Params")
 sys.path.append(PARAM_PATH)
 MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
 from mechos_network_configs import MechOS_Network_Configs
 
+MESSAGE_TYPE_PATH = os.path.join("..","..", "..", "Message_Types")
+sys.path.append(MESSAGE_TYPE_PATH)
+from desired_position_message import Desired_Position_Message
+
 from MechOS import mechos
+
 import time
 
 class CMD_Position_Setter:
@@ -27,8 +28,8 @@ class CMD_Position_Setter:
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
         #Create a MechOS publisher to send desired position data
-        self.position_setter_node = mechos.Node("POS_SETTER", configs["ip"])
-        self.position_setter_publisher = self.position_setter_node.create_publisher("DP", configs["pub_port"])
+        self.position_setter_node = mechos.Node("DESIRED_POSITION_SETTER_HELPER", '192.168.1.2', '192.168.1.14')
+        self.position_setter_publisher = self.position_setter_node.create_publisher("DESIRED_POSITION", Desired_Position_Message(), protocol="tcp")
 
     def __choose_operation(self):
         '''
@@ -63,17 +64,7 @@ class CMD_Position_Setter:
                 for index, pos in enumerate(desired_position):
                     desired_position[index] = float(pos)
 
-                #Set data into position proto
-                self.desired_position_proto.roll  = desired_position[0]
-                self.desired_position_proto.pitch = desired_position[1]
-                self.desired_position_proto.yaw   = desired_position[2]
-                self.desired_position_proto.depth = desired_position[3]
-                self.desired_position_proto.north_pos = desired_position[4]
-                self.desired_position_proto.east_pos = desired_position[5]
-
-                #Serialze and publish proto position data
-                serialized_position = self.desired_position_proto.SerializeToString()
-                self.position_setter_publisher.publish(serialized_position)
+                self.position_setter_publisher.publish(desired_position)
 
 
 
