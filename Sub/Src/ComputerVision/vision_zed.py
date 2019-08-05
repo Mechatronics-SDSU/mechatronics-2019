@@ -5,9 +5,9 @@ Authors:Alexa Becerra <alexa.becerra99@gmail.com>
         Ramiz Hanan
         Christian Gould <christian.d.gould@gmail.com>
         David Pierce Walker-Howell <piercedhowell@gmail.com>
-Last Modified 07/13/2019
-Description: Vision (Cam Node) utilizes the neural network and Yolo for object
-detection of captured images, that are then sent over a socket to be captured by Recv Node.
+Last Modified 08/05/2019
+Description: Vision using the stereo zed camera to detect objects using yolov3 tiny.
+             This script is specific for the zed camera.
 '''
 
 import numpy as np
@@ -40,12 +40,13 @@ from neural_network_message import Neural_Network_Message
 
 class Vision(node_base):
     '''
-    Vision captures from the webcam, runs the neural network/cv algorithms,  and streams the processed images.
+    Vision captures from the zed stereo camera, runs the neural network/cv algorithms,
+    and streams the processed images over mechos using sockets.
     '''
 
     def __init__(self, MEM, IP):
         '''
-        Initializes values for encoded image streaming, begins webcam capture and
+        Initializes values for encoded image streaming, begins zed capture and
         loads in the neural network.
         Parameters:
             MEM: Dictionary containing Node name and the desired local memory location.
@@ -78,21 +79,19 @@ class Vision(node_base):
 
         #--CAMERA INSTANCE--(using the zed camera)#
         #front_camera_index = int(self.param_serv.get_param("Vision/front_camera_index"))
-        
+
         #Create a zed camera object
         self.zed = sl.Camera()
         self.zed_init_params = sl.InitParameters()
         self.zed_init_params.camera_resolution = sl.RESOLUTION.RESOLUTION_HD720
-        self.zed_init_params.camera_fps = 30 #set fps at 15
+        self.zed_init_params.camera_fps = 30 #set fps at 30 fps
         self.zed_init_params.depth_mode = sl.DEPTH_MODE.DEPTH_MODE_NONE
+
         #Open the zed camera
         err = self.zed.open(self.zed_init_params)
         if(err != sl.ERROR_CODE.SUCCESS):
             exit(1)
 
-        # Maximum image size the Tegra allows without timeout
-        #self.capture.set(3, 450)
-        #self.capture.set(4, 450)
 
         # Neural Network Loaded from instance in darknet module
         darknet_path = self.param_serv.get_param("Vision/yolo/darknet_path")
@@ -109,6 +108,7 @@ class Vision(node_base):
 
         self.meta = load_meta(metadata_file_path)
 
+        #Solvepnp distance calculator.
         self.distance_calculator = Distance_Calculator()
 
     def run(self):
