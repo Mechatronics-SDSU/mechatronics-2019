@@ -3,7 +3,8 @@ import time
 
 class Timer:
     '''
-    Provides timing information such a net time and relative time.
+    Provides timing information since the timer was created. This is used for
+    when precise timing is needed in applications.
     '''
     def __init__(self):
         '''
