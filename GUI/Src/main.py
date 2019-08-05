@@ -1,3 +1,12 @@
+'''
+Copyright 2019, David Pierce Walker-Howell, All rights reserved
+
+Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
+        Ryan Clode
+Date: 08/05/2019
+Description: This script combines all the widgets to build the entire main gui
+                for controlling and commanding the sub. 
+'''
 import sys
 import os
 
