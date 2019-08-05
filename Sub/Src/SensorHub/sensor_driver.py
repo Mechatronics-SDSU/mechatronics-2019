@@ -2,7 +2,7 @@
 Copyright 2019, David Pierce Walker-Howell, All rights reserved
 
 Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
-Last Modified 02/25/2019
+Last Modified 08/05/2019
 
 Description: The sensor driver controls and starts all the threads for each sensor.
              The driver will package up the sensor data into their respective proto
@@ -16,9 +16,9 @@ sys.path.append(PARAM_PATH)
 MECHOS_CONFIG_FILE_PATH = os.path.join(PARAM_PATH, "mechos_network_configs.txt")
 from mechos_network_configs import MechOS_Network_Configs
 
-from AHRS import AHRS
-from Backplane_Sensor_Data import Backplane_Handler
-from DVL import DVL_THREAD
+from ahrs import AHRS
+from backplane import Backplane_Handler
+from dvl import DVL
 from MechOS import mechos
 from MechOS.simple_messages.float_array import Float_Array
 from MechOS.simple_messages.bool import Bool
@@ -196,6 +196,8 @@ class Sensor_Driver(threading.Thread):
                 if(sensor_data != None):
                     self.sensor_data = sensor_data
 
+                #publish the data to the mechos network so subscriber can get
+                #the current position of the sub.
                 self.nav_data_publisher.publish(self.sensor_data)
 
 

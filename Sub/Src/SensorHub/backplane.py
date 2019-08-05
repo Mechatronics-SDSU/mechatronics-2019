@@ -24,7 +24,7 @@ import serial
 import time
 import struct
 import threading
-from pressureTransducers import Pressure_Depth_Transducers
+from pressure_depth_transducers import Pressure_Depth_Transducers
 
 
 class Backplane_Requests():

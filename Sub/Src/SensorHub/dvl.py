@@ -192,7 +192,7 @@ class DVL_DATA_DRIVER:
         except Exception as e:
             print("[ERROR]: DVL.py --> Error attemping to receive DVL data via serial com. Error: ", e)
 
-class DVL_THREAD(threading.Thread):
+class DVL(threading.Thread):
     '''
     Primary thread to communicate with the DVL and retrieve its data.
     '''
@@ -207,7 +207,7 @@ class DVL_THREAD(threading.Thread):
         Returns:
             N/A
         '''
-        super(DVL_THREAD, self).__init__()
+        super(DVL, self).__init__()
 
         self.daemon = True
 
@@ -238,7 +238,7 @@ class DVL_THREAD(threading.Thread):
         Returns:
             N/A
         '''
-        
+
         while(True):
 
             try:
