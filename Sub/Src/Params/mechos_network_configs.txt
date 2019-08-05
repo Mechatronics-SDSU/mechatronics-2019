@@ -1,5 +1,0 @@
-ip:192.168.1.14
-pub_port:5559
-sub_port:5560
-param_port:8000
-xmlrpc_server_path:/home/mechatronics2019/mechatronics-2019/Sub/Src/Params/Perseverance.xml
