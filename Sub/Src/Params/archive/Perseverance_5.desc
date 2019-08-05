@@ -1,0 +1,18 @@
+File Referencing in Archive: Perseverance_5.xml
+Save Date: 07/05/2019
+Description of Referenced File:
+    This file contains the re-tuned thruster strength parameters used to help
+    push the center of mass towards the center axis of the sub be making some
+    thrusters more powerful (percentage wise). Compared to previous parameter
+    files, the parameter strength is now a percentage instead of an offset. Hence
+    you can make individual thrusters x% more powerful than what they normally
+    would be.
+
+    In this testing, thrusters 1, 3, and 6 were made more powerful. 1, 3 are needed
+    more power because the sub naturally wants to pitch up because the back of the
+    sub is heavier than the front of the sub. Also since 1 and 3 are not perfectly
+    the same performance in thrust, thruster 3 is slightly stronger than thruster 1.
+    Thruster 6 also had to be increased to cancel out the arching motion when
+    strafing in the Y direction (left/right). This also improved yaw.
+
+    At this testing, the sub sadly flooded.

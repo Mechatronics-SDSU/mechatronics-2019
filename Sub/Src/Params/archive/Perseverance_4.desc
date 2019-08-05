@@ -1,0 +1,20 @@
+File Referencing in Archive: Perseverance_4.xml
+Save Date: 07/03/2019
+Description of Referenced File:
+    This file contains the re-tuned parameters from Aquaplex pool testing on
+    July 3, 2019. At the pool testing we completely retuned the PID values
+    for Roll, Pitch, Yaw, Depth, and North Position. I took increase the error
+    limits for the PID controllers on yaw and depth, and these current ones seem
+    to be the best we have had thus far. We also learned that the thruster had
+    been going in the wrong direction for roll, so it would keep rolling. To fix
+    this, the roll_control value in the movement_pid script is multiplied by a
+    negative one.
+
+    The PID controller for y axis movements (strafe) did not work well
+    because of unbalance in the sub. Rather than strafe, it would do an
+    arch with the rear of the sub facing the center of that arch. This is
+    because the center of mass is towards the back of the sub. To solve this
+    a thruster strength will need to be added to the rear thruster.
+
+    I noted that North and East are both negative, which signifies
+    that the DVL is flipped 180deg, this can be changed in code.
