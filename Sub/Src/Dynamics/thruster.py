@@ -2,7 +2,7 @@
 Copyright 2019, David Pierce Walker-Howell, All rights reserved
 
 Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
-Last Modified 01/30/2019
+Date: 08/05/2019
 
 Description: This module contains the "Thruster" class which allows control of thruster
             speeds using PWM.

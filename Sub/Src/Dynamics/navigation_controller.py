@@ -3,10 +3,11 @@
 Copyright 2019, David Pierce Walker-Howell, All rights reserved
 Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
 Collaborator: Mohammad Shafi <ma.shafi99@gmail.com>
-Last Modified 06/16/2019
+Last Modified 08/05/2019
 Description: This module contains a highest level navigation controller for Perseverance.
                 It contains multiple modes of control for the sub including
-                thruster test mode, PID test mode, and Autonomous control mode.
+                thruster test mode, PID test mode, and Mission (Autonomous) Mode,
+                and remote control mode..
 '''
 import sys
 import os
@@ -42,22 +43,19 @@ MOVEMENT_AXIS = ["Roll", "Pitch", "Yaw", "X Pos.", "Y Pos.", "Depth"]
 
 class Navigation_Controller(threading.Thread):
     '''
-    This main Navigation controller for the sub. It is made up of two main components.
-    This first main is the sensor driver, which provides navigation data from the sensor.
-    The second component is the movement controller components, which controls the movement
-    pid control system. There is also a command_listener that listens for requests from the gui/mission commander.
+    This main Navigation controller for the sub. The navigation controller has 5 primary
+    modes: Sub Killed, PID Tunning mode, Thruster Test Mode, Mission (Autonomous) Mode, and
+    Remote control mode. The controller subscribers to the sensor data publishers and
+    desired position publishers to plan its control using the pid controllers to move
+    between positions.
     '''
     def __init__(self):
         '''
         Initialize the navigation controller. This includes getting parameters from the
-        parameter server, initializing subscribers to listen for command messages, and
-        initalizing the sensor driver.
+        parameter server and initializing subscribers to listen for command messages and sensor data
+
         Parameters:
-            MEM: Local dictionary needed to send data over RAM
-            IP: Dictionary containing addresses, sockets, and everything needed
-                to send over the network
-            sensor_driver: An initialized sensor driver thread needed to get sensor_data
-                            from.
+            N/A
         Returns:
             N/A
         '''
@@ -69,6 +67,7 @@ class Navigation_Controller(threading.Thread):
         configs = MechOS_Network_Configs(MECHOS_CONFIG_FILE_PATH)._get_network_parameters()
 
         #MechOS node to connect movement controller to mechos network
+        #The ip that the sub and mechoscore runs on are both 192.168.1.14
         self.navigation_controller_node = mechos.Node("NAVIGATION_CONTROLLER", '192.168.1.14', '192.168.1.14')
 
         #Subscribe to remote commands
@@ -167,6 +166,14 @@ class Navigation_Controller(threading.Thread):
 
     def __update_sensor_data(self, sensor_data):
         '''
+        Callback function of the SENSOR_DATA subscriber to receive the current
+        position of the sub (which is the sensor data).
+
+        Parameters:
+            sensor_data: The roll, pitch, yaw, North pos, East pos, and Depth of the
+            sub.
+        Returns:
+            N/A
         '''
         self.current_position = sensor_data
 
@@ -221,8 +228,9 @@ class Navigation_Controller(threading.Thread):
 
     def _read_remote_control(self, remote_commands):
         '''
-        The thread to continuosly read data from the Xbox controller when in
-        remote control mode.
+        The callback function to read the remote commmands from the
+        REMOTE_CONTROL_COMMAND publisher to drive the sub in remote
+        control mode.
         '''
 
         #Remote commands [yaw, x, y, depth, hold_depth?, record_waypoint?]
@@ -245,8 +253,10 @@ class Navigation_Controller(threading.Thread):
         '''
         The callback function to see if the GUI is asking to enable/disable collecting
         waypoints mode.
+
         Parameters:
-            N/A
+            enable_waypoint_collection: A boolean to set if the waypoint collection should
+            be enabled. If enabled, then waypoints can be written to the set waypoint file.
         Returns:
             N/A
         '''
@@ -272,7 +282,8 @@ class Navigation_Controller(threading.Thread):
     def _command_listener(self):
         '''
         The thread to run to update requests from the gui or mission commaner for changes in the movement mode,
-        sub_killed, and desired position. Also send the current sensor data to the GUI and mission commander.
+        sub_killed, sensor data, desired position.
+
         Parameters:
             N/A
         Returns:
@@ -280,7 +291,7 @@ class Navigation_Controller(threading.Thread):
         '''
         while self.command_listener_thread_run:
             try:
-                #Recieve commands from the the GUI and/or Mission Commander
+                #Check all subscribers for new data to be updated.
                 self.navigation_controller_node.spin_once()
 
             except Exception as e:
@@ -292,6 +303,7 @@ class Navigation_Controller(threading.Thread):
         '''
         This thread publishes the sensor data which gives the current naviagtion position to
         the GUI and Mission Commander. It also sends the current PID error if in PID tuning mode.
+        
         Parameters:
             N/A
         Returns:
