@@ -1,9 +1,10 @@
 '''
 Copyright 2019, David Pierce Walker-Howell, All rights reserved
 Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
-Last Modified 07/1/2019
+Last Modified 08/05/2019
+
 Description: This module contains functions to perform basic movements of the
-            sub that can be utilized in missitons.
+            sub that can be utilized in missions.
 '''
 import sys
 import os
@@ -29,7 +30,9 @@ import threading
 class Drive_Functions:
     '''
     A class containing basic functions for movements of the sub.
-    Helpful for constructing missions.
+    Helpful for constructing missions. Functions such as depth move,
+    face yaw to face a position, move to position, move in the x direction,
+    move in the y (strafe) direction, etc.
     '''
     def __init__(self):
         '''
@@ -207,7 +210,9 @@ class Drive_Functions:
                         it doesn't rech the buffer_zone in time, the function
                         will exit
             desired_orientation: If None, hold the current North, East, and Depth
-                                will orienting to face position.
+                                will orienting to face position. Else one to all of the
+                                following can be set to lock those orientations.
+                                {"north_pos":<val>, "east_pos":<val>, "depth":<val>}
         '''
 
         current_position = self.sensor_data
@@ -266,7 +271,9 @@ class Drive_Functions:
                         it doesn't rech the buffer_zone in time, the function
                         will exit
             desired_orientation: If None, hold the current North, East, and Depth
-                                will orienting to face position.
+                                will orienting to face position. Else one to all of the
+                                following can be set to lock those orientations.
+                                {"north_pos":<val>, "east_pos":<val>, "depth":<val>}
         '''
 
         current_position = self.sensor_data
@@ -318,7 +325,7 @@ class Drive_Functions:
                         will exit.
             desired_orientation: If None, then use the current yaw and depth while
                                 moving to the desired_position. Else pass a Dictionary
-                                with 1 or all of the following keys with their desired
+                                with 1 to all of the following keys with their desired
                                 values.
                                 {"depth":<val>, "yaw":<val>}
         '''
@@ -370,6 +377,11 @@ class Drive_Functions:
             timeout: The amount of time this function can loop before exiting. If
                         it doesn't rech the buffer_zone in time, the function
                         will exit
+            desired_orientation: If None, then use the current yaw and depth while
+                                moving to the desired_position. Else pass a Dictionary
+                                with 1 to all of the following keys with their desired
+                                values.
+                                {"depth":<val>, "yaw":<val>}
         '''
 
         current_position = self.sensor_data
@@ -398,7 +410,12 @@ class Drive_Functions:
             buffer_zone: The tolerance that y direction move can have.
             timeout: The amount of time this function can loop before exiting. If
                         it doesn't rech the buffer_zone in time, the function
-                        will exit
+                        will exit.
+            desired_orientation: If None, then use the current yaw and depth while
+                                moving to the desired_position. Else pass a Dictionary
+                                with 1 to all of the following keys with their desired
+                                values.
+                                {"depth":<val>, "yaw":<val>}
         '''
 
         current_position = self.sensor_data

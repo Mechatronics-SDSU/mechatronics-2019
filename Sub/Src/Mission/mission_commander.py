@@ -1,3 +1,13 @@
+'''
+Copyright 2019, David Pierce Walker-Howell, All rights reserved
+Author: David Pierce Walker-Howell<piercedhowell@gmail.com>
+Last Modified 08/05/2019
+
+Description: The mission commander executes a mission based on a mission.json file
+            when the vehicle is in mission mode. Missions are started by pressing
+            the auto button on the rear of perseverance. Missions are a queue of tasks
+            to complete.
+'''
 import sys
 import os
 
