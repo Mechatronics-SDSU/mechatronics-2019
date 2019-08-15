@@ -211,7 +211,7 @@ class Buoy_Task(Task):
         succeeded, _, _ = self.drive_functions.move_y_direction(sub_y_direction,
                                                         buffer_zone=self.yaw_buffer_zone,
                                                         timeout=remaining_task_time,
-                                                desired_orientation={"depth":self.observation_position[3], "yaw":self.observation_position[0]})
+                                                desired_orientation={"depth":(self.observation_position[3] + sub_depth_direction), "yaw":self.observation_position[0]})
 
         if(not succeeded):
             return False
@@ -221,4 +221,4 @@ class Buoy_Task(Task):
         succeeded, _, _ = self.drive_functions.move_x_direction(sub_x_direction,
                                                         buffer_zone=self.yaw_buffer_zone,
                                                         timeout=remaining_task_time,
-                                                desired_orientation={"depth":self.observation_position[3], "yaw":self.observation_position[0], "east_pos":self.observation_position[2]})
+                                                desired_orientation={"depth":(self.observation_position[3] + sub_depth_direction), "yaw":self.observation_position[0], "east_pos":(self.observation_position[2] + sub_y_direction)})
