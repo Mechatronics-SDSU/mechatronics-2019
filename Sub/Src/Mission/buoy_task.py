@@ -218,7 +218,7 @@ class Buoy_Task(Task):
 
         #Face the desired_line_up_position
         remaining_task_time = self.timeout - self.timeout_timer.net_timer()
-        succeeded, _, _ = self.drive_functions.move_y_direction(sub_y_direction,
+        succeeded, _, _ = self.drive_functions.move_x_direction(sub_x_direction,
                                                         buffer_zone=self.yaw_buffer_zone,
                                                         timeout=remaining_task_time,
-                                                desired_orientation={"depth":self.observation_position[3], "yaw":self.observation_position[0]})
+                                                desired_orientation={"depth":self.observation_position[3], "yaw":self.observation_position[0], "east_pos":self.observation_position[2]})
