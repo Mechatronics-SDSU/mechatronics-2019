@@ -278,7 +278,7 @@ class Mission_Commander(threading.Thread):
 
                     #Kill the sub.
                     self.kill_sub_publisher.publish(True)
-            except:
+            except Exception as e:
                 print("[ERROR]: Encountered an Error in Mission Commander. Error:", sys.exc_info()[0])
                 raise
 

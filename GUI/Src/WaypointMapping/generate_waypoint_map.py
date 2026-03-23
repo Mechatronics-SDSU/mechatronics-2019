@@ -288,10 +288,14 @@ class Generate_Waypoint_Map(threading.Thread):
 
                     try:
                         #Send the waypoints to the sub
-                        connection_to_sub = pysftp.Connection(host='192.168.1.14', username='nvidia', password='nvidia')
+                        connection_to_sub = pysftp.Connection(
+                            host=os.environ.get('SUB_HOST', '192.168.1.14'),
+                            username=os.environ.get('SUB_USER', 'nvidia'),
+                            password=os.environ.get('SUB_PASSWORD')  # Do not hardcode passwords
+                        )
                         connection_to_sub.put(self.waypoint_save_file, os.path.join(self.sub_save_directory, self.waypoint_save_file))
 
-                    except:
+                    except Exception as e:
                         print('[INFO]: Could not send waypoint file to sub.')
                         raise
 
